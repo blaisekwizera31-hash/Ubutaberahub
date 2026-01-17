@@ -133,10 +133,10 @@ const CitizenDashboard = () => {
                 <Input placeholder="Search cases, lawyers, resources..." className="pl-10" />
               </div>
             </div>
-  <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors pt-8">
+  {/* <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors pt-8">
             <ArrowLeft className="w-4 h-4" />
             Back to Home
-          </Link>
+          </Link> */}
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
@@ -147,13 +147,14 @@ const CitizenDashboard = () => {
 
               {/* Profile photo dynamically */}
               <div className="w-10 h-10 rounded-full overflow-hidden">
-                {user?.profilePhoto ? (
-                  <img src={user.profilePhoto} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
+                
+                  <img src={user.profilePhoto || "/avatar/avatar.png"} 
+                  alt={user.name} className="w-full h-full object-cover" />
+                 : (
                   <div className="w-full h-full bg-accent flex items-center justify-center text-accent-foreground">
                     <User className="w-5 h-5" />
                   </div>
-                )}
+                )
               </div>
             </div>
           </div>
@@ -168,13 +169,13 @@ const CitizenDashboard = () => {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-3"
           >
-            {user?.profilePhoto && (
+            
               <img
-                src={user.profilePhoto}
+                src={user.profilePhoto || "/avatar/avatar.png"}
                 alt={user.name}
                 className="w-12 h-12 rounded-full object-cover border-2 border-primary"
               />
-            )}
+            
             <div>
               <h1 className="text-2xl font-display font-bold mb-1">
                 Welcome back, {user?.name || "Citizen"}!
