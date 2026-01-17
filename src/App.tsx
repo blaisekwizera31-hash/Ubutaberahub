@@ -24,11 +24,11 @@ const App = () => (
   <Route path="/auth" element={<Auth />} />
   <Route path="/dashboard" element={<CitizenDashboard />} />
   <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
-  <Route path="/judge-dashboard" element={<JudgeDashboard />} />
+  <Route path="/dashboard" element={<JudgeDashboard />} />
   <Route path="/clerk-dashboard" element={<CourtClerkDashboard />} />
   
 
-  <Route path="*" element={<NotFound />} />
+  {/* <Route path="*" element={<NotFound />} /> */}
 </Routes>
       </BrowserRouter>
     </TooltipProvider>
