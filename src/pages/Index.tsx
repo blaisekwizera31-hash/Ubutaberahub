@@ -13,7 +13,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Header */}
       <Header currentLang={currentLang} onLanguageChange={setCurrentLang} />
+
+      {/* Main content */}
       <main>
         <HeroSection lang={currentLang} />
         <FeaturesSection />
@@ -22,6 +25,8 @@ const Index = () => {
         <AIAssistantSection lang={currentLang} />
         <CTASection />
       </main>
+
+      {/* Footer */}
       <FooterSection />
     </div>
   );

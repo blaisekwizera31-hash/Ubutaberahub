@@ -16,6 +16,10 @@ import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 
 const JudgeDashboard = () => {
+  // Get the logged-in user
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+
   const stats = [
     { title: "Cases for Review", value: "12", icon: FileText, trend: "5 urgent", color: "primary" as const },
     { title: "Hearings Today", value: "4", icon: Calendar, trend: "Next at 10:00", color: "secondary" as const },
@@ -69,7 +73,7 @@ const JudgeDashboard = () => {
   };
 
   return (
-    <DashboardLayout role="judge" userName="Hon. Justice Kamara">
+    <DashboardLayout role="judge" userName={user?.name} userPhoto={user?.profilePhoto}>
       <div className="space-y-6">
         {/* Welcome Section */}
         <motion.div
@@ -77,9 +81,21 @@ const JudgeDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Good Morning, Hon. Justice Kamara</h1>
-            <p className="text-muted-foreground">You have 4 hearings scheduled for today</p>
+          <div className="flex items-center gap-3">
+            {/* Profile photo */}
+            {user?.profilePhoto && (
+              <img
+                src={user.profilePhoto}
+                alt={user.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+              />
+            )}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                Good Morning, {user ? user.name : "Hon. Justice"}
+              </h1>
+              <p className="text-muted-foreground">You have 4 hearings scheduled for today</p>
+            </div>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" className="gap-2">

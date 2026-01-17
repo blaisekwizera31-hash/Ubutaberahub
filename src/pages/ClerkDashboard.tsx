@@ -27,6 +27,10 @@ import StatCard from "@/components/Dashboard/StatCard";
 const ClerkDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Get logged-in clerk info from localStorage
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+
   const stats = [
     { title: "Pending Filings", value: "24", icon: FileText, trend: "8 today", color: "primary" as const },
     { title: "Processed Today", value: "18", icon: CheckCircle, trend: "+5 vs yesterday", color: "secondary" as const },
@@ -83,7 +87,7 @@ const ClerkDashboard = () => {
   };
 
   return (
-    <DashboardLayout role="clerk" userName="Amahoro Diane">
+    <DashboardLayout role="clerk" userName={user?.name || "Court Clerk"}>
       <div className="space-y-6">
         {/* Welcome Section */}
         <motion.div
@@ -91,10 +95,23 @@ const ClerkDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Good Morning, Diane!</h1>
-            <p className="text-muted-foreground">You have 24 pending filings to process</p>
+          <div className="flex items-center gap-3">
+            {/* Profile Photo */}
+            {user?.profilePhoto && (
+              <img
+                src={user.profilePhoto}
+                alt={user.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+              />
+            )}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                Good Morning, {user?.name || "Diane"}!
+              </h1>
+              <p className="text-muted-foreground">You have 24 pending filings to process</p>
+            </div>
           </div>
+
           <div className="flex gap-3">
             <Button variant="outline" className="gap-2">
               <Calendar className="w-4 h-4" />
