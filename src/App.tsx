@@ -8,7 +8,7 @@ import Auth from "./pages/Auth";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import LawyerDashboard from "./pages/LawyerDashboard";
 import JudgeDashboard from "./pages/JudgeDashboard";
-import CourtClerkDashboard from "./pages/CourtClerkDashboard";
+import CourtClerkDashboard from "./pages/ClerkDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
