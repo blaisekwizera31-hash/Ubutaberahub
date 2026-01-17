@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CitizenDashboard from "./pages/CitizenDashboard";
+import LawyerDashboard from "./pages/LawyerDashboard";
+import JudgeDashboard from "./pages/JudgeDashboard";
+import CourtClerkDashboard from "./pages/CourtClerkDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,13 +19,17 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<CitizenDashboard />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+      <Routes>
+  <Route path="/" element={<Index />} />
+  <Route path="/auth" element={<Auth />} />
+  <Route path="/dashboard" element={<CitizenDashboard />} />
+  <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
+  <Route path="/judge-dashboard" element={<JudgeDashboard />} />
+  <Route path="/clerk-dashboard" element={<CourtClerkDashboard />} />
+  
+
+  <Route path="*" element={<NotFound />} />
+</Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

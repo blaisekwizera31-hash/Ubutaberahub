@@ -1,10 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Scale, Mail, Lock, User, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type AuthMode = "login" | "signup";
 
@@ -12,6 +12,11 @@ const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState("citizen");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+
+  const navigate = useNavigate();
 
   const roles = [
     { id: "citizen", label: "Citizen", description: "Submit cases, find lawyers" },
@@ -20,15 +25,62 @@ const Auth = () => {
     { id: "judge", label: "Judge", description: "Review & decide cases" },
   ];
 
+  // Dashboard routes
+  const dashboardRoutes: Record<string, string> = {
+    citizen: "/dashboard",
+    lawyer: "/lawyer-dashboard",
+    judge: "/judge-dashboard",
+    clerk: "/clerk-dashboard",
+  };
+
+  // Simulate signup
+  const handleSignup = () => {
+    if (!email || !password || !name) {
+      alert("Fill all fields");
+      return;
+    }
+    const user = { email, password, name, role: selectedRole };
+    localStorage.setItem("user", JSON.stringify(user));
+    navigate(dashboardRoutes[selectedRole]);
+  };
+
+ const handleLogin = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const savedUser = localStorage.getItem("user");
+
+  if (!savedUser) {
+    alert("No account found. Please sign up.");
+    return;
+  }
+
+  const user = JSON.parse(savedUser);
+
+  if (user.email !== email || user.password !== password) {
+    alert("Invalid credentials");
+    return;
+  }
+
+  localStorage.setItem("loggedInUser", JSON.stringify(user));
+
+  const roleRoutes: Record<string, string> = {
+    citizen: "/dashboard",
+    lawyer: "/lawyer-dashboard",
+    judge: "/judge-dashboard",
+    clerk: "/clerk-dashboard",
+  };
+
+  navigate(roleRoutes[user.role]);
+};
+
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Decorative */}
+      {/* Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 gradient-hero relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-64 h-64 bg-accent/20 rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl" />
         </div>
-        
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -43,7 +95,6 @@ const Auth = () => {
                 UBUTABERA<span className="text-accent">hub</span>
               </span>
             </div>
-            
             <h1 className="text-4xl font-display font-bold mb-4">
               Welcome to Rwanda's Digital Justice Platform
             </h1>
@@ -51,29 +102,10 @@ const Auth = () => {
               Access legal guidance, connect with professionals, and navigate the justice system with confidence.
             </p>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-12 grid grid-cols-2 gap-4"
-          >
-            {[
-              { value: "24/7", label: "AI Support" },
-              { value: "3", label: "Languages" },
-              { value: "100%", label: "Secure" },
-              { value: "Free", label: "To Start" },
-            ].map((stat, i) => (
-              <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-white/70 text-sm">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
         </div>
       </div>
 
-      {/* Right Panel - Form */}
+      {/* Right Panel */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -81,7 +113,6 @@ const Auth = () => {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          {/* Back to Home */}
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
@@ -90,17 +121,6 @@ const Auth = () => {
             Back to Home
           </Link>
 
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 gradient-hero rounded-lg flex items-center justify-center">
-              <Scale className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-display text-xl font-bold text-foreground">
-              UBUTABERA<span className="text-accent">hub</span>
-            </span>
-          </div>
-
-          {/* Mode Toggle */}
           <div className="flex gap-2 p-1 bg-muted rounded-xl mb-8">
             <button
               onClick={() => setMode("login")}
@@ -124,15 +144,6 @@ const Auth = () => {
             </button>
           </div>
 
-          <h2 className="text-2xl font-display font-bold mb-2">
-            {mode === "login" ? "Welcome back" : "Create your account"}
-          </h2>
-          <p className="text-muted-foreground mb-8">
-            {mode === "login"
-              ? "Sign in to access your dashboard"
-              : "Join thousands accessing justice through technology"}
-          </p>
-
           <form className="space-y-5">
             {mode === "signup" && (
               <div className="space-y-2">
@@ -144,6 +155,8 @@ const Auth = () => {
                     type="text"
                     placeholder="Enter your full name"
                     className="pl-10"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                   />
                 </div>
               </div>
@@ -158,6 +171,8 @@ const Auth = () => {
                   type="email"
                   placeholder="you@example.com"
                   className="pl-10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
@@ -171,6 +186,8 @@ const Auth = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="pl-10 pr-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
@@ -205,15 +222,13 @@ const Auth = () => {
               </div>
             )}
 
-            {mode === "login" && (
-              <div className="flex justify-end">
-                <a href="#" className="text-sm text-accent hover:underline">
-                  Forgot password?
-                </a>
-              </div>
-            )}
-
-            <Button variant="hero" size="lg" className="w-full">
+            {/* Signup / Login Button */}
+            <Button
+              variant="hero"
+              size="lg"
+              className="w-full"
+              onClick={mode === "signup" ? handleSignup : handleLogin}
+            >
               {mode === "login" ? "Sign In" : "Create Account"}
             </Button>
           </form>
