@@ -97,13 +97,13 @@ const ClerkDashboard = () => {
         >
           <div className="flex items-center gap-3">
             {/* Profile Photo */}
-            {user?.profilePhoto && (
+            
               <img
-                src={user.profilePhoto}
+                src={user?.profilePhoto || "/avatar/avatar.png"}
                 alt={user.name}
                 className="w-12 h-12 rounded-full object-cover border-2 border-primary"
               />
-            )}
+            
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
                 Good Morning, {user?.name || "Diane"}!

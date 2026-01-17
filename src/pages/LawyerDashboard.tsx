@@ -62,7 +62,10 @@ const LawyerDashboard = () => {
   ];
 
   return (
-    <DashboardLayout role="lawyer" userName={user?.name} userPhoto={user?.profilePhoto}>
+    <DashboardLayout role="lawyer" 
+    userName={user?.name} 
+    userPhoto={user?.profilePhoto || "/avatar/avatar.png"}
+>
       <div className="space-y-6">
         {/* Welcome Section */}
         <motion.div
@@ -72,13 +75,12 @@ const LawyerDashboard = () => {
         >
           <div className="flex items-center gap-3">
             {/* Profile photo */}
-            {user?.profilePhoto && (
-              <img
-                src={user.profilePhoto}
-                alt={user.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-              />
-            )}
+           
+             <img
+              src={user?.profilePhoto || "/avatar/avatar.png"}
+              alt={user?.name || "Lawyer"}
+              className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+            />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
                 Welcome, {user ? user.name : "Me. Lawyer"}!
