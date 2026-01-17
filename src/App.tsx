@@ -24,7 +24,6 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/find-lawyer" element={<FindLawyer />} />
           <Route path="/dashboard" element={<CitizenDashboard />} />
           <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
           <Route path="/judge-dashboard" element={<JudgeDashboard />} />
