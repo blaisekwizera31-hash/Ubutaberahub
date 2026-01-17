@@ -17,6 +17,10 @@ import StatCard from "@/components/Dashboard/StatCard";
 import CaseCard from "@/components/Dashboard/CaseCard";
 
 const LawyerDashboard = () => {
+  // Get the logged-in user
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+
   const stats = [
     { title: "Active Cases", value: "15", icon: Briefcase, trend: "+3 this month", color: "primary" as const },
     { title: "Clients", value: "28", icon: Users, trend: "+5 new", color: "secondary" as const },
@@ -58,7 +62,7 @@ const LawyerDashboard = () => {
   ];
 
   return (
-    <DashboardLayout role="lawyer" userName="Me. Jean Habimana">
+    <DashboardLayout role="lawyer" userName={user?.name} userPhoto={user?.profilePhoto}>
       <div className="space-y-6">
         {/* Welcome Section */}
         <motion.div
@@ -66,9 +70,21 @@ const LawyerDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Welcome, Me. Habimana!</h1>
-            <p className="text-muted-foreground">You have 6 hearings scheduled this week</p>
+          <div className="flex items-center gap-3">
+            {/* Profile photo */}
+            {user?.profilePhoto && (
+              <img
+                src={user.profilePhoto}
+                alt={user.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+              />
+            )}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                Welcome, {user ? user.name : "Me. Lawyer"}!
+              </h1>
+              <p className="text-muted-foreground">You have 6 hearings scheduled this week</p>
+            </div>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" className="gap-2">
@@ -154,10 +170,8 @@ const LawyerDashboard = () => {
                 Recent Messages
               </h3>
               <div className="space-y-3">
-                {[
-                  { name: "Jean-Claude M.", message: "Thank you for the update...", time: "2h ago" },
-                  { name: "Marie U.", message: "When is our next meeting?", time: "5h ago" },
-                ].map((msg, index) => (
+                {[{ name: "Jean-Claude M.", message: "Thank you for the update...", time: "2h ago" },
+                  { name: "Marie U.", message: "When is our next meeting?", time: "5h ago" }].map((msg, index) => (
                   <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
                     <div className="w-8 h-8 rounded-full gradient-hero flex items-center justify-center text-primary-foreground text-sm font-bold">
                       {msg.name.charAt(0)}

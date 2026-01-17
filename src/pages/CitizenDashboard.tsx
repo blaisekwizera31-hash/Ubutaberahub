@@ -9,9 +9,6 @@ import {
   User,
   ChevronRight,
   Plus,
-  Clock,
-  CheckCircle,
-  AlertCircle,
   Mic,
   Send,
   Home,
@@ -20,11 +17,16 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const CitizenDashboard = () => {
+  // Get logged-in citizen from localStorage
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+
   const recentCases = [
     {
       id: "CASE-2024-001",
@@ -86,7 +88,7 @@ const CitizenDashboard = () => {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {[
+          {[ 
             { icon: Home, label: "Dashboard", active: true },
             { icon: FileText, label: "My Cases" },
             { icon: MessageSquare, label: "AI Assistant" },
@@ -131,16 +133,27 @@ const CitizenDashboard = () => {
                 <Input placeholder="Search cases, lawyers, resources..." className="pl-10" />
               </div>
             </div>
-
+  <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors pt-8">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
-                  2
+                  {notifications.filter(n => n.unread).length}
                 </span>
               </Button>
-              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                <User className="w-5 h-5 text-accent-foreground" />
+
+              {/* Profile photo dynamically */}
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                {user?.profilePhoto ? (
+                  <img src={user.profilePhoto} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-accent flex items-center justify-center text-accent-foreground">
+                    <User className="w-5 h-5" />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -153,9 +166,23 @@ const CitizenDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="flex items-center gap-3"
           >
-            <h1 className="text-2xl font-display font-bold mb-1">Welcome back, Amahoro!</h1>
-            <p className="text-muted-foreground">Here's what's happening with your cases today.</p>
+            {user?.profilePhoto && (
+              <img
+                src={user.profilePhoto}
+                alt={user.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+              />
+            )}
+            <div>
+              <h1 className="text-2xl font-display font-bold mb-1">
+                Welcome back, {user?.name || "Citizen"}!
+              </h1>
+              <p className="text-muted-foreground">
+                Here's what's happening with your cases today.
+              </p>
+            </div>
           </motion.div>
 
           {/* Quick Actions */}
@@ -165,7 +192,7 @@ const CitizenDashboard = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           >
-            {[
+            {[ 
               { icon: Plus, label: "Submit New Case", color: "gradient-gold text-primary" },
               { icon: MessageSquare, label: "Ask AI Assistant", color: "bg-secondary text-secondary-foreground" },
               { icon: Briefcase, label: "Find a Lawyer", color: "bg-primary text-primary-foreground" },
@@ -181,6 +208,7 @@ const CitizenDashboard = () => {
             ))}
           </motion.div>
 
+          {/* Recent Cases and Sidebar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Recent Cases */}
             <motion.div
@@ -218,9 +246,9 @@ const CitizenDashboard = () => {
               </div>
             </motion.div>
 
-            {/* Right Column */}
+            {/* Right Sidebar */}
             <div className="space-y-6">
-              {/* AI Assistant Quick Access */}
+              {/* AI Assistant */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
