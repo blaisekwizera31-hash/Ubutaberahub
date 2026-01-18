@@ -9,6 +9,9 @@ import {
   User,
   ChevronRight,
   Plus,
+  Clock,
+  CheckCircle,
+  AlertCircle,
   Mic,
   Send,
   Home,
@@ -17,16 +20,11 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const CitizenDashboard = () => {
-  // Get logged-in citizen from localStorage
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
-
   const recentCases = [
     {
       id: "CASE-2024-001",
@@ -88,16 +86,17 @@ const CitizenDashboard = () => {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {[ 
-            { icon: Home, label: "Dashboard", active: true },
-            { icon: FileText, label: "My Cases" },
-            { icon: MessageSquare, label: "AI Assistant" },
-            { icon: Briefcase, label: "Find Lawyer" },
-            { icon: Calendar, label: "Appointments" },
-            { icon: HelpCircle, label: "Legal Resources" },
+          {[
+            { icon: Home, label: "Dashboard", active: true, href: "/dashboard" },
+            { icon: FileText, label: "My Cases", href: "/dashboard" },
+            { icon: MessageSquare, label: "AI Assistant", href: "/dashboard" },
+            { icon: Briefcase, label: "Find Lawyers", href: "/find-lawyer" },
+            { icon: Calendar, label: "Appointments", href: "/dashboard" },
+            { icon: HelpCircle, label: "Legal Resources", href: "/dashboard" },
           ].map((item) => (
-            <button
+            <Link
               key={item.label}
+              to={item.href}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 item.active
                   ? "bg-accent/10 text-accent"
@@ -106,7 +105,7 @@ const CitizenDashboard = () => {
             >
               <item.icon className="w-5 h-5" />
               {item.label}
-            </button>
+            </Link>
           ))}
         </nav>
 
@@ -133,28 +132,16 @@ const CitizenDashboard = () => {
                 <Input placeholder="Search cases, lawyers, resources..." className="pl-10" />
               </div>
             </div>
-  {/* <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors pt-8">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link> */}
+
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
-                  {notifications.filter(n => n.unread).length}
+                  2
                 </span>
               </Button>
-
-              {/* Profile photo dynamically */}
-              <div className="w-10 h-10 rounded-full overflow-hidden">
-                
-                  <img src={user.profilePhoto || "/avatar/avatar.png"} 
-                  alt={user.name} className="w-full h-full object-cover" />
-                 : (
-                  <div className="w-full h-full bg-accent flex items-center justify-center text-accent-foreground">
-                    <User className="w-5 h-5" />
-                  </div>
-                )
+              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
+                <User className="w-5 h-5 text-accent-foreground" />
               </div>
             </div>
           </div>
@@ -167,23 +154,9 @@ const CitizenDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center gap-3"
           >
-            
-              <img
-                src={user.profilePhoto || "/avatar/avatar.png"}
-                alt={user.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-              />
-            
-            <div>
-              <h1 className="text-2xl font-display font-bold mb-1">
-                Welcome back, {user?.name || "Citizen"}!
-              </h1>
-              <p className="text-muted-foreground">
-                Here's what's happening with your cases today.
-              </p>
-            </div>
+            <h1 className="text-2xl font-display font-bold mb-1">Welcome back, Amahoro!</h1>
+            <p className="text-muted-foreground">Here's what's happening with your cases today.</p>
           </motion.div>
 
           {/* Quick Actions */}
@@ -193,23 +166,23 @@ const CitizenDashboard = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           >
-            {[ 
-              { icon: Plus, label: "Submit New Case", color: "gradient-gold text-primary" },
-              { icon: MessageSquare, label: "Ask AI Assistant", color: "bg-secondary text-secondary-foreground" },
-              { icon: Briefcase, label: "Finddd a Lawyer", color: "bg-primary text-primary-foreground" },
-              { icon: Calendar, label: "Book Consultation", color: "bg-accent text-accent-foreground" },
-            ].map((action, i) => (
-              <button
+            {[
+              { icon: Plus, label: "Submit New Case", color: "gradient-gold text-primary", href: "/submit-case" },
+              { icon: MessageSquare, label: "Ask AI Assistant", color: "bg-secondary text-secondary-foreground", href: "/dashboard" },
+              { icon: Briefcase, label: "Find a Lawyer", color: "bg-primary text-primary-foreground", href: "/find-lawyer" },
+              { icon: Calendar, label: "Book Consultation", color: "bg-accent text-accent-foreground", href: "/dashboard" },
+            ].map((action) => (
+              <Link
                 key={action.label}
+                to={action.href}
                 className={`flex items-center gap-3 p-4 rounded-xl ${action.color} shadow-soft hover:shadow-elevated transition-all hover:scale-[1.02]`}
               >
                 <action.icon className="w-5 h-5" />
                 <span className="font-medium">{action.label}</span>
-              </button>
+              </Link>
             ))}
           </motion.div>
 
-          {/* Recent Cases and Sidebar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Recent Cases */}
             <motion.div
@@ -247,9 +220,9 @@ const CitizenDashboard = () => {
               </div>
             </motion.div>
 
-            {/* Right Sidebar */}
+            {/* Right Column */}
             <div className="space-y-6">
-              {/* AI Assistant */}
+              {/* AI Assistant Quick Access */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
