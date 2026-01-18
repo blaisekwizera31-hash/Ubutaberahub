@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { createPageUrl } from "@/lib/utils";
+import { Link } from "react-router-dom";
 import {
   Scale,
   MessageSquare,
@@ -17,10 +19,8 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
 
 const CitizenDashboard = () => {
   // Get logged-in citizen from localStorage
@@ -72,6 +72,14 @@ const CitizenDashboard = () => {
     { message: "Appointment reminder for tomorrow", time: "1d ago", unread: false },
   ];
 
+  // Quick Actions
+  const quickActions = [
+    { icon: Plus, label: "Submit New Case", color: "gradient-gold text-primary", path: "/submit-case" },
+    { icon: MessageSquare, label: "Ask AI Assistant", color: "bg-secondary text-secondary-foreground", path: "/ai-assistant" },
+    { icon: Briefcase, label: "Find a Lawyer", color: "bg-primary text-primary-foreground", path: "/find-lawyer" },
+    { icon: Calendar, label: "Book Consultation", color: "bg-accent text-accent-foreground", path: "/book-consultation" },
+  ];
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -92,7 +100,7 @@ const CitizenDashboard = () => {
             { icon: Home, label: "Dashboard", active: true },
             { icon: FileText, label: "My Cases" },
             { icon: MessageSquare, label: "AI Assistant" },
-            { icon: Briefcase, label: "Find Lawyers" },
+            { icon: Briefcase, label: "Find Lawyer" },
             { icon: Calendar, label: "Appointments" },
             { icon: HelpCircle, label: "Legal Resources" },
           ].map((item) => (
@@ -133,10 +141,6 @@ const CitizenDashboard = () => {
                 <Input placeholder="Search cases, lawyers, resources..." className="pl-10" />
               </div>
             </div>
-  {/* <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors pt-8">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link> */}
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
@@ -147,14 +151,13 @@ const CitizenDashboard = () => {
 
               {/* Profile photo dynamically */}
               <div className="w-10 h-10 rounded-full overflow-hidden">
-                
-                  <img src={user.profilePhoto || "/avatar/avatar.png"} 
-                  alt={user.name} className="w-full h-full object-cover" />
-                 : (
+                {user?.profilePhoto ? (
+                  <img src={user.profilePhoto} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
                   <div className="w-full h-full bg-accent flex items-center justify-center text-accent-foreground">
                     <User className="w-5 h-5" />
                   </div>
-                )
+                )}
               </div>
             </div>
           </div>
@@ -169,13 +172,11 @@ const CitizenDashboard = () => {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-3"
           >
-            
-              <img
-                src={user.profilePhoto || "/avatar/avatar.png"}
-                alt={user.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-              />
-            
+            <img
+              src={user?.profilePhoto || "/avatar/avatar.png"}
+              alt={user?.name}
+              className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+            />
             <div>
               <h1 className="text-2xl font-display font-bold mb-1">
                 Welcome back, {user?.name || "Citizen"}!
@@ -193,19 +194,13 @@ const CitizenDashboard = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           >
-            {[ 
-              { icon: Plus, label: "Submit New Case", color: "gradient-gold text-primary" },
-              { icon: MessageSquare, label: "Ask AI Assistant", color: "bg-secondary text-secondary-foreground" },
-              { icon: Briefcase, label: "Find a Lawyer", color: "bg-primary text-primary-foreground" },
-              { icon: Calendar, label: "Book Consultation", color: "bg-accent text-accent-foreground" },
-            ].map((action, i) => (
-              <button
-                key={action.label}
-                className={`flex items-center gap-3 p-4 rounded-xl ${action.color} shadow-soft hover:shadow-elevated transition-all hover:scale-[1.02]`}
-              >
-                <action.icon className="w-5 h-5" />
-                <span className="font-medium">{action.label}</span>
-              </button>
+            {quickActions.map((action) => (
+              <Link to={action.path} key={action.label}>
+                <div className={`flex items-center gap-3 p-4 rounded-xl ${action.color} shadow-soft hover:shadow-elevated transition-all hover:scale-[1.02]`}>
+                  <action.icon className="w-5 h-5" />
+                  <span className="font-medium">{action.label}</span>
+                </div>
+              </Link>
             ))}
           </motion.div>
 
