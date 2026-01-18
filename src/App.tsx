@@ -11,7 +11,6 @@ import LawyerDashboard from "./pages/LawyerDashboard";
 import JudgeDashboard from "./pages/JudgeDashboard";
 import CourtClerkDashboard from "./pages/ClerkDashboard";
 import NotFound from "./pages/NotFound";
-import FindLawyer from "./pages/FindLawyer";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +28,6 @@ const App = () => {
           <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
           <Route path="/judge-dashboard" element={<JudgeDashboard />} />
           <Route path="/clerk-dashboard" element={<CourtClerkDashboard />} />
-          <Route path="/findlawyer" element={<FindLawyer />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
 
