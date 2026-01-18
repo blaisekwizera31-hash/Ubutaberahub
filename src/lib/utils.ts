@@ -1,12 +1,6 @@
-// export function createPageUrl(page) {
-//   // predefined routes
-//   const routes: Record<string, string> = {
-//     FindLawyer: "/find-lawyer",
-//     Dashboard: "/dashboard",
-//     // add more routes as needed
-//   };
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-//   // return predefined route if exists, else lowercase fallback
-//   return routes[page] || `/${page.toLowerCase()}`;
-// }
-// export default createPageUrl;
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
