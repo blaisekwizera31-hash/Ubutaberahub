@@ -27,14 +27,14 @@ const App = () => {
 
         <Routes>
           <Route path="/" element={<Index />} />
-           <Route path="/appointments" element={<Appointments />} />
+          <Route path="/appointments" element={<Appointments />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<CitizenDashboard />} />
           <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
           <Route path="/judge-dashboard" element={<JudgeDashboard />} />
           <Route path="/clerk-dashboard" element={<CourtClerkDashboard />} />
           <Route path="*" element={<NotFound />} />
-           <Route path="/legal-resources" element={<LegalResources />} />
+          <Route path="/legal-resources" element={<LegalResources />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/dashboard" element={<CitizenDashboard />} />
           <Route path="/find-lawyer" element={<FindLawyer />} />
