@@ -93,7 +93,7 @@ const CitizenDashboard = () => {
             { icon: FileText, label: "My Cases", href: "/dashboard" },
             { icon: MessageSquare, label: "AI Assistant", href: "/dashboard" },
             { icon: Briefcase, label: "Find Lawyers", href: "/find-lawyer" },
-            { icon: Calendar, label: "Appointments", href: "/dashboard" },
+            { icon: Calendar, label: "Appointments", href: "/appointments" },
             { icon: HelpCircle, label: "Legal Resources", href: "/legal-resources" },
           ].map((item) => (
             <Link
