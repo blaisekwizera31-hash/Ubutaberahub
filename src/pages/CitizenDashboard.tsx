@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Scale,
@@ -9,9 +10,6 @@ import {
   User,
   ChevronRight,
   Plus,
-  Clock,
-  CheckCircle,
-  AlertCircle,
   Mic,
   Send,
   Home,
@@ -25,6 +23,10 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const CitizenDashboard = () => {
+  // Get logged-in citizen info from localStorage
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+
   const recentCases = [
     {
       id: "CASE-2024-001",
@@ -140,8 +142,16 @@ const CitizenDashboard = () => {
                   2
                 </span>
               </Button>
-              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                <User className="w-5 h-5 text-accent-foreground" />
+              {/* User Profile */}
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-accent">
+                  <img
+                    src={user?.profilePhoto || "/avatar/avatar.png"}
+                    alt={user?.name || "User"}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="font-medium">{user?.name || "Citizen"}</span>
               </div>
             </div>
           </div>
@@ -155,7 +165,9 @@ const CitizenDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-2xl font-display font-bold mb-1">Welcome back, Amahoro!</h1>
+            <h1 className="text-2xl font-display font-bold mb-1">
+              Welcome back, {user?.name || "Amahoro"}!
+            </h1>
             <p className="text-muted-foreground">Here's what's happening with your cases today.</p>
           </motion.div>
 
@@ -183,6 +195,7 @@ const CitizenDashboard = () => {
             ))}
           </motion.div>
 
+          {/* Remaining Sections: Recent Cases, Appointments, Notifications */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Recent Cases */}
             <motion.div
@@ -220,9 +233,9 @@ const CitizenDashboard = () => {
               </div>
             </motion.div>
 
-            {/* Right Column */}
+            {/* Right Column: AI Assistant, Appointments, Notifications */}
             <div className="space-y-6">
-              {/* AI Assistant Quick Access */}
+              {/* AI Assistant */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
