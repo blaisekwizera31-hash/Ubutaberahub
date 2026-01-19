@@ -8,14 +8,14 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import LawyerDashboard from "./pages/LawyerDashboard";
-import Appointments from "./pages/Appointments";
-import LegalResources from "./pages/LegalResources";
-import Settings from "./pages/Settings";
 import JudgeDashboard from "./pages/JudgeDashboard";
 import CourtClerkDashboard from "./pages/ClerkDashboard";
 import NotFound from "./pages/NotFound";
 import FindLawyer from "./pages/FindLawyer";
 import SubmitCase from "./pages/SubmitCase";
+import Appointments from "./pages/Appointments";
+import LegalResources from "./pages/LegalResources";
+import Settings from "./pages/Settings";
 const queryClient = new QueryClient();
 
 const App = () => {
