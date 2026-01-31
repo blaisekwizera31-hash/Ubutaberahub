@@ -38,3 +38,4 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
     </header>
   );
 }
+export default DashboardHeader;
