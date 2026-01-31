@@ -16,6 +16,7 @@ import SubmitCase from "./pages/SubmitCase";
 import Appointments from "./pages/Appointments";
 import LegalResources from "./pages/LegalResources";
 import Settings from "./pages/Settings";
+import MyCases from "./pages/MyCases";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -26,6 +27,7 @@ const App = () => {
         <Sonner />
 
         <Routes>
+           <Route path="/my-cases" element={<MyCases />} />
           <Route path="/" element={<Index />} />
           <Route path="/appointments" element={<Appointments />} />
           <Route path="/auth" element={<Auth />} />
