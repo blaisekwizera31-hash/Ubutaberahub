@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 
-// 1. Translation Object
 const translations = {
   en: {
     title: "Appointments",
@@ -24,16 +23,8 @@ const translations = {
     joinCall: "Join Call",
     viewDetails: "View Details",
     caseLabel: "Case",
-    status: {
-      confirmed: "Confirmed",
-      pending: "Pending",
-      completed: "Completed"
-    },
-    types: {
-      video: "Video Consultation",
-      docReview: "Document Review",
-      inPerson: "In-Person Meeting"
-    }
+    status: { confirmed: "Confirmed", pending: "Pending", completed: "Completed" },
+    types: { video: "Video Consultation", docReview: "Document Review", inPerson: "In-Person Meeting" }
   },
   rw: {
     title: "Gahunda",
@@ -45,16 +36,8 @@ const translations = {
     joinCall: "Injira muri videwo",
     viewDetails: "Reba birambuye",
     caseLabel: "Urubanza",
-    status: {
-      confirmed: "Byemejwe",
-      pending: "Birategereje",
-      completed: "Byarangiye"
-    },
-    types: {
-      video: "Kuvugana binyuze kuri videwo",
-      docReview: "Gusuzuma inyandiko",
-      inPerson: "Guhura imbonankubone"
-    }
+    status: { confirmed: "Byemejwe", pending: "Birategereje", completed: "Byarangiye" },
+    types: { video: "Kuvugana binyuze kuri videwo", docReview: "Gusuzuma inyandiko", inPerson: "Guhura imbonankubone" }
   },
   fr: {
     title: "Rendez-vous",
@@ -66,16 +49,8 @@ const translations = {
     joinCall: "Rejoindre l'appel",
     viewDetails: "Voir les détails",
     caseLabel: "Affaire",
-    status: {
-      confirmed: "Confirmé",
-      pending: "En attente",
-      completed: "Terminé"
-    },
-    types: {
-      video: "Consultation Vidéo",
-      docReview: "Examen de documents",
-      inPerson: "Réunion en personne"
-    }
+    status: { confirmed: "Confirmé", pending: "En attente", completed: "Terminé" },
+    types: { video: "Consultation Vidéo", docReview: "Examen de documents", inPerson: "Réunion en personne" }
   }
 };
 
@@ -86,9 +61,8 @@ interface AppointmentsProps {
 const Appointments = ({ lang = "en" }: AppointmentsProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
 
-  // Get User Data for the Layout
   const loggedInUser = localStorage.getItem("loggedInUser");
-  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+  const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User" };
 
   const upcomingAppointments = [
     {
@@ -130,12 +104,11 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
 
   return (
     <DashboardLayout 
-      role="client" 
-      userName={user?.name} 
+      role="citizen" // FIX: Changed from "client" to "citizen"
+      userName={user?.name || "User"} 
       lang={lang}
     >
       <div className="space-y-6">
-        {/* Top Header / Search bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative max-w-md w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -149,16 +122,11 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
           </Link>
         </div>
 
-        {/* Page Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold">{t.title}</h1>
           <p className="text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
-        {/* Upcoming Appointments */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">{t.upcoming}</h2>
           <div className="grid gap-4">
@@ -168,41 +136,24 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl border border-border shadow-soft p-5"
+                className="bg-card rounded-2xl border border-border p-5"
               >
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                   <div className="flex gap-4">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {apt.isVideo ? (
-                        <Video className="w-6 h-6 text-primary" />
-                      ) : (
-                        <Calendar className="w-6 h-6 text-primary" />
-                      )}
+                      {apt.isVideo ? <Video className="w-6 h-6 text-primary" /> : <Calendar className="w-6 h-6 text-primary" />}
                     </div>
                     <div>
                       <h3 className="font-semibold">{apt.lawyer}</h3>
                       <p className="text-sm text-muted-foreground">{apt.type}</p>
-                      <div className="flex flex-wrap items-center gap-4 mt-2 text-sm">
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          {apt.date}
-                        </span>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          {apt.time} ({apt.duration})
-                        </span>
+                      <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{apt.date}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{apt.time} ({apt.duration})</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {t.caseLabel}: {apt.caseId}
-                      </p>
                     </div>
                   </div>
                   <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      apt.status === t.status.confirmed 
-                        ? "bg-green-500/10 text-green-500" 
-                        : "bg-amber-500/10 text-amber-500"
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${apt.status === t.status.confirmed ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500"}`}>
                       {apt.status}
                     </span>
                     <Button size="sm" variant={apt.isVideo ? "default" : "outline"} className="ml-auto sm:ml-0">
@@ -215,15 +166,11 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
           </div>
         </div>
 
-        {/* Past Appointments */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">{t.past}</h2>
           <div className="grid gap-4">
             {pastAppointments.map((apt) => (
-              <div
-                key={apt.id}
-                className="bg-card rounded-2xl border border-border shadow-soft p-5 opacity-70 hover:opacity-100 transition-opacity"
-              >
+              <div key={apt.id} className="bg-card rounded-2xl border border-border p-5 opacity-70">
                 <div className="flex items-start justify-between">
                   <div className="flex gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -232,16 +179,6 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
                     <div>
                       <h3 className="font-semibold">{apt.lawyer}</h3>
                       <p className="text-sm text-muted-foreground">{apt.type}</p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {apt.date}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {apt.time}
-                        </span>
-                      </div>
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">

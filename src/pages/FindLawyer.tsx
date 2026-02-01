@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 
-// 1. Translation Object
+// 1. Full Translation Object for 3 Languages
 const translations = {
   en: {
     title: "Find a Lawyer",
@@ -29,7 +29,7 @@ const translations = {
   rw: {
     title: "Shaka Umunyamategeko",
     subtitle: "Shakisha abanyamategeko babifitiye uburenganzira bakufasha mu rubanza rwawe.",
-    searchPlaceholder: "Shakisha izina cyamasomo...",
+    searchPlaceholder: "Shakisha izina cyangwa isomo...",
     moreFilters: "Gushungura bindi",
     exp: "imyaka",
     rate: "RWF/isaha",
@@ -57,10 +57,11 @@ interface FindLawyerProps {
 const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
 
-  // Get User Data
+  // Get User Data safely
   const loggedInUser = localStorage.getItem("loggedInUser");
-  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+  const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User" };
 
+  // Lawyer data mapping using the selected language's specializations
   const lawyers = [
     {
       id: 1,
@@ -99,7 +100,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
 
   return (
     <DashboardLayout 
-      role="client" 
+      role="citizen" // Updated to "citizen" to match your LayoutConfig and fix the error
       userName={user?.name} 
       lang={lang}
     >
