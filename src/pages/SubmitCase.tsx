@@ -1,28 +1,18 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
-  Scale,
-  Search,
-  Bell,
-  User,
   Upload,
-  FileText,
-  ChevronRight,
-  Home,
-  MessageSquare,
-  Briefcase,
-  Calendar,
-  HelpCircle,
-  Settings,
-  LogOut,
   AlertCircle,
   CheckCircle,
+  FileText,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import {
   Select,
   SelectContent,
@@ -31,246 +21,242 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const SubmitCase = () => {
+const translations = {
+  en: {
+    title: "Submit New Case",
+    subtitle: "Provide details about your legal issue. Our team will review and assign appropriate assistance.",
+    beforeSubmit: "Before you submit",
+    alertText: "Ensure all information is accurate. You can upload supporting documents now or later.",
+    caseTitle: "Case Title *",
+    caseTitlePlaceholder: "Brief title describing your legal issue",
+    caseType: "Case Type *",
+    selectType: "Select case type",
+    priority: "Priority Level *",
+    selectPriority: "Select priority",
+    description: "Case Description *",
+    descPlaceholder: "Provide a detailed description of your legal issue. Include relevant dates, parties involved, and any actions taken so far.",
+    minChars: "Minimum 50 characters recommended",
+    documents: "Supporting Documents (Optional)",
+    uploadText: "Drop files here or click to upload",
+    uploadSubtext: "PDF, DOC, DOCX, JPG, PNG up to 10MB each",
+    cancel: "Cancel",
+    submit: "Submit Case",
+    success: "Case submitted successfully!",
+    priorities: [
+      { value: "low", label: "Low", desc: "Non-urgent matter" },
+      { value: "medium", label: "Medium", desc: "Standard timeline" },
+      { value: "high", label: "High", desc: "Urgent attention needed" },
+    ],
+    types: ["Family Law", "Property Dispute", "Criminal Defense", "Employment Law", "Contract Dispute", "Other"]
+  },
+  rw: {
+    title: "Tanga Urubanza Rushya",
+    subtitle: "Tanga amakuru arambuye ku kibazo ufite. Itsinda ryacu rizakigira ndetse rikuhe ubufasha bwiza.",
+    beforeSubmit: "Mbere yo gutanga",
+    alertText: "Higanwa ko amakuru yose ari ukuri. Ushobora gushyiraho inyandiko ubu cyangwa nyuma.",
+    caseTitle: "Umutwe w'ikibazo *",
+    caseTitlePlaceholder: "Inyito ngufi y'ikibazo ufite",
+    caseType: "Ubwoko bw'ikibazo *",
+    selectType: "Hitamo ubwoko",
+    priority: "Urwego rw'ihuse *",
+    selectPriority: "Hitamo uko bwihuse",
+    description: "Ibisobanuro birambuye *",
+    descPlaceholder: "Sobanura mu buryo burambuye ikibazo cyawe. Shyiramo amatariki, abantu bireba, n'ibyakozwe kugeza ubu.",
+    minChars: "Byibuze inyuguti 50 zirakenewe",
+    documents: "Inyandiko zunganira (Bihitiramo)",
+    uploadText: "Kanda hano cyangwa ujugunye dosiye hano",
+    uploadSubtext: "PDF, DOC, JPG kugeza kuri 10MB",
+    cancel: "Hagarika",
+    submit: "Tanga Urubanza",
+    success: "Urubanza rwatanzwe neza!",
+    priorities: [
+      { value: "low", label: "Buhoro", desc: "Ntabwo byihutirwa" },
+      { value: "medium", label: "Hagati", desc: "Bikurikiza gahunda" },
+      { value: "high", label: "Cyane", desc: "Bikeneye kwitabwaho vuba" },
+    ],
+    types: ["Amategeko y'umuryango", "Imitungo", "Ibyaha", "Akazi", "Amasezerano", "Ibindi"]
+  },
+  fr: {
+    title: "Soumettre un Nouveau Dossier",
+    subtitle: "Fournissez les détails de votre problème juridique. Notre équipe examinera et assignera l'assistance appropriée.",
+    beforeSubmit: "Avant de soumettre",
+    alertText: "Assurez-vous que toutes les informations sont exactes. Vous pouvez télécharger des documents maintenant.",
+    caseTitle: "Titre du Dossier *",
+    caseTitlePlaceholder: "Titre bref décrivant votre problème",
+    caseType: "Type de Dossier *",
+    selectType: "Sélectionnez le type",
+    priority: "Niveau de Priorité *",
+    selectPriority: "Sélectionnez la priorité",
+    description: "Description du Dossier *",
+    descPlaceholder: "Fournissez une description détaillée. Incluez les dates, les parties impliquées et les actions déjà entreprises.",
+    minChars: "Minimum 50 caractères recommandés",
+    documents: "Documents de Soutien (Optionnel)",
+    uploadText: "Déposez les fichiers ici ou cliquez pour télécharger",
+    uploadSubtext: "PDF, DOC, JPG jusqu'à 10MB chacun",
+    cancel: "Annuler",
+    submit: "Soumettre le Dossier",
+    success: "Dossier soumis avec succès!",
+    priorities: [
+      { value: "low", label: "Faible", desc: "Affaire non urgente" },
+      { value: "medium", label: "Moyenne", desc: "Délai standard" },
+      { value: "high", label: "Haute", desc: "Attention urgente requise" },
+    ],
+    types: ["Droit de la famille", "Litige foncier", "Droit pénal", "Droit du travail", "Contrats", "Autre"]
+  }
+};
+
+interface SubmitCaseProps {
+  lang?: string;
+}
+
+const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = translations[lang as keyof typeof translations] || translations.en;
+  
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User" };
+
   const [formData, setFormData] = useState({
     title: "",
     caseType: "",
     priority: "",
     description: "",
   });
+  
+  const [files, setFiles] = useState<File[]>([]);
 
-  const caseTypes = [
-    "Family Law",
-    "Property Dispute",
-    "Criminal Defense",
-    "Employment Law",
-    "Contract Dispute",
-    "Immigration",
-    "Civil Rights",
-    "Other",
-  ];
+  // FUNCTIONALITY: Handle File Selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles([...files, ...Array.from(e.target.files)]);
+    }
+  };
 
-  const priorities = [
-    { value: "low", label: "Low", description: "Non-urgent matter" },
-    { value: "medium", label: "Medium", description: "Standard timeline" },
-    { value: "high", label: "High", description: "Urgent attention needed" },
-  ];
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
 
+  // FUNCTIONALITY: Handle Submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would submit to Supabase
-    console.log("Submitting case:", formData);
+    // Simulate API call
+    console.log("Submitting:", { ...formData, attachedFiles: files });
+    alert(t.success);
     navigate("/dashboard");
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card">
-        <div className="p-6 border-b border-border">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 gradient-hero rounded-lg flex items-center justify-center">
-              <Scale className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-display text-lg font-bold">
-              UBUTABERA<span className="text-accent">hub</span>
-            </span>
-          </Link>
+    <DashboardLayout role="citizen" userName={user?.name} lang={lang}>
+      <div className="p-6 max-w-3xl mx-auto space-y-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl font-bold mb-1">{t.title}</h1>
+          <p className="text-muted-foreground">{t.subtitle}</p>
+        </motion.div>
+
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
+          <div>
+            <h4 className="font-medium text-sm">{t.beforeSubmit}</h4>
+            <p className="text-sm text-muted-foreground">{t.alertText}</p>
+          </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {[
-            { icon: Home, label: "Dashboard", href: "/dashboard" },
-            { icon: FileText, label: "My Cases", href: "/dashboard" },
-            { icon: MessageSquare, label: "AI Assistant", href: "/dashboard" },
-            { icon: Briefcase, label: "Find Lawyers", href: "/find-lawyer" },
-            { icon: Calendar, label: "Appointments", href: "/dashboard" },
-            { icon: HelpCircle, label: "Legal Resources", href: "/dashboard" },
-          ].map((item) => (
-            <Link
-              key={item.label}
-              to={item.href}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-            >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <motion.form 
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          onSubmit={handleSubmit} className="bg-card rounded-2xl border border-border p-6 space-y-6 shadow-sm"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="title">{t.caseTitle}</Label>
+            <Input
+              id="title"
+              placeholder={t.caseTitlePlaceholder}
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
+          </div>
 
-        <div className="p-4 border-t border-border space-y-1">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
-            <Settings className="w-5 h-5" />
-            Settings
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
-            <LogOut className="w-5 h-5" />
-            Sign Out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {/* Top Bar */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="relative max-w-md flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Search cases, lawyers, resources..." className="pl-10" />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t.caseType}</Label>
+              <Select value={formData.caseType} onValueChange={(v) => setFormData({ ...formData, caseType: v })}>
+                <SelectTrigger><SelectValue placeholder={t.selectType} /></SelectTrigger>
+                <SelectContent>
+                  {t.types.map((type) => (
+                    <SelectItem key={type} value={type.toLowerCase()}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
-                  2
-                </span>
-              </Button>
-              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                <User className="w-5 h-5 text-accent-foreground" />
-              </div>
+            <div className="space-y-2">
+              <Label>{t.priority}</Label>
+              <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+                <SelectTrigger><SelectValue placeholder={t.selectPriority} /></SelectTrigger>
+                <SelectContent>
+                  {t.priorities.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>
+                      <span className="font-medium">{p.label}</span> <span className="text-xs text-muted-foreground">({p.desc})</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        </header>
 
-        {/* Content */}
-        <div className="p-6 max-w-3xl mx-auto space-y-6">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-2xl font-display font-bold mb-1">Submit New Case</h1>
-            <p className="text-muted-foreground">
-              Provide details about your legal issue. Our team will review and assign appropriate assistance.
-            </p>
-          </motion.div>
+          <div className="space-y-2">
+            <Label htmlFor="description">{t.description}</Label>
+            <Textarea
+              id="description"
+              placeholder={t.descPlaceholder}
+              rows={5}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              required
+            />
+            <p className="text-xs text-muted-foreground">{t.minChars}</p>
+          </div>
 
-          {/* Info Alert */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3"
-          >
-            <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-sm">Before you submit</h4>
-              <p className="text-sm text-muted-foreground mt-1">
-                Ensure all information is accurate. You can upload supporting documents after submission.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Form */}
-          <motion.form
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            onSubmit={handleSubmit}
-            className="bg-card rounded-2xl border border-border shadow-soft p-6 space-y-6"
-          >
-            {/* Case Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title">Case Title *</Label>
-              <Input
-                id="title"
-                placeholder="Brief title describing your legal issue"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-              />
+          <div className="space-y-2">
+            <Label>{t.documents}</Label>
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            >
+              <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm font-medium">{t.uploadText}</p>
+              <p className="text-xs text-muted-foreground">{t.uploadSubtext}</p>
+              <input type="file" multiple ref={fileInputRef} className="hidden" onChange={handleFileChange} />
             </div>
 
-            {/* Case Type & Priority */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Case Type *</Label>
-                <Select
-                  value={formData.caseType}
-                  onValueChange={(value) => setFormData({ ...formData, caseType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select case type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {caseTypes.map((type) => (
-                      <SelectItem key={type} value={type.toLowerCase().replace(/\s+/g, "-")}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* File Preview List */}
+            {files.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {files.map((file, i) => (
+                  <div key={i} className="flex items-center justify-between bg-muted/50 p-2 rounded-lg text-sm">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      <span className="truncate max-w-[200px]">{file.name}</span>
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(i)}>
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
               </div>
+            )}
+          </div>
 
-              <div className="space-y-2">
-                <Label>Priority Level *</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value) => setFormData({ ...formData, priority: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {priorities.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        <div className="flex items-center gap-2">
-                          <span>{p.label}</span>
-                          <span className="text-muted-foreground text-xs">({p.description})</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Case Description *</Label>
-              <Textarea
-                id="description"
-                placeholder="Provide a detailed description of your legal issue. Include relevant dates, parties involved, and any actions taken so far."
-                rows={6}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
-              />
-              <p className="text-xs text-muted-foreground">Minimum 50 characters recommended</p>
-            </div>
-
-            {/* Document Upload */}
-            <div className="space-y-2">
-              <Label>Supporting Documents (Optional)</Label>
-              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                <p className="font-medium">Drop files here or click to upload</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  PDF, DOC, DOCX, JPG, PNG up to 10MB each
-                </p>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <Button type="button" variant="ghost" onClick={() => navigate("/dashboard")}>
-                Cancel
-              </Button>
-              <Button type="submit" size="lg">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Submit Case
-              </Button>
-            </div>
-          </motion.form>
-        </div>
-      </main>
-    </div>
+          <div className="flex items-center justify-between pt-4 border-t border-border">
+            <Button type="button" variant="ghost" onClick={() => navigate("/dashboard")}>{t.cancel}</Button>
+            <Button type="submit" className="gap-2">
+              <CheckCircle className="w-4 h-4" /> {t.submit}
+            </Button>
+          </div>
+        </motion.form>
+      </div>
+    </DashboardLayout>
   );
 };
 

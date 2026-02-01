@@ -52,7 +52,7 @@ const App = () => {
           <Route path="/judge-dashboard" element={<JudgeDashboard lang={currentLang} />} />
           <Route path="/clerk-dashboard" element={<CourtClerkDashboard lang={currentLang}/>} />
           <Route path="/legal-resources" element={<LegalResources  />} />
-          <Route path="/settings" element={<Settings  />} />
+          <Route path="/settings" element={<Settings  lang={currentLang}/>} />
           <Route path="/find-lawyer" element={<FindLawyer  lang={currentLang} />} />
           <Route path="/submit-case" element={<SubmitCase  />} />
           
