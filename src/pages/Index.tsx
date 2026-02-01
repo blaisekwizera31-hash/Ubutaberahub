@@ -21,7 +21,7 @@ const Index = () => {
         <HeroSection lang={currentLang} />
         <FeaturesSection lang={currentLang} />
         <HowItWorksSection lang={currentLang} />
-        <RolesSection />
+        <RolesSection lang={currentLang} />
         <AIAssistantSection lang={currentLang} />
         <CTASection />
       </main>
