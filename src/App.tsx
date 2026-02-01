@@ -48,8 +48,8 @@ const App = () => {
           <Route path="/auth" element={<Auth lang={currentLang} />} />
           <Route path="/dashboard" element={<CitizenDashboard lang={currentLang} />} />
           <Route path="/appointments" element={<Appointments  />} />
-          <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
-          <Route path="/judge-dashboard" element={<JudgeDashboard  />} />
+          <Route path="/lawyer-dashboard" element={<LawyerDashboard  />} />
+          <Route path="/judge-dashboard" element={<JudgeDashboard lang={currentLang} />} />
           <Route path="/clerk-dashboard" element={<CourtClerkDashboard lang={currentLang}/>} />
           <Route path="/legal-resources" element={<LegalResources  />} />
           <Route path="/settings" element={<Settings  />} />

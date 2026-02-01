@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Gavel, 
@@ -15,213 +14,220 @@ import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 
-const JudgeDashboard = () => {
-  // Get the logged-in user
+// 1. Define the Props interface
+interface JudgeDashboardProps {
+  lang?: string;
+}
+
+const translations = {
+  en: {
+    greeting: "Good Morning",
+    subtitle: "You have {count} hearings scheduled for today",
+    btns: { calendar: "Court Calendar", ruling: "Issue Ruling" },
+    stats: [
+      { title: "Cases for Review", trend: "5 urgent" },
+      { title: "Hearings Today", trend: "Next at 10:00" },
+      { title: "Pending Rulings", trend: "3 due this week" },
+      { title: "Cases Closed", trend: "+8 vs last month" }
+    ],
+    titles: { attention: "Cases Requiring Attention", schedule: "Today's Schedule", performance: "This Month's Performance" },
+    table: { viewAll: "View All Cases", review: "Review", ruling: "Ruling", filed: "Filed" },
+    perf: ["Cases Resolved", "Avg. Resolution Time", "Rulings Issued", "days"],
+    priority: { urgent: "Urgent", high: "High", normal: "Normal" },
+    status: { awaiting: "Awaiting Ruling", review: "Evidence Review", scheduled: "Hearing Scheduled" },
+    cases: [
+      { title: "Commercial Dispute - ABC Corp vs XYZ Ltd", type: "Civil", parties: "ABC Corporation vs XYZ Limited" },
+      { title: "Criminal Defense - State vs Mugabo", type: "Criminal", parties: "Republic of Rwanda vs Patrick Mugabo" },
+      { title: "Family Matter - Inheritance Dispute", type: "Family", parties: "Uwimana Family" }
+    ],
+    schedule: [
+      { type: "Oral Arguments", room: "Courtroom 1" },
+      { type: "Evidence Hearing", room: "Courtroom 1" },
+      { type: "Preliminary", room: "Courtroom 2" },
+      { type: "Final Ruling", room: "Courtroom 1" }
+    ]
+  },
+  rw: {
+    greeting: "Mwaramutse",
+    subtitle: "Ufite imanza {count} kuri gahunda uyu munsi",
+    btns: { calendar: "Kalendari y'inkiko", ruling: "Sohora umwanzuro" },
+    stats: [
+      { title: "Imanza zo gusuzuma", trend: "5 zihutirwa" },
+      { title: "Imanza z'uyu munsi", trend: "Ikurikiyeho saa 10:00" },
+      { title: "Imyanzuro itegerejwe", trend: "3 muri iki cyumweru" },
+      { title: "Imanza zafunzwe", trend: "+8 ugereranyije n'ukwezi gushize" }
+    ],
+    titles: { attention: "Imanza zikeneye kwitambira", schedule: "Gahunda y'uyu munsi", performance: "Imihigo y'uku kwezi" },
+    table: { viewAll: "Reba zose", review: "Suzuma", ruling: "Umwanzuro", filed: "Yatanzwe" },
+    perf: ["Imanza zarakemutse", "Igihe mpuzandengo", "Imyanzuro yatanzwe", "iminsi"],
+    priority: { urgent: "Byihutirwa", high: "Bikomeye", normal: "Bisanzwe" },
+    status: { awaiting: "Hategerejwe umwanzuro", review: "Gusuzuma ibimenyetso", scheduled: "Yashyizwe kuri gahunda" },
+    cases: [
+      { title: "Amakimbirane y'ubucuruzi - ABC Corp vs XYZ Ltd", type: "Imbonezamubano", parties: "Ikigo ABC vs XYZ Limited" },
+      { title: "Urubanza mpanabyaha - Leta vs Mugabo", type: "Inshinjabyaha", parties: "Repubulika y'u Rwanda vs Patrick Mugabo" },
+      { title: "Ikibazo cy'umuryango - Izungura", type: "Umuryango", parties: "Umuryango wa Uwimana" }
+    ],
+    schedule: [
+      { type: "Iburanisha", room: "Icyumba cya 1" },
+      { type: "Gusuzuma ibimenyetso", room: "Icyumba cya 1" },
+      { type: "Ibanze", room: "Icyumba cya 2" },
+      { type: "Umwanzuro wa nyuma", room: "Icyumba cya 1" }
+    ]
+  },
+  fr: {
+    greeting: "Bon matin",
+    subtitle: "Vous avez {count} audiences prévues aujourd'hui",
+    btns: { calendar: "Calendrier judiciaire", ruling: "Rendre une décision" },
+    stats: [
+      { title: "Dossiers à réviser", trend: "5 urgents" },
+      { title: "Audiences aujourd'hui", trend: "Prochaine à 10:00" },
+      { title: "Décisions en attente", trend: "3 cette semaine" },
+      { title: "Dossiers clôturés", trend: "+8 vs mois dernier" }
+    ],
+    titles: { attention: "Dossiers nécessitant une attention", schedule: "Programme du jour", performance: "Performance du mois" },
+    table: { viewAll: "Voir tout", review: "Réviser", ruling: "Décision", filed: "Déposé" },
+    perf: ["Dossiers résolus", "Temps de résolution moyen", "Décisions rendues", "jours"],
+    priority: { urgent: "Urgent", high: "Élevée", normal: "Normale" },
+    status: { awaiting: "En attente de décision", review: "Examen des preuves", scheduled: "Audience prévue" },
+    cases: [
+      { title: "Litige commercial - ABC Corp vs XYZ Ltd", type: "Civil", parties: "ABC Corporation vs XYZ Limited" },
+      { title: "Défense pénale - État vs Mugabo", type: "Pénal", parties: "République du Rwanda vs Patrick Mugabo" },
+      { title: "Affaire familiale - Litige de succession", type: "Famille", parties: "Famille Uwimana" }
+    ],
+    schedule: [
+      { type: "Plaidoiries", room: "Salle d'audience 1" },
+      { type: "Audition des preuves", room: "Salle d'audience 1" },
+      { type: "Préliminaire", room: "Salle d'audience 2" },
+      { type: "Décision finale", room: "Salle d'audience 1" }
+    ]
+  }
+};
+
+const JudgeDashboard = ({ lang = "en" }: JudgeDashboardProps) => {
+  // Select translation based on prop (matches ClerkDashboard logic)
+  const t = translations[lang as keyof typeof translations] || translations.en;
+  
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
   const stats = [
-    { title: "Cases for Review", value: "12", icon: FileText, trend: "5 urgent", color: "primary" as const },
-    { title: "Hearings Today", value: "4", icon: Calendar, trend: "Next at 10:00", color: "secondary" as const },
-    { title: "Pending Rulings", value: "8", icon: Gavel, trend: "3 due this week", color: "accent" as const },
-    { title: "Cases Closed (Month)", value: "23", icon: CheckCircle, trend: "+8 vs last month", color: "primary" as const },
+    { title: t.stats[0].title, value: "12", icon: FileText, trend: t.stats[0].trend, color: "primary" as const },
+    { title: t.stats[1].title, value: "4", icon: Calendar, trend: t.stats[1].trend, color: "secondary" as const },
+    { title: t.stats[2].title, value: "8", icon: Gavel, trend: t.stats[2].trend, color: "accent" as const },
+    { title: t.stats[3].title, value: "23", icon: CheckCircle, trend: t.stats[3].trend, color: "primary" as const },
   ];
 
-  const pendingCases = [
-    {
-      id: "CASE-2024-045",
-      title: "Commercial Dispute - ABC Corp vs XYZ Ltd",
-      type: "Civil",
-      priority: "High",
-      filedDate: "Jan 8, 2024",
-      parties: "ABC Corporation vs XYZ Limited",
-      status: "Awaiting Ruling",
-    },
-    {
-      id: "CASE-2024-032",
-      title: "Criminal Defense - State vs Mugabo",
-      type: "Criminal",
-      priority: "Urgent",
-      filedDate: "Jan 2, 2024",
-      parties: "Republic of Rwanda vs Patrick Mugabo",
-      status: "Evidence Review",
-    },
-    {
-      id: "CASE-2024-028",
-      title: "Family Matter - Inheritance Dispute",
-      type: "Family",
-      priority: "Normal",
-      filedDate: "Dec 28, 2023",
-      parties: "Uwimana Family",
-      status: "Hearing Scheduled",
-    },
+  const caseData = [
+    { id: "CASE-2024-045", date: "Jan 8, 2024", priority: t.priority.high, status: t.status.awaiting, ...t.cases[0] },
+    { id: "CASE-2024-032", date: "Jan 2, 2024", priority: t.priority.urgent, status: t.status.review, ...t.cases[1] },
+    { id: "CASE-2024-028", date: "Dec 28, 2023", priority: t.priority.normal, status: t.status.scheduled, ...t.cases[2] },
   ];
 
-  const todaySchedule = [
-    { time: "10:00 AM", case: "ABC Corp vs XYZ", type: "Oral Arguments", room: "Courtroom 1" },
-    { time: "11:30 AM", case: "State vs Mugabo", type: "Evidence Hearing", room: "Courtroom 1" },
-    { time: "02:00 PM", case: "Uwimana Estate", type: "Preliminary", room: "Courtroom 2" },
-    { time: "04:00 PM", case: "Land Registry Appeal", type: "Final Ruling", room: "Courtroom 1" },
-  ];
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "Urgent": return "destructive";
-      case "High": return "default";
-      default: return "secondary";
-    }
+  const getPriorityColor = (p: string) => {
+    if (p === t.priority.urgent) return "destructive";
+    if (p === t.priority.high) return "default";
+    return "secondary";
   };
 
   return (
-    <DashboardLayout role="judge" 
-    userName={user?.name} 
-    userPhoto={user?.profilePhoto || "/avatar/avatar.png"}
->
+    <DashboardLayout 
+      role="judge" 
+      userName={user?.name || "Hon. Justice"} 
+      lang={lang}
+    >
       <div className="space-y-6">
         {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row md:items-center justify-between gap-4"
-        >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {/* Profile photo */}
-            
-              <img
-                src={user?.profilePhoto || "/avatar/avatar.png"}
-                alt={user.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-              />
-           
+            <img src={user?.profilePhoto || "/avatar/avatar.png"} alt="Profile" className="w-12 h-12 rounded-full border-2 border-primary" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                Good Morning, {user ? user.name : "Hon. Justice"}
-              </h1>
-              <p className="text-muted-foreground">You have 4 hearings scheduled for today</p>
+              <h1 className="text-2xl font-bold">{t.greeting}, {user?.name || "Justice"}</h1>
+              <p className="text-muted-foreground">{t.subtitle.replace("{count}", "4")}</p>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="gap-2">
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
               <Calendar className="w-4 h-4" />
-              Court Calendar
+              {t.btns.calendar}
             </Button>
-            <Button className="gap-2">
+            <Button size="sm" className="gap-2">
               <Scale className="w-4 h-4" />
-              Issue Ruling
+              {t.btns.ruling}
             </Button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
+          {stats.map((stat, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <StatCard {...stat} />
             </motion.div>
           ))}
         </div>
 
+        {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Cases for Review */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Cases Requiring Attention</h2>
-              <Button variant="ghost" size="sm">View All Cases</Button>
+              <h2 className="text-xl font-semibold">{t.titles.attention}</h2>
+              <Button variant="ghost" size="sm">{t.table.viewAll}</Button>
             </div>
-            <div className="space-y-4">
-              {pendingCases.map((caseItem, index) => (
-                <motion.div
-                  key={caseItem.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card rounded-xl p-5 border shadow-soft hover:shadow-card transition-all"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-mono text-muted-foreground">{caseItem.id}</span>
-                        <Badge variant={getPriorityColor(caseItem.priority)}>{caseItem.priority}</Badge>
-                        <Badge variant="outline">{caseItem.type}</Badge>
-                      </div>
-                      <h3 className="font-semibold mb-1">{caseItem.title}</h3>
-                      <p className="text-sm text-muted-foreground mb-2">{caseItem.parties}</p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          Filed: {caseItem.filedDate}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {caseItem.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="gap-1">
-                        <Eye className="w-3 h-3" />
-                        Review
-                      </Button>
-                      <Button size="sm" className="gap-1">
-                        <Gavel className="w-3 h-3" />
-                        Ruling
-                      </Button>
-                    </div>
+            {caseData.map((c) => (
+              <motion.div key={c.id} className="bg-card p-5 rounded-xl border shadow-sm flex flex-col md:flex-row justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
+                    <Badge variant={getPriorityColor(c.priority)}>{c.priority}</Badge>
+                    <Badge variant="outline">{c.type}</Badge>
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                  <h3 className="font-bold">{c.title}</h3>
+                  <p className="text-sm text-muted-foreground">{c.parties}</p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {t.table.filed}: {c.date}</span>
+                    <span className="flex items-center gap-1"><AlertCircle className="w-3 h-3"/> {c.status}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" className="gap-1"><Eye className="w-3 h-3" /> {t.table.review}</Button>
+                  <Button size="sm" className="gap-1"><Gavel className="w-3 h-3" /> {t.table.ruling}</Button>
+                </div>
+              </motion.div>
+            ))}
           </div>
 
-          {/* Today's Schedule */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="bg-card rounded-xl p-6 border shadow-soft">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-primary" />
-                Today's Schedule
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+            <div className="bg-card p-6 rounded-xl border shadow-sm">
+              <h3 className="font-bold mb-4 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" /> {t.titles.schedule}
               </h3>
-              <div className="space-y-3">
-                {todaySchedule.map((item, index) => (
-                  <div key={index} className="p-3 rounded-lg bg-muted/50 border-l-4 border-primary">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-primary">{item.time}</span>
-                      <span className="text-xs text-muted-foreground">{item.room}</span>
+              <div className="space-y-4">
+                {t.schedule.map((item, i) => (
+                  <div key={i} className="p-3 rounded-lg bg-muted/50 border-l-4 border-primary">
+                    <div className="flex justify-between text-xs font-bold text-primary mb-1">
+                      <span>{["10:00 AM", "11:30 AM", "02:00 PM", "04:00 PM"][i]}</span>
+                      <span className="text-muted-foreground">{item.room}</span>
                     </div>
-                    <p className="text-sm font-medium">{item.case}</p>
+                    <p className="text-sm font-medium">
+                      {["ABC Corp vs XYZ", "State vs Mugabo", "Uwimana Estate", "Land Registry"][i]}
+                    </p>
                     <p className="text-xs text-muted-foreground">{item.type}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="bg-gradient-to-br from-primary to-primary/80 rounded-xl p-6 text-primary-foreground">
-              <h3 className="font-semibold mb-4">This Month's Performance</h3>
+            <div className="bg-primary p-6 rounded-xl text-primary-foreground shadow-md">
+              <h3 className="font-bold mb-4">{t.titles.performance}</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm opacity-80">Cases Resolved</span>
-                  <span className="font-bold">23</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm opacity-80">Avg. Resolution Time</span>
-                  <span className="font-bold">18 days</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm opacity-80">Rulings Issued</span>
-                  <span className="font-bold">31</span>
-                </div>
+                <div className="flex justify-between text-sm"><span>{t.perf[0]}</span><span className="font-bold">23</span></div>
+                <div className="flex justify-between text-sm"><span>{t.perf[1]}</span><span className="font-bold">18 {t.perf[3]}</span></div>
+                <div className="flex justify-between text-sm"><span>{t.perf[2]}</span><span className="font-bold">31</span></div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </DashboardLayout>

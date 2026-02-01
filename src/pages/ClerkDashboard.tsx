@@ -22,7 +22,6 @@ import {
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 
-// Unified translations object
 const translations = {
   en: {
     sidebar: {
@@ -40,10 +39,12 @@ const translations = {
     scheduleBtn: "Schedule Hearing",
     newFilingBtn: "New Filing",
     stats: ["Pending Filings", "Processed Today", "Scheduled Hearings", "Document Requests"],
+    statTrends: ["today", "vs yesterday", "This week", "urgent"],
     tableTitle: "Pending Filings",
     searchPlaceholder: "Search filings...",
     tableHeaders: ["Filing ID", "Description", "Submitted By", "Type", "Date", "Status", "Actions"],
     actions: { review: "Review", approve: "Approve", reject: "Reject", request: "Request Documents" },
+    statusTexts: { pending: "Pending Review", missing: "Documents Missing", ready: "Ready for Judge" },
     pagination: "Showing {show} of {total} filings",
     prev: "Previous",
     next: "Next"
@@ -64,10 +65,12 @@ const translations = {
     scheduleBtn: "Gahunda y'iburanisha",
     newFilingBtn: "Kwandika idosiye nshya",
     stats: ["Amadosiye ategereje", "Ayatunganyijwe uyu munsi", "Imanza ziteguwe", "Abasabye inyandiko"],
+    statTrends: ["uyu munsi", "ugereranyije n'ejo", "Iyi cyumweru", "byihutirwa"],
     tableTitle: "Amadosiye ategereje",
     searchPlaceholder: "Shakisha idosiye...",
     tableHeaders: ["ID y'idosiye", "Ibisobanuro", "Uwayitanze", "Ubwoko", "Itariki", "Imiterere", "Icyakorwa"],
     actions: { review: "Gusuzuma", approve: "Kwemeza", reject: "Kwangira", request: "Gusaba inyandiko" },
+    statusTexts: { pending: "Isuzuma rirakomeje", missing: "Inyandiko zibura", ready: "Biteguye Umucamanza" },
     pagination: "Hagaragajwe {show} kuri {total}",
     prev: "Icyabanjirije",
     next: "Ibikurikira"
@@ -88,10 +91,12 @@ const translations = {
     scheduleBtn: "Programmer l'audience",
     newFilingBtn: "Nouveau dépôt",
     stats: ["Dépôts en attente", "Traités aujourd'hui", "Audiences prévues", "Demandes de documents"],
+    statTrends: ["aujourd'hui", "par rapport à hier", "Cette semaine", "urgents"],
     tableTitle: "Dépôts en attente",
     searchPlaceholder: "Rechercher des dépôts...",
     tableHeaders: ["ID du dépôt", "Description", "Soumis par", "Type", "Date", "Statut", "Actions"],
     actions: { review: "Réviser", approve: "Approuver", reject: "Rejeter", request: "Demander documents" },
+    statusTexts: { pending: "Examen en cours", missing: "Documents manquants", ready: "Prêt pour le juge" },
     pagination: "Affichage de {show} sur {total} dépôts",
     prev: "Précédent",
     next: "Suivant"
@@ -109,34 +114,35 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
+  // 1. Re-enabled Stats with localized trends
   const stats = [
-    { title: t.stats[0], value: "24", icon: FileText, trend: "8 today", color: "primary" as const },
-    { title: t.stats[1], value: "18", icon: CheckCircle, trend: "+5 vs yesterday", color: "secondary" as const },
-    { title: t.stats[2], value: "32", icon: Calendar, trend: "This week", color: "accent" as const },
-    { title: t.stats[3], value: "7", icon: Upload, trend: "3 urgent", color: "primary" as const },
+    { title: t.stats[0], value: "24", icon: FileText, trend: `8 ${t.statTrends[0]}`, color: "primary" as const },
+    { title: t.stats[1], value: "18", icon: CheckCircle, trend: `+5 ${t.statTrends[1]}`, color: "secondary" as const },
+    { title: t.stats[2], value: "32", icon: Calendar, trend: t.statTrends[2], color: "accent" as const },
+    { title: t.stats[3], value: "7", icon: Upload, trend: `3 ${t.statTrends[3]}`, color: "primary" as const },
   ];
 
+  // 2. Re-enabled Filings with localized status text
   const pendingFilings = [
-    { id: "FILE-2024-156", title: "New Case Filing - Property Dispute", submittedBy: "Jean-Claude Mugisha", type: "Civil", date: "Jan 10, 2024", status: "Pending Review", documents: 5 },
-    { id: "FILE-2024-155", title: "Appeal Submission - Criminal Case", submittedBy: "Me. Marie Uwimana", type: "Criminal", date: "Jan 10, 2024", status: "Documents Missing", documents: 3 },
-    { id: "FILE-2024-154", title: "Evidence Submission - CASE-2024-032", submittedBy: "Me. Jean Habimana", type: "Evidence", date: "Jan 9, 2024", status: "Pending Review", documents: 8 },
-    { id: "FILE-2024-153", title: "Motion for Extension", submittedBy: "Me. Patrick Nkurunziza", type: "Motion", date: "Jan 9, 2024", status: "Ready for Judge", documents: 2 },
+    { id: "FILE-2024-156", title: "New Case Filing - Property Dispute", submittedBy: "Jean-Claude Mugisha", type: "Civil", date: "Jan 10, 2024", status: t.statusTexts.pending, documents: 5 },
+    { id: "FILE-2024-155", title: "Appeal Submission - Criminal Case", submittedBy: "Me. Marie Uwimana", type: "Criminal", date: "Jan 10, 2024", status: t.statusTexts.missing, documents: 3 },
+    { id: "FILE-2024-154", title: "Evidence Submission - CASE-2024-032", submittedBy: "Me. Jean Habimana", type: "Evidence", date: "Jan 9, 2024", status: t.statusTexts.pending, documents: 8 },
+    { id: "FILE-2024-153", title: "Motion for Extension", submittedBy: "Me. Patrick Nkurunziza", type: "Motion", date: "Jan 9, 2024", status: t.statusTexts.ready, documents: 2 },
   ];
 
+  // 3. Updated Status Color logic to match the translated strings
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Pending Review": return "default";
-      case "Documents Missing": return "destructive";
-      case "Ready for Judge": return "secondary";
-      default: return "outline";
-    }
+    if (status === t.statusTexts.pending) return "default";
+    if (status === t.statusTexts.missing) return "destructive";
+    if (status === t.statusTexts.ready) return "secondary";
+    return "outline";
   };
 
   return (
     <DashboardLayout 
       role="clerk" 
       userName={user?.name || "Court Clerk"} 
-      lang={lang} // FIX: Passing the language prop to the layout
+      lang={lang} 
     >
       <div className="space-y-6">
         {/* Welcome Section */}
