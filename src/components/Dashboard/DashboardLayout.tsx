@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type Role = "citizen" | "lawyer" | "judge" | "clerk";
+type Role = "citizen" | "lawyer" | "judge" | "clerk"| "client";
 
 interface DashboardLayoutProps {
   children: ReactNode;
