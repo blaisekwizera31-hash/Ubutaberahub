@@ -1,15 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Scale, Mail, Lock, User, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Scale, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-
-interface Role {
-  label: string;
-  desc: string;
-}
 
 const translations = {
   en: {
@@ -21,7 +16,6 @@ const translations = {
     fullName: "Full Name",
     namePlaceholder: "Enter your full name",
     phone: "Phone Number",
-    uploadPhoto: "Upload Profile Photo",
     selectRole: "Select Your Role",
     email: "Email Address",
     password: "Password",
@@ -59,7 +53,6 @@ const translations = {
     fullName: "Amazina Yose",
     namePlaceholder: "Andika amazina yawe yose",
     phone: "Numero ya Telefone",
-    uploadPhoto: "Shyiraho Ifoto yawe",
     selectRole: "Hitamo Inshingano",
     email: "Imeri",
     password: "Ijambo ry'ibanga",
@@ -97,7 +90,6 @@ const translations = {
     fullName: "Nom Complet",
     namePlaceholder: "Entrez votre nom complet",
     phone: "Numéro de téléphone",
-    uploadPhoto: "Télécharger une photo de profil",
     selectRole: "Sélectionnez votre rôle",
     email: "Adresse e-mail",
     password: "Mot de passe",
@@ -131,10 +123,10 @@ const translations = {
 type AuthMode = "login" | "signup";
 
 interface AuthProps {
-  lang?: string;
+  lang: string; // Required from App.tsx
 }
 
-const Auth = ({ lang = "en" }: AuthProps) => {
+const Auth = ({ lang }: AuthProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
   const [mode, setMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -143,23 +135,15 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-
-  const [licenseNumber, setLicenseNumber] = useState("");
-  const [specialization, setSpecialization] = useState("");
-  const [lawFirm, setLawFirm] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
-  const [courtAssigned, setCourtAssigned] = useState("");
-  const [judgeId, setJudgeId] = useState("");
-  const [yearsExperience, setYearsExperience] = useState("");
 
   const navigate = useNavigate();
 
+  // Dynamic roles list based on current language
   const rolesList = [
-    { id: "citizen", ...t.roles.citizen },
-    { id: "lawyer", ...t.roles.lawyer },
-    { id: "clerk", ...t.roles.clerk },
-    { id: "judge", ...t.roles.judge },
+    { id: "citizen", label: t.roles.citizen.label, desc: t.roles.citizen.desc },
+    { id: "lawyer", label: t.roles.lawyer.label, desc: t.roles.lawyer.desc },
+    { id: "clerk", label: t.roles.clerk.label, desc: t.roles.clerk.desc },
+    { id: "judge", label: t.roles.judge.label, desc: t.roles.judge.desc },
   ];
 
   const dashboardRoutes: Record<string, string> = {
@@ -169,7 +153,8 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     clerk: "/clerk-dashboard",
   };
 
-  const handleSignup = () => {
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!email || !password || !name) {
       alert(t.alerts.fillAll);
       return;
@@ -200,19 +185,13 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     <div className="min-h-screen flex">
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 gradient-hero relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-accent/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl" />
-        </div>
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 gradient-gold rounded-xl flex items-center justify-center">
                 <Scale className="w-6 h-6 text-primary" />
               </div>
-              <span className="font-display text-2xl font-bold">
-                UBUTABERA<span className="text-accent">hub</span>
-              </span>
+              <span className="font-display text-2xl font-bold"> UBUTABERA<span className="text-accent">hub</span></span>
             </div>
             <h1 className="text-4xl font-display font-bold mb-4">{t.welcomeTitle}</h1>
             <p className="text-white/80 text-lg max-w-md">{t.welcomeSub}</p>
@@ -222,37 +201,37 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
       {/* Right Panel */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            {t.backHome}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
+            <ArrowLeft className="w-4 h-4" /> {t.backHome}
           </Link>
 
           <div className="flex gap-2 p-1 bg-muted rounded-xl mb-8">
-            <button onClick={() => setMode("login")} className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${mode === "login" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <button onClick={() => setMode("login")} className={`flex-1 py-2.5 rounded-lg text-sm font-medium ${mode === "login" ? "bg-card shadow-soft" : "text-muted-foreground"}`}>
               {t.signIn}
             </button>
-            <button onClick={() => setMode("signup")} className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${mode === "signup" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <button onClick={() => setMode("signup")} className={`flex-1 py-2.5 rounded-lg text-sm font-medium ${mode === "signup" ? "bg-card shadow-soft" : "text-muted-foreground"}`}>
               {t.createAccount}
             </button>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={mode === "signup" ? handleSignup : handleLogin}>
             {mode === "signup" && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="name">{t.fullName}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input id="name" placeholder={t.namePlaceholder} className="pl-10" value={name} onChange={(e) => setName(e.target.value)} />
+                    <Input id="name" placeholder={t.namePlaceholder} className="pl-10" value={name} onChange={(e) => setName(e.target.value)} required />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="phone">{t.phone}</Label>
-                  <Input id="phone" type="tel" placeholder="+250 78..." value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input id="phone" type="tel" className="pl-10" placeholder="+250 78..." value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  </div>
                 </div>
-
                 <div className="space-y-3">
                   <Label>{t.selectRole}</Label>
                   <div className="grid grid-cols-2 gap-3">
@@ -264,15 +243,6 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                     ))}
                   </div>
                 </div>
-
-                {/* Role Specifics - Condensed for clarity */}
-                {selectedRole === "lawyer" && (
-                  <div className="space-y-2">
-                    <Label>{t.fields.license}</Label>
-                    <Input value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} />
-                  </div>
-                )}
-                {/* ... Add other role specific inputs here using t.fields ... */}
               </>
             )}
 
@@ -280,7 +250,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               <Label htmlFor="email">{t.email}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="you@example.com" className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input id="email" type="email" placeholder="you@example.com" className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
             </div>
 
@@ -288,14 +258,14 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               <Label htmlFor="password">{t.password}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input id="password" type={showPassword ? "text" : "password"} className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
-            <Button variant="hero" size="lg" className="w-full" onClick={mode === "signup" ? handleSignup : handleLogin}>
+            <Button variant="hero" size="lg" className="w-full" type="submit">
               {mode === "login" ? t.signIn : t.createAccount}
             </Button>
           </form>

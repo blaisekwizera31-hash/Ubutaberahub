@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "./components/ui/toaster";
 import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -16,9 +17,20 @@ import SubmitCase from "./pages/SubmitCase";
 import Appointments from "./pages/Appointments";
 import LegalResources from "./pages/LegalResources";
 import Settings from "./pages/Settings";
+
 const queryClient = new QueryClient();
 
 const App = () => {
+  // 1. Initialize language state from localStorage (remembers user choice on refresh)
+  const [currentLang, setCurrentLang] = useState(
+    localStorage.getItem("preferredLang") || "en"
+  );
+
+  // 2. Sync state with localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("preferredLang", currentLang);
+  }, [currentLang]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -26,18 +38,25 @@ const App = () => {
         <Sonner />
 
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/appointments" element={<Appointments />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<CitizenDashboard />} />
+          {/* Landing Page: Pass state AND the setter function */}
+          <Route 
+            path="/" 
+            element={<Index currentLang={currentLang} onLanguageChange={setCurrentLang} />} 
+          />
+          
+          {/* Other Pages: Pass ONLY the state for translation */}
+          <Route path="/auth" element={<Auth lang={currentLang} />} />
+          <Route path="/dashboard" element={<CitizenDashboard lang={currentLang} />} />
+          <Route path="/appointments" element={<Appointments  />} />
           <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
-          <Route path="/judge-dashboard" element={<JudgeDashboard />} />
+          <Route path="/judge-dashboard" element={<JudgeDashboard  />} />
           <Route path="/clerk-dashboard" element={<CourtClerkDashboard />} />
+          <Route path="/legal-resources" element={<LegalResources  />} />
+          <Route path="/settings" element={<Settings  />} />
+          <Route path="/find-lawyer" element={<FindLawyer  />} />
+          <Route path="/submit-case" element={<SubmitCase  />} />
+          
           <Route path="*" element={<NotFound />} />
-          <Route path="/legal-resources" element={<LegalResources />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/find-lawyer" element={<FindLawyer />} />
-          <Route path="/submit-case" element={<SubmitCase />} />
         </Routes>
 
       </TooltipProvider>
