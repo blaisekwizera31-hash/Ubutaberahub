@@ -148,7 +148,7 @@
 // }
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Language, translations } from "./translations";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client.ts";
 
 interface LanguageContextType {
   language: Language;
