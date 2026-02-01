@@ -8,7 +8,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 
 import App from "./App";
 import "./index.css";
-import { LanguageProvider } from "./i18n";
 
 const queryClient = new QueryClient();
 
@@ -19,9 +18,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <LanguageProvider>
           <App />
-        </LanguageProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
