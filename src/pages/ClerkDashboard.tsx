@@ -2,15 +2,13 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   FileText, 
-  Users, 
   Calendar, 
-  Clock,
-  CheckCircle,
-  XCircle,
-  Upload,
-  Search,
-  Filter,
-  MoreVertical
+  CheckCircle, 
+  XCircle, 
+  Upload, 
+  Search, 
+  Filter, 
+  MoreVertical 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,57 +22,112 @@ import {
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 
-const ClerkDashboard = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+interface ClerkDashboardProps {
+  lang?: string;
+}
+const translations = {
+  en: {
+    sidebar: {
+      dashboard: "Dashboard",
+      cases: "My Cases",
+      ai: "AI Assistant",
+      lawyers: "Find Lawyers",
+      appoint: "Appointments",
+      resources: "Legal Resources",
+      settings: "Settings",
+      signOut: "Sign Out"
+    },
+  
+    greeting: "Good Morning",
+    pendingSubtitle: "You have {count} pending filings to process",
+    scheduleBtn: "Schedule Hearing",
+    newFilingBtn: "New Filing",
+    stats: ["Pending Filings", "Processed Today", "Scheduled Hearings", "Document Requests"],
+    tableTitle: "Pending Filings",
+    searchPlaceholder: "Search filings...",
+    tableHeaders: ["Filing ID", "Description", "Submitted By", "Type", "Date", "Status", "Actions"],
+    actions: { review: "Review", approve: "Approve", reject: "Reject", request: "Request Documents" },
+    pagination: "Showing {show} of {total} filings",
+    prev: "Previous",
+    next: "Next"
+  },
+  rw: {
 
-  // Get logged-in clerk info from localStorage
+    sidebar: {
+      dashboard: "Ikarita mpuruza",
+      cases: "Imanza zanjye",
+      ai: "Ubufasha bwa AI",
+      lawyers: "Shaka abanyamategeko",
+      appoint: "Gahunda",
+      resources: "Amategeko n'izindi mbuga",
+      settings: "Igenamiterere",
+      signOut: "Sohoka"
+    },
+
+    greeting: "Mwaramutse",
+    pendingSubtitle: "Ufite amadosiye {count} agutegereje",
+    scheduleBtn: "Gahunda y'iburanisha",
+    newFilingBtn: "Kwandika idosiye nshya",
+    stats: ["Amadosiye ategereje", "Ayatunganyijwe uyu munsi", "Imanza ziteguwe", "Abasabye inyandiko"],
+    tableTitle: "Amadosiye ategereje",
+    searchPlaceholder: "Shakisha idosiye...",
+    tableHeaders: ["ID y'idosiye", "Ibisobanuro", "Uwayitanze", "Ubwoko", "Itariki", "Imiterere", "Icyakorwa"],
+    actions: { review: "Gusuzuma", approve: "Kwemeza", reject: "Kwangira", request: "Gusaba inyandiko" },
+    pagination: "Hagaragajwe {show} kuri {total}",
+    prev: "Icyabanjirije",
+    next: "Ibikurikira"
+  },
+  fr: {
+
+    sidebar: {
+      dashboard: "Tableau de bord",
+      cases: "Mes dossiers",
+      ai: "Assistant IA",
+      lawyers: "Trouver un avocat",
+      appoint: "Rendez-vous",
+      resources: "Ressources juridiques",
+      settings: "Paramètres",
+      signOut: "Se déconnecter"
+    },
+    
+    greeting: "Bon matin",
+    pendingSubtitle: "Vous avez {count} dossiers en attente de traitement",
+    scheduleBtn: "Programmer l'audience",
+    newFilingBtn: "Nouveau dépôt",
+    stats: ["Dépôts en attente", "Traités aujourd'hui", "Audiences prévues", "Demandes de documents"],
+    tableTitle: "Dépôts en attente",
+    searchPlaceholder: "Rechercher des dépôts...",
+    tableHeaders: ["ID du dépôt", "Description", "Soumis par", "Type", "Date", "Statut", "Actions"],
+    actions: { review: "Réviser", approve: "Approuver", reject: "Rejeter", request: "Demander documents" },
+    pagination: "Affichage de {show} sur {total} dépôts",
+    prev: "Précédent",
+    next: "Suivant"
+  }
+};
+
+interface ClerkDashboardProps {
+  lang?: string;
+}
+
+const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const t = translations[lang as keyof typeof translations] || translations.en;
+
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
   const stats = [
-    { title: "Pending Filings", value: "24", icon: FileText, trend: "8 today", color: "primary" as const },
-    { title: "Processed Today", value: "18", icon: CheckCircle, trend: "+5 vs yesterday", color: "secondary" as const },
-    { title: "Scheduled Hearings", value: "32", icon: Calendar, trend: "This week", color: "accent" as const },
-    { title: "Document Requests", value: "7", icon: Upload, trend: "3 urgent", color: "primary" as const },
+    { title: t.stats[0], value: "24", icon: FileText, trend: "8 today", color: "primary" as const },
+    { title: t.stats[1], value: "18", icon: CheckCircle, trend: "+5 vs yesterday", color: "secondary" as const },
+    { title: t.stats[2], value: "32", icon: Calendar, trend: "This week", color: "accent" as const },
+    { title: t.stats[3], value: "7", icon: Upload, trend: "3 urgent", color: "primary" as const },
   ];
 
   const pendingFilings = [
-    {
-      id: "FILE-2024-156",
-      title: "New Case Filing - Property Dispute",
-      submittedBy: "Jean-Claude Mugisha",
-      type: "Civil",
-      date: "Jan 10, 2024",
-      status: "Pending Review",
-      documents: 5,
-    },
-    {
-      id: "FILE-2024-155",
-      title: "Appeal Submission - Criminal Case",
-      submittedBy: "Me. Marie Uwimana",
-      type: "Criminal",
-      date: "Jan 10, 2024",
-      status: "Documents Missing",
-      documents: 3,
-    },
-    {
-      id: "FILE-2024-154",
-      title: "Evidence Submission - CASE-2024-032",
-      submittedBy: "Me. Jean Habimana",
-      type: "Evidence",
-      date: "Jan 9, 2024",
-      status: "Pending Review",
-      documents: 8,
-    },
-    {
-      id: "FILE-2024-153",
-      title: "Motion for Extension",
-      submittedBy: "Me. Patrick Nkurunziza",
-      type: "Motion",
-      date: "Jan 9, 2024",
-      status: "Ready for Judge",
-      documents: 2,
-    },
+    { id: "FILE-2024-156", title: "New Case Filing - Property Dispute", submittedBy: "Jean-Claude Mugisha", type: "Civil", date: "Jan 10, 2024", status: "Pending Review", documents: 5 },
+    { id: "FILE-2024-155", title: "Appeal Submission - Criminal Case", submittedBy: "Me. Marie Uwimana", type: "Criminal", date: "Jan 10, 2024", status: "Documents Missing", documents: 3 },
+    { id: "FILE-2024-154", title: "Evidence Submission - CASE-2024-032", submittedBy: "Me. Jean Habimana", type: "Evidence", date: "Jan 9, 2024", status: "Pending Review", documents: 8 },
+    { id: "FILE-2024-153", title: "Motion for Extension", submittedBy: "Me. Patrick Nkurunziza", type: "Motion", date: "Jan 9, 2024", status: "Ready for Judge", documents: 2 },
   ];
 
   const getStatusColor = (status: string) => {
@@ -96,30 +149,27 @@ const ClerkDashboard = () => {
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3">
-            {/* Profile Photo */}
-            
-              <img
-                src={user?.profilePhoto || "/avatar/avatar.png"}
-                alt={user.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-              />
-            
+            <img
+              src={user?.profilePhoto || "/avatar/avatar.png"}
+              alt={user?.name}
+              className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+            />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
-                Good Morning, {user?.name || "Diane"}!
+                {t.greeting}, {user?.name || "Diane"}!
               </h1>
-              <p className="text-muted-foreground">You have 24 pending filings to process</p>
+              <p className="text-muted-foreground">{t.pendingSubtitle.replace("{count}", "24")}</p>
             </div>
           </div>
 
           <div className="flex gap-3">
             <Button variant="outline" className="gap-2">
               <Calendar className="w-4 h-4" />
-              Schedule Hearing
+              {t.scheduleBtn}
             </Button>
             <Button className="gap-2">
               <FileText className="w-4 h-4" />
-              New Filing
+              {t.newFilingBtn}
             </Button>
           </div>
         </motion.div>
@@ -147,12 +197,12 @@ const ClerkDashboard = () => {
         >
           <div className="p-4 md:p-6 border-b">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h2 className="text-xl font-semibold">Pending Filings</h2>
+              <h2 className="text-xl font-semibold">{t.tableTitle}</h2>
               <div className="flex gap-3">
                 <div className="relative flex-1 md:w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search filings..."
+                    placeholder={t.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -169,13 +219,9 @@ const ClerkDashboard = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-muted/30">
-                  <th className="text-left p-4 font-medium text-muted-foreground">Filing ID</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Description</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Submitted By</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Type</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Date</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
+                  {t.tableHeaders.map((header) => (
+                    <th key={header} className="text-left p-4 font-medium text-muted-foreground">{header}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -185,7 +231,7 @@ const ClerkDashboard = () => {
                     <td className="p-4">
                       <div>
                         <p className="font-medium">{filing.title}</p>
-                        <p className="text-sm text-muted-foreground">{filing.documents} documents</p>
+                        <p className="text-sm text-muted-foreground">{filing.documents} docs</p>
                       </div>
                     </td>
                     <td className="p-4 text-sm">{filing.submittedBy}</td>
@@ -198,7 +244,7 @@ const ClerkDashboard = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">Review</Button>
+                        <Button size="sm" variant="outline">{t.actions.review}</Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button size="sm" variant="ghost">
@@ -207,16 +253,13 @@ const ClerkDashboard = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem className="gap-2">
-                              <CheckCircle className="w-4 h-4" />
-                              Approve
+                              <CheckCircle className="w-4 h-4" /> {t.actions.approve}
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2">
-                              <XCircle className="w-4 h-4" />
-                              Reject
+                              <XCircle className="w-4 h-4" /> {t.actions.reject}
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2">
-                              <FileText className="w-4 h-4" />
-                              Request Documents
+                              <FileText className="w-4 h-4" /> {t.actions.request}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -229,10 +272,12 @@ const ClerkDashboard = () => {
           </div>
 
           <div className="p-4 border-t flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">Showing 4 of 24 filings</p>
+            <p className="text-sm text-muted-foreground">
+              {t.pagination.replace("{show}", "4").replace("{total}", "24")}
+            </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm">Next</Button>
+              <Button variant="outline" size="sm" disabled>{t.prev}</Button>
+              <Button variant="outline" size="sm">{t.next}</Button>
             </div>
           </div>
         </motion.div>
