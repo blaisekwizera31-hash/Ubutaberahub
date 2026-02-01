@@ -23,11 +23,11 @@ const Index = () => {
         <HowItWorksSection lang={currentLang} />
         <RolesSection lang={currentLang} />
         <AIAssistantSection lang={currentLang} />
-        <CTASection />
+        <CTASection lang={currentLang} />
       </main>
 
       {/* Footer */}
-      <FooterSection />
+      <FooterSection lang={currentLang} />
     </div>
   );
 };

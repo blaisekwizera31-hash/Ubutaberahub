@@ -2,7 +2,38 @@ import { motion } from "framer-motion";
 import { ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function CTASection() {
+const translations = {
+  en: {
+    badge: "Secure & Confidential",
+    title: "Ready to Access Justice?",
+    description: "Join thousands of Rwandans who are using UBUTABERAhub to understand their rights, connect with legal professionals, and navigate the justice system with confidence.",
+    ctaPrimary: "Get Started Free",
+    ctaSecondary: "Schedule Demo"
+  },
+  rw: {
+    badge: "Umutekano n'Ibanga",
+    title: "Witeguye kugera ku Butabera?",
+    description: "Sanga ibihumbi by'Abanyarwanda bakoresha UBUTABERAhub kugira ngo basobanukirwe n'uburenganzira bwabo, bahure n'abanyamategeko, kandi banyure mu buryo bw'ubutabera bafite icyizere.",
+    ctaPrimary: "Tangira Ku buntu",
+    ctaSecondary: "Saba Imbonankubone"
+  },
+  fr: {
+    badge: "Sécurisé et Confidentiel",
+    title: "Prêt à accéder à la justice ?",
+    description: "Rejoignez des milliers de Rwandais qui utilisent UBUTABERAhub pour comprendre leurs droits, se connecter avec des professionnels du droit et naviguer dans le système judiciaire en toute confiance.",
+    ctaPrimary: "Commencer gratuitement",
+    ctaSecondary: "Planifier une démo"
+  }
+};
+
+interface CTASectionProps {
+  lang: string;
+}
+
+export function CTASection({ lang }: CTASectionProps) {
+  // Select the correct language object
+  const t = translations[lang as keyof typeof translations] || translations.en;
+
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
@@ -20,26 +51,30 @@ export function CTASection() {
           transition={{ duration: 0.5 }}
           className="max-w-3xl mx-auto text-center"
         >
+          {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-8">
             <Shield className="w-4 h-4 text-accent" />
-            <span className="text-sm font-medium text-white">Secure & Confidential</span>
+            <span className="text-sm font-medium text-white">{t.badge}</span>
           </div>
 
+          {/* Title */}
           <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
-            Ready to Access Justice?
+            {t.title}
           </h2>
+
+          {/* Description */}
           <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
-            Join thousands of Rwandans who are using UBUTABERAhub to understand their rights, 
-            connect with legal professionals, and navigate the justice system with confidence.
+            {t.description}
           </p>
 
+          {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="hero" size="xl" className="group">
-              Get Started Free
+              {t.ctaPrimary}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button variant="glass" size="xl" className="text-white border-white/20">
-              Schedule Demo
+              {t.ctaSecondary}
             </Button>
           </div>
         </motion.div>
