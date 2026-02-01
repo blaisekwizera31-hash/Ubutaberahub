@@ -1,6 +1,48 @@
 import { Scale, Github, Twitter, Linkedin, Mail } from "lucide-react";
 
-export function FooterSection() {
+const translations = {
+  en: {
+    tagline: "Improving access to justice in Rwanda through AI-powered legal assistance.",
+    col1Title: "Platform",
+    col1Links: ["Features", "How It Works", "AI Assistant", "Find a Lawyer"],
+    col2Title: "For Users",
+    col2Links: ["Citizens Portal", "Lawyers Portal", "Court Officials", "Admin Dashboard"],
+    col3Title: "Legal",
+    col3Links: ["Privacy Policy", "Terms of Service", "Data Protection", "Accessibility"],
+    copyright: "© 2026 UBUTABERAhub. ",
+    madeWith: "Made with ❤️ for Rwanda"
+  },
+  rw: {
+    tagline: "Kuvugurura uburyo bwo kugera ku butabera mu Rwanda hifashishijwe ikoranabuhanga rya AI.",
+    col1Title: "Urubuga",
+    col1Links: ["Ibiranga porogaramu", "Uko bikora", "Umufasha wa AI", "Shaka Umunyamategeko"],
+    col2Title: "Abakoresha",
+    col2Links: ["Abaturage", "Abanyamategeko", "Abakozi b'inkiko", "Abayobozi"],
+    col3Title: "Amategeko",
+    col3Links: ["Amategeko agenga ibanga", "Amategeko n'amabwiriza", "Kurinda amakuru", "Uburyo bworoshye"],
+    copyright: "© 2026 UBUTABERAhub. ",
+    madeWith: "Byakozwe n'urukundo ❤️ ku bw'u Rwanda"
+  },
+  fr: {
+    tagline: "Améliorer l'accès à la justice au Rwanda grâce à l'assistance juridique de l'IA.",
+    col1Title: "Plateforme",
+    col1Links: ["Fonctionnalités", "Comment ça marche", "Assistant IA", "Trouver un avocat"],
+    col2Title: "Pour les utilisateurs",
+    col2Links: ["Portail Citoyens", "Portail Avocats", "Officiels de la cour", "Tableau de bord Admin"],
+    col3Title: "Juridique",
+    col3Links: ["Politique de confidentialité", "Conditions d'utilisation", "Protection des données", "Accessibilité"],
+    copyright: "© 2026 UBUTABERAhub. ",
+    madeWith: "Fait avec ❤️ pour le Rwanda"
+  }
+};
+
+interface FooterSectionProps {
+  lang: string;
+}
+
+export function FooterSection({ lang }: FooterSectionProps) {
+  const t = translations[lang as keyof typeof translations] || translations.en;
+
   return (
     <footer className="bg-primary text-primary-foreground py-16">
       <div className="container mx-auto px-4">
@@ -16,7 +58,7 @@ export function FooterSection() {
               </span>
             </a>
             <p className="text-primary-foreground/70 text-sm mb-4">
-              Improving access to justice in Rwanda through AI-powered legal assistance.
+              {t.tagline}
             </p>
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
@@ -34,46 +76,43 @@ export function FooterSection() {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Column 1 */}
           <div>
-            <h4 className="font-semibold mb-4">Platform</h4>
+            <h4 className="font-semibold mb-4">{t.col1Title}</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">How It Works</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">AI Assistant</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Find a Lawyer</a></li>
+              {t.col1Links.map(link => (
+                <li key={link}><a href="#" className="hover:text-primary-foreground transition-colors">{link}</a></li>
+              ))}
             </ul>
           </div>
 
-          {/* For Users */}
+          {/* Column 2 */}
           <div>
-            <h4 className="font-semibold mb-4">For Users</h4>
+            <h4 className="font-semibold mb-4">{t.col2Title}</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Citizens Portal</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Lawyers Portal</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Court Officials</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Admin Dashboard</a></li>
+              {t.col2Links.map(link => (
+                <li key={link}><a href="#" className="hover:text-primary-foreground transition-colors">{link}</a></li>
+              ))}
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Column 3 */}
           <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
+            <h4 className="font-semibold mb-4">{t.col3Title}</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Data Protection</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Accessibility</a></li>
+              {t.col3Links.map(link => (
+                <li key={link}><a href="#" className="hover:text-primary-foreground transition-colors">{link}</a></li>
+              ))}
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-primary-foreground/70">
-            © 2024 UBUTABERAhub. Hackathon Project for Justice Innovation.
+            {t.copyright}
           </p>
           <p className="text-sm text-primary-foreground/70">
-            Made with ❤️ for Rwanda
+            {t.madeWith}
           </p>
         </div>
       </div>

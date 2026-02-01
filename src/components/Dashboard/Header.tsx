@@ -16,6 +16,33 @@ const languages = [
   { code: "fr", name: "Français" },
 ];
 
+const translations = {
+  en: {
+    features: "Features",
+    howItWorks: "How It Works",
+    roles: "For You",
+    aiAssistant: "AI Assistant",
+    signIn: "Sign In",
+    getStarted: "Get Started",
+  },
+  rw: {
+    features: "Ibiranga porogaramu",
+    howItWorks: "Uko bikora",
+    roles: "Kuri wowe",
+    aiAssistant: "Umufasha wa AI",
+    signIn: "Injira",
+    getStarted: "Tangira",
+  },
+  fr: {
+    features: "Fonctionnalités",
+    howItWorks: "Comment ça marche",
+    roles: "Pour vous",
+    aiAssistant: "Assistant IA",
+    signIn: "Se connecter",
+    getStarted: "Commencer",
+  },
+};
+
 interface HeaderProps {
   currentLang: string;
   onLanguageChange: (lang: string) => void;
@@ -24,6 +51,8 @@ interface HeaderProps {
 export function Header({ currentLang, onLanguageChange }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Select the correct language object
+  const t = translations[currentLang as keyof typeof translations] || translations.en;
   const currentLanguage = languages.find((l) => l.code === currentLang) || languages[1];
 
   return (
@@ -50,16 +79,16 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Features
+                {t.features}
               </a>
               <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                How It Works
+                {t.howItWorks}
               </a>
               <a href="#roles" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                For You
+                {t.roles}
               </a>
               <a href="#ai-assistant" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                AI Assistant
+                {t.aiAssistant}
               </a>
             </nav>
 
@@ -87,10 +116,10 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
               </DropdownMenu>
 
               <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
-                <Link to="/auth">Sign In</Link>
+                <Link to="/auth">{t.signIn}</Link>
               </Button>
               <Button variant="hero" size="sm" className="hidden md:inline-flex" asChild>
-                <Link to="/auth">Get Started</Link>
+                <Link to="/auth">{t.getStarted}</Link>
               </Button>
 
               {/* Mobile Menu Toggle */}
@@ -116,16 +145,16 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
           className="md:hidden glass border-b border-border/50"
         >
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
-            <a href="#features" className="text-sm font-medium py-2">Features</a>
-            <a href="#how-it-works" className="text-sm font-medium py-2">How It Works</a>
-            <a href="#roles" className="text-sm font-medium py-2">For You</a>
-            <a href="#ai-assistant" className="text-sm font-medium py-2">AI Assistant</a>
+            <a href="#features" className="text-sm font-medium py-2">{t.features}</a>
+            <a href="#how-it-works" className="text-sm font-medium py-2">{t.howItWorks}</a>
+            <a href="#roles" className="text-sm font-medium py-2">{t.roles}</a>
+            <a href="#ai-assistant" className="text-sm font-medium py-2">{t.aiAssistant}</a>
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" asChild>
-                <Link to="/auth">Sign In</Link>
+                <Link to="/auth">{t.signIn}</Link>
               </Button>
               <Button variant="hero" className="flex-1" asChild>
-                <Link to="/auth">Get Started</Link>
+                <Link to="/auth">{t.getStarted}</Link>
               </Button>
             </div>
           </nav>
