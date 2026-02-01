@@ -1,6 +1,5 @@
 import { ReactNode, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { 
   Scale, 
   Home, 
@@ -32,66 +31,112 @@ import {
 
 type Role = "citizen" | "lawyer" | "judge" | "clerk";
 
+// Added lang to the props interface
 interface DashboardLayoutProps {
   children: ReactNode;
   role: Role;
   userName: string;
+  lang?: string; 
 }
+
+// Sidebar translations matching your ClerkDashboard structure
+const sidebarTranslations: Record<string, any> = {
+  en: {
+    dashboard: "Dashboard",
+    cases: "My Cases",
+    ai: "AI Assistant",
+    lawyers: "Find Lawyers",
+    appoint: "Appointments",
+    resources: "Legal Resources",
+    settings: "Settings",
+    signOut: "Sign Out",
+    help: "Help Center",
+    search: "Search cases, documents...",
+    profile: "Profile"
+  },
+  rw: {
+    dashboard: "Ikarita mpuruza",
+    cases: "Imanza zanjye",
+    ai: "Ubufasha bwa AI",
+    lawyers: "Shaka abanyamategeko",
+    appoint: "Gahunda",
+    resources: "Amategeko n'izindi mbuga",
+    settings: "Igenamiterere",
+    signOut: "Sohoka",
+    help: "Gufashwa",
+    search: "Shakisha idosiye...",
+    profile: "Umwirondoro"
+  },
+  fr: {
+    dashboard: "Tableau de bord",
+    cases: "Mes dossiers",
+    ai: "Assistant IA",
+    lawyers: "Trouver un avocat",
+    appoint: "Rendez-vous",
+    resources: "Ressources juridiques",
+    settings: "Paramètres",
+    signOut: "Se déconnecter",
+    help: "Centre d'aide",
+    search: "Rechercher des dossiers...",
+    profile: "Profil"
+  }
+};
 
 const roleConfig = {
   citizen: {
     icon: User,
     color: "bg-primary",
-    navItems: [
-      { icon: Home, label: "Dashboard", href: "/dashboard/citizen" },
-      { icon: FileText, label: "My Cases", href: "#" },
-      { icon: Search, label: "Find Lawyer", href: "#" },
+    navItems: (t: any) => [
+      { icon: Home, label: t.dashboard, href: "/dashboard/citizen" },
+      { icon: FileText, label: t.cases, href: "#" },
+      { icon: Search, label: t.lawyers, href: "#" },
       { icon: MessageSquare, label: "Messages", href: "#" },
-      { icon: Bot, label: "AI Assistant", href: "#" },
-      { icon: FileText, label: "Documents", href: "#" },
+      { icon: Bot, label: t.ai, href: "#" },
     ],
   },
   lawyer: {
     icon: Briefcase,
     color: "bg-secondary",
-    navItems: [
-      { icon: Home, label: "Dashboard", href: "/dashboard/lawyer" },
-      { icon: FileText, label: "Cases", href: "#" },
+    navItems: (t: any) => [
+      { icon: Home, label: t.dashboard, href: "/dashboard/lawyer" },
+      { icon: FileText, label: t.cases, href: "#" },
       { icon: Users, label: "Clients", href: "#" },
       { icon: Calendar, label: "Schedule", href: "#" },
-      { icon: MessageSquare, label: "Messages", href: "#" },
-      { icon: FileText, label: "Documents", href: "#" },
     ],
   },
   judge: {
     icon: Gavel,
     color: "bg-accent",
-    navItems: [
-      { icon: Home, label: "Dashboard", href: "/dashboard/judge" },
-      { icon: FileText, label: "Cases for Review", href: "#" },
-      { icon: Calendar, label: "Court Calendar", href: "#" },
-      { icon: Gavel, label: "Rulings", href: "#" },
-      { icon: FileText, label: "Documents", href: "#" },
+    navItems: (t: any) => [
+      { icon: Home, label: t.dashboard, href: "/dashboard/judge" },
+      { icon: FileText, label: t.cases, href: "#" },
+      { icon: Calendar, label: t.appoint, href: "#" },
     ],
   },
   clerk: {
     icon: FileText,
     color: "bg-primary",
-    navItems: [
-      { icon: Home, label: "Dashboard", href: "/dashboard/clerk" },
-      { icon: FileText, label: "Filings", href: "#" },
-      { icon: Calendar, label: "Schedule Hearings", href: "#" },
+    navItems: (t: any) => [
+      { icon: Home, label: t.dashboard, href: "/dashboard/clerk" },
+      { icon: FileText, label: t.cases, href: "#" },
+      { icon: Calendar, label: t.appoint, href: "#" },
       { icon: Users, label: "Registry", href: "#" },
-      { icon: FileText, label: "Documents", href: "#" },
     ],
   },
 };
 
-const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Select translation based on lang prop
+  const t = sidebarTranslations[lang] || sidebarTranslations.en;
+  
   const config = roleConfig[role];
   const RoleIcon = config.icon;
+  
+  // Generate nav items using the translation object
+  const navItems = config.navItems(t);
 
   const handleLogout = () => {
     navigate("/login");
@@ -106,7 +151,6 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
           <div className="p-4 border-b">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-lg gradient-hero flex items-center justify-center">
@@ -118,9 +162,8 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
             </Link>
           </div>
 
-          {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {config.navItems.map((item) => (
+            {navItems.map((item: any) => (
               <Link
                 key={item.label}
                 to={item.href}
@@ -132,27 +175,25 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
             ))}
           </nav>
 
-          {/* Bottom Section */}
           <div className="p-4 border-t space-y-1">
             <Link
               to="#"
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <Settings className="w-5 h-5" />
-              <span>Settings</span>
+              <span>{t.settings}</span>
             </Link>
             <Link
               to="#"
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <HelpCircle className="w-5 h-5" />
-              <span>Help Center</span>
+              <span>{t.help}</span>
             </Link>
           </div>
         </div>
       </aside>
 
-      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-foreground/20 z-40 lg:hidden"
@@ -160,12 +201,9 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
         />
       )}
 
-      {/* Main Content */}
       <div className="lg:ml-64">
-        {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-lg border-b">
           <div className="flex items-center justify-between px-4 md:px-6 h-16">
-            {/* Mobile Menu Button */}
             <button
               className="lg:hidden p-2 -ml-2"
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -173,18 +211,16 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* Search */}
             <div className="hidden md:block flex-1 max-w-md">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search cases, documents..."
+                  placeholder={t.search}
                   className="pl-9 bg-muted/50"
                 />
               </div>
             </div>
 
-            {/* Right Actions */}
             <div className="flex items-center gap-2 md:gap-4">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
@@ -208,16 +244,16 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="gap-2">
                     <User className="w-4 h-4" />
-                    Profile
+                    {t.profile}
                   </DropdownMenuItem>
                   <DropdownMenuItem className="gap-2">
                     <Settings className="w-4 h-4" />
-                    Settings
+                    {t.settings}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="gap-2 text-destructive">
                     <LogOut className="w-4 h-4" />
-                    Logout
+                    {t.signOut}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -225,7 +261,6 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="p-4 md:p-6 lg:p-8">
           {children}
         </main>

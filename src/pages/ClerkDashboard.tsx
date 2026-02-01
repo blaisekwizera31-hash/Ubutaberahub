@@ -22,9 +22,7 @@ import {
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 
-interface ClerkDashboardProps {
-  lang?: string;
-}
+// Unified translations object
 const translations = {
   en: {
     sidebar: {
@@ -37,7 +35,6 @@ const translations = {
       settings: "Settings",
       signOut: "Sign Out"
     },
-  
     greeting: "Good Morning",
     pendingSubtitle: "You have {count} pending filings to process",
     scheduleBtn: "Schedule Hearing",
@@ -52,7 +49,6 @@ const translations = {
     next: "Next"
   },
   rw: {
-
     sidebar: {
       dashboard: "Ikarita mpuruza",
       cases: "Imanza zanjye",
@@ -63,7 +59,6 @@ const translations = {
       settings: "Igenamiterere",
       signOut: "Sohoka"
     },
-
     greeting: "Mwaramutse",
     pendingSubtitle: "Ufite amadosiye {count} agutegereje",
     scheduleBtn: "Gahunda y'iburanisha",
@@ -78,7 +73,6 @@ const translations = {
     next: "Ibikurikira"
   },
   fr: {
-
     sidebar: {
       dashboard: "Tableau de bord",
       cases: "Mes dossiers",
@@ -89,7 +83,6 @@ const translations = {
       settings: "Paramètres",
       signOut: "Se déconnecter"
     },
-    
     greeting: "Bon matin",
     pendingSubtitle: "Vous avez {count} dossiers en attente de traitement",
     scheduleBtn: "Programmer l'audience",
@@ -140,7 +133,11 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
   };
 
   return (
-    <DashboardLayout role="clerk" userName={user?.name || "Court Clerk"}>
+    <DashboardLayout 
+      role="clerk" 
+      userName={user?.name || "Court Clerk"} 
+      lang={lang} // FIX: Passing the language prop to the layout
+    >
       <div className="space-y-6">
         {/* Welcome Section */}
         <motion.div
