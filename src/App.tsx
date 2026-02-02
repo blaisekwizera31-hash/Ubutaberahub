@@ -22,6 +22,7 @@ import SubmitCase from "./pages/SubmitCase";
 import Appointments from "./pages/Appointments";
 import LegalResources from "./pages/LegalResources";
 import Settings from "./pages/Settings";
+import HelpCenter from "./pages/HelpCenter";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const AppContent = () => {
             <Route path="/find-lawyer" element={<FindLawyer lang={currentLang} />} />
             <Route path="/submit-case" element={<SubmitCase lang={currentLang}/>} />
             <Route path="*" element={<NotFound />} />
+    
           </Routes>
         </TooltipProvider>
       </div>
