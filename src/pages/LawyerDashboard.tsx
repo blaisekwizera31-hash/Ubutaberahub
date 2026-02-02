@@ -113,23 +113,34 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
       lang={lang}
     >
       <div className="space-y-6">
-        {/* Welcome Section */}
+        {/* Welcome Section with Institution Logo */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
-          <div className="flex items-center gap-3">
-            <img
-              src={user?.profilePhoto || "/avatar/avatar.png"}
-              alt={user?.name || "Lawyer"}
-              className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-            />
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                {t.greeting}, {user?.name || "Advocate"}!
-              </h1>
-              <p className="text-muted-foreground">{t.subtitle.replace("{count}", "6")}</p>
+          <div className="flex items-center gap-4">
+            {/* BRAND LOGO ADDED HERE */}
+            <div className="hidden sm:flex w-14 h-14 bg-primary rounded-xl items-center justify-center p-2 shadow-lg">
+              <img 
+                src="/logow.png" 
+                alt="UBUTABERAhub Logo" 
+                className="w-full h-full object-contain" 
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <img
+                src={user?.profilePhoto || "/avatar/avatar.png"}
+                alt={user?.name || "Lawyer"}
+                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+              />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  {t.greeting}, {user?.name || "Advocate"}!
+                </h1>
+                <p className="text-muted-foreground">{t.subtitle.replace("{count}", "6")}</p>
+              </div>
             </div>
           </div>
           <div className="flex gap-3">
@@ -193,7 +204,7 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
               </h3>
               <div className="space-y-4">
                 {upcomingHearings.map((hearing, index) => (
-                  <div key={index} className="flex gap-3 p-3 rounded-lg bg-muted/50">
+                  <div key={index} className="flex gap-3 p-3 rounded-lg bg-muted/50 border-l-4 border-primary">
                     <div className="text-sm font-medium text-primary">{hearing.time}</div>
                     <div>
                       <p className="text-sm font-medium">{hearing.case}</p>
@@ -220,8 +231,8 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
                   { name: "Jean-Claude M.", message: "Thank you for the update...", time: `2h ${t.msgTime}` },
                   { name: "Marie U.", message: "When is our next meeting?", time: `5h ${t.msgTime}` }
                 ].map((msg, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
+                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/20 cursor-pointer transition-colors border border-transparent hover:border-border">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold border border-primary/20">
                       {msg.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">

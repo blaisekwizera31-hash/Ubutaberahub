@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 
-// 1. Define the Props interface
 interface JudgeDashboardProps {
   lang?: string;
 }
@@ -104,7 +103,6 @@ const translations = {
 };
 
 const JudgeDashboard = ({ lang = "en" }: JudgeDashboardProps) => {
-  // Select translation based on prop (matches ClerkDashboard logic)
   const t = translations[lang as keyof typeof translations] || translations.en;
   
   const loggedInUser = localStorage.getItem("loggedInUser");
@@ -136,13 +134,23 @@ const JudgeDashboard = ({ lang = "en" }: JudgeDashboardProps) => {
       lang={lang}
     >
       <div className="space-y-6">
-        {/* Welcome Section */}
+        {/* Welcome Section with Institution Logo */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src={user?.profilePhoto || "/avatar/avatar.png"} alt="Profile" className="w-12 h-12 rounded-full border-2 border-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">{t.greeting}, {user?.name || "Justice"}</h1>
-              <p className="text-muted-foreground">{t.subtitle.replace("{count}", "4")}</p>
+          <div className="flex items-center gap-4">
+            {/* BRAND LOGO ADDED HERE */}
+            <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center p-2 shadow-lg">
+              <img 
+                src="/logow.png" 
+                alt="UBUTABERAhub Logo" 
+                className="w-full h-full object-contain" 
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <img src={user?.profilePhoto || "/avatar/avatar.png"} alt="Profile" className="w-12 h-12 rounded-full border-2 border-primary object-cover" />
+              <div>
+                <h1 className="text-2xl font-bold">{t.greeting}, {user?.name || "Justice"}</h1>
+                <p className="text-muted-foreground">{t.subtitle.replace("{count}", "4")}</p>
+              </div>
             </div>
           </div>
           
