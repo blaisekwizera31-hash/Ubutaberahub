@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Briefcase, 
@@ -6,62 +7,97 @@ import {
   TrendingUp,
   Clock,
   MessageSquare,
-  Plus
+  Plus,
+  Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 import CaseCard from "@/components/Dashboard/CaseCard";
 
-interface LawyerDashboardProps {
-  lang?: string;
-}
-
+// 1. COMPLETE TRANSLATIONS OBJECT
 const translations = {
   en: {
     greeting: "Welcome",
     subtitle: "You have {count} hearings scheduled this week",
     btns: { schedule: "View Schedule", newClient: "New Client" },
-    stats: ["Active Cases", "Clients", "Hearings This Week", "Success Rate"],
+    stats: ["Active Cases", "Clients", "Hearings", "Success Rate"],
     statTrends: ["this month", "new", "tomorrow", "this year"],
-    titles: { activeCases: "Active Cases", schedule: "Today's Hearings", messages: "Recent Messages" },
+    titles: { activeCases: "Active Cases", schedule: "Today's Schedule", messages: "Recent Messages" },
     viewAll: "View All",
     viewAllMsgs: "View All Messages",
-    caseLabels: { progress: "In Progress", pending: "Pending" },
-    msgTime: "ago"
+    msgTime: "ago",
+    courts: {
+      high: "High Court, Kigali",
+      primary: "Primary Court, Gasabo",
+      intermediate: "Intermediate Court, Musanze"
+    },
+    caseData: [
+      { title: "Commercial Dispute - ABC Corp vs XYZ Ltd", status: "In Progress" },
+      { title: "Property Transfer - Uwimana Estate", status: "Pending" },
+      { title: "Criminal Defense - State vs Mugabo", status: "In Progress" }
+    ]
   },
   rw: {
     greeting: "Murakaza neza",
     subtitle: "Ufite imanza {count} kuri gahunda muri iki cyumweru",
     btns: { schedule: "Reba Gahunda", newClient: "Umukiriya Mushya" },
-    stats: ["Imanza zikurikiranwa", "Abakiriya", "Imanza z'iki cyumweru", "Igipimo cy'intsinzi"],
+    stats: ["Imanza zikurikiranwa", "Abakiriya", "Iburanisha", "Igipimo cy'intsinzi"],
     statTrends: ["uku kwezi", "bashya", "ejo", "uyu mwaka"],
-    titles: { activeCases: "Imanza zikurikiranwa", schedule: "Iburanisha ryuyu munsi", messages: "Ubutumwa bwa vuba" },
+    titles: { activeCases: "Imanza zikurikiranwa", schedule: "Gahunda y'uyu munsi", messages: "Ubutumwa bwa vuba" },
     viewAll: "Reba zose",
     viewAllMsgs: "Ubutumwa bwose",
-    caseLabels: { progress: "Birakomeje", pending: "Birategereje" },
-    msgTime: "hashize"
+    msgTime: "hashize",
+    courts: {
+      high: "Urukiko Rwisumbuye, Kigali",
+      primary: "Urukiko rw'Ibanze, Gasabo",
+      intermediate: "Urukiko Rwisumbuye, Musanze"
+    },
+    caseData: [
+      { title: "Amakimbirane y'ubucuruzi - ABC Corp vs XYZ Ltd", status: "Birakomeje" },
+      { title: "Ihererekanyabubasha ry'umutungo - Uwimana Estate", status: "Birategereje" },
+      { title: "Urubanza mpanabyaha - Leta vs Mugabo", status: "Birakomeje" }
+    ]
   },
   fr: {
     greeting: "Bienvenue",
     subtitle: "Vous avez {count} audiences prévues cette semaine",
     btns: { schedule: "Voir l'horaire", newClient: "Nouveau client" },
-    stats: ["Affaires actives", "Clients", "Audiences de la semaine", "Taux de réussite"],
+    stats: ["Affaires actives", "Clients", "Audiences", "Taux de réussite"],
     statTrends: ["ce mois", "nouveaux", "demain", "cette année"],
-    titles: { activeCases: "Affaires actives", schedule: "Audiences d'aujourd'hui", messages: "Messages récents" },
+    titles: { activeCases: "Affaires actives", schedule: "Agenda du jour", messages: "Messages récents" },
     viewAll: "Voir tout",
     viewAllMsgs: "Tous les messages",
-    caseLabels: { progress: "En cours", pending: "En attente" },
-    msgTime: "il y a"
+    msgTime: "il y a",
+    courts: {
+      high: "Haute Cour, Kigali",
+      primary: "Tribunal de Base, Gasabo",
+      intermediate: "Tribunal de Grande Instance"
+    },
+    caseData: [
+      { title: "Litige Commercial - ABC Corp vs XYZ Ltd", status: "En cours" },
+      { title: "Transfert de Propriété - Uwimana Estate", status: "En attente" },
+      { title: "Défense Pénale - État vs Mugabo", status: "En cours" }
+    ]
   }
-};
+} as const;
+
+interface LawyerDashboardProps {
+  lang?: "en" | "rw" | "fr";
+}
 
 const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
-  const t = translations[lang as keyof typeof translations] || translations.en;
+  const t = translations[lang] || translations.en;
+  
+  // User Session logic
+  const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+    const loggedInUser = localStorage.getItem("loggedInUser");
+    if (loggedInUser) setUser(JSON.parse(loggedInUser));
+  }, []);
 
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
-
+  // 2. DYNAMIC STATS (Translated)
   const stats = [
     { title: t.stats[0], value: "15", icon: Briefcase, trend: `+3 ${t.statTrends[0]}`, color: "primary" as const },
     { title: t.stats[1], value: "28", icon: Users, trend: `+5 ${t.statTrends[1]}`, color: "secondary" as const },
@@ -69,88 +105,73 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
     { title: t.stats[3], value: "87%", icon: TrendingUp, trend: `+2% ${t.statTrends[3]}`, color: "primary" as const },
   ];
 
+  // 3. DYNAMIC CASE LIST (Translated)
   const cases = [
     {
       id: "CASE-2024-045",
-      title: "Commercial Dispute - ABC Corp vs XYZ Ltd",
-      status: t.caseLabels.progress as any,
+      title: t.caseData[0].title,
+      status: t.caseData[0].status as any,
       date: "Jan 8, 2024",
-      lawyer: "High Court, Kigali",
+      lawyer: t.courts.high,
       nextHearing: "Jan 18, 2024",
     },
     {
       id: "CASE-2024-039",
-      title: "Property Transfer - Uwimana Estate",
-      status: t.caseLabels.pending as any,
+      title: t.caseData[1].title,
+      status: t.caseData[1].status as any,
       date: "Jan 5, 2024",
-      lawyer: "Primary Court, Gasabo",
+      lawyer: t.courts.primary,
       nextHearing: "Jan 22, 2024",
     },
     {
       id: "CASE-2024-032",
-      title: "Criminal Defense - State vs Mugabo",
-      status: t.caseLabels.progress as any,
+      title: t.caseData[2].title,
+      status: t.caseData[2].status as any,
       date: "Jan 2, 2024",
-      lawyer: "Intermediate Court",
+      lawyer: t.courts.intermediate,
       nextHearing: "Jan 15, 2024",
     },
-  ];
-
-  const upcomingHearings = [
-    { time: "09:00 AM", case: "ABC Corp vs XYZ", court: "High Court, Room 3" },
-    { time: "11:30 AM", case: "State vs Mugabo", court: "Intermediate Court" },
-    { time: "02:00 PM", case: "Uwimana Estate", court: "Primary Court" },
   ];
 
   return (
     <DashboardLayout 
       role="lawyer" 
-      userName={user?.name || "Me. Lawyer"} 
+      userName={user?.name || "Adv. Me. Lawyer"} 
       lang={lang}
     >
       <div className="space-y-6">
-        {/* CLEANED Welcome Section */}
+        
+        {/* CLEAN WELCOME SECTION - Logo Removed */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
-          <div className="flex items-center gap-5">
-            {/* BRAND LOGO - Background removed for a floating, clean effect */}
-            <div className="hidden sm:flex w-12 h-12 items-center justify-center">
-              <img 
-                src="/logo.png" 
-                alt="UBUTABERAhub Logo" 
-                className="w-full h-full object-contain filter grayscale brightness-50 contrast-125" 
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <img
+                src={user?.profilePhoto || "/avatar/avatar.png"}
+                alt="Profile"
+                className="w-14 h-14 rounded-full object-cover border-2 border-[#1a2b4b] shadow-sm"
               />
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
-
-            <div className="flex items-center gap-4 border-l pl-5 border-border">
-              <div className="relative">
-                <img
-                  src={user?.profilePhoto || "/avatar/avatar.png"}
-                  alt={user?.name || "Lawyer"}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-primary shadow-sm"
-                />
-                <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full"></div>
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                  {t.greeting}, {user?.name || "Advocate"}!
-                </h1>
-                <p className="text-muted-foreground font-medium">
-                  {t.subtitle.replace("{count}", "6")}
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+                {t.greeting}, {user?.name || "Advocate"}!
+              </h1>
+              <p className="text-muted-foreground font-medium">
+                {t.subtitle.replace("{count}", "6")}
+              </p>
             </div>
           </div>
           
           <div className="flex gap-3">
-            <Button variant="outline" className="gap-2 shadow-sm">
+            <Button variant="outline" className="gap-2 border-slate-200">
               <Calendar className="w-4 h-4" />
               {t.btns.schedule}
             </Button>
-            <Button className="gap-2 shadow-sm">
+            <Button className="gap-2 bg-[#1a2b4b] hover:bg-[#111c32]">
               <Plus className="w-4 h-4" />
               {t.btns.newClient}
             </Button>
@@ -172,11 +193,13 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Cases List */}
+          {/* Main Content: Cases */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold tracking-tight">{t.titles.activeCases}</h2>
-              <Button variant="ghost" size="sm" className="text-primary">{t.viewAll}</Button>
+              <h2 className="text-xl font-bold text-slate-800">{t.titles.activeCases}</h2>
+              <Button variant="ghost" size="sm" className="text-[#1a2b4b] hover:bg-slate-100">
+                {t.viewAll}
+              </Button>
             </div>
             <div className="space-y-4">
               {cases.map((caseItem, index) => (
@@ -192,58 +215,65 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar Content */}
           <div className="space-y-6">
+            {/* Schedule Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-card rounded-xl p-6 border shadow-soft"
+              className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
             >
-              <h3 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-muted-foreground">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-slate-500">
                 <Clock className="w-4 h-4 text-primary" />
                 {t.titles.schedule}
               </h3>
               <div className="space-y-4">
-                {upcomingHearings.map((hearing, index) => (
-                  <div key={index} className="flex gap-4 p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
-                    <div className="text-xs font-bold text-primary">{hearing.time}</div>
-                    <div>
-                      <p className="text-sm font-semibold">{hearing.case}</p>
-                      <p className="text-xs text-muted-foreground">{hearing.court}</p>
-                    </div>
+                <div className="flex gap-4 p-3 rounded-lg bg-slate-50 border-l-4 border-[#1a2b4b]">
+                  <div className="text-xs font-bold text-[#1a2b4b]">09:00 AM</div>
+                  <div>
+                    <p className="text-sm font-semibold">ABC vs XYZ</p>
+                    <p className="text-xs text-slate-500">{t.courts.high}</p>
                   </div>
-                ))}
+                </div>
+                <div className="flex gap-4 p-3 rounded-lg bg-slate-50 border-l-4 border-slate-300">
+                  <div className="text-xs font-bold text-slate-500">02:30 PM</div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">Uwimana Estate</p>
+                    <p className="text-xs text-slate-500">{t.courts.primary}</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
+            {/* Messages Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-card rounded-xl p-6 border shadow-soft"
+              className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
             >
-              <h3 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-muted-foreground">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-slate-500">
                 <MessageSquare className="w-4 h-4 text-secondary" />
                 {t.titles.messages}
               </h3>
               <div className="space-y-3">
                 {[
-                  { name: "Jean-Claude M.", message: "Thank you for the update...", time: `2h ${t.msgTime}` },
-                  { name: "Marie U.", message: "When is our next meeting?", time: `5h ${t.msgTime}` }
+                  { name: "Jean-Claude M.", message: "Dosiye nshya yagezeho...", time: `2h ${t.msgTime}` },
+                  { name: "Me. Marie U.", message: "Meeting at 4 PM?", time: `5h ${t.msgTime}` }
                 ].map((msg, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border border-transparent hover:border-border">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
+                  <div key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors border border-transparent">
+                    <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-[#1a2b4b] text-sm font-bold">
                       {msg.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold">{msg.name}</p>
-                      <p className="text-xs text-muted-foreground truncate font-medium">{msg.message}</p>
+                      <p className="text-sm font-semibold text-slate-900">{msg.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{msg.message}</p>
                     </div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{msg.time}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">{msg.time}</span>
                   </div>
                 ))}
               </div>
-              <Button variant="ghost" size="sm" className="w-full mt-3 text-xs font-bold uppercase tracking-tighter">
+              <Button variant="ghost" size="sm" className="w-full mt-3 text-xs font-bold uppercase tracking-tight text-slate-500">
                 {t.viewAllMsgs}
               </Button>
             </motion.div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   FileText, 
   Calendar, 
@@ -22,18 +22,9 @@ import {
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 
+// Full Translations for EN, RW, and FR
 const translations = {
   en: {
-    sidebar: {
-      dashboard: "Dashboard",
-      cases: "My Cases",
-      ai: "AI Assistant",
-      lawyers: "Find Lawyers",
-      appoint: "Appointments",
-      resources: "Legal Resources",
-      settings: "Settings",
-      signOut: "Sign Out"
-    },
     greeting: "Good Morning",
     pendingSubtitle: "You have {count} pending filings to process",
     scheduleBtn: "Schedule Hearing",
@@ -50,68 +41,50 @@ const translations = {
     next: "Next"
   },
   rw: {
-    sidebar: {
-      dashboard: "Ikarita mpuruza",
-      cases: "Imanza zanjye",
-      ai: "Ubufasha bwa AI",
-      lawyers: "Shaka abanyamategeko",
-      appoint: "Gahunda",
-      resources: "Amategeko n'izindi mbuga",
-      settings: "Igenamiterere",
-      signOut: "Sohoka"
-    },
     greeting: "Mwaramutse",
-    pendingSubtitle: "Ufite amadosiye {count} agutegereje",
+    pendingSubtitle: "Mufite dosiye {count} zitegereje gukorwa",
     scheduleBtn: "Gahunda y'iburanisha",
-    newFilingBtn: "Kwandika idosiye nshya",
-    stats: ["Amadosiye ategereje", "Ayatunganyijwe uyu munsi", "Imanza ziteguwe", "Abasabye inyandiko"],
+    newFilingBtn: "Dosiye nshya",
+    stats: ["Dosiye zitegereje", "Zatunganyijwe uyu munsi", "Imanza ziteganijwe", "Kubaza inyandiko"],
     statTrends: ["uyu munsi", "ugereranyije n'ejo", "Iyi cyumweru", "byihutirwa"],
-    tableTitle: "Amadosiye ategereje",
-    searchPlaceholder: "Shakisha idosiye...",
-    tableHeaders: ["ID y'idosiye", "Ibisobanuro", "Uwayitanze", "Ubwoko", "Itariki", "Imiterere", "Icyakorwa"],
-    actions: { review: "Gusuzuma", approve: "Kwemeza", reject: "Kwangira", request: "Gusaba inyandiko" },
-    statusTexts: { pending: "Isuzuma rirakomeje", missing: "Inyandiko zibura", ready: "Biteguye Umucamanza" },
-    pagination: "Hagaragajwe {show} kuri {total}",
-    prev: "Icyabanjirije",
-    next: "Ibikurikira"
+    tableTitle: "Dosiye zitegereje",
+    searchPlaceholder: "Shakisha dosiye...",
+    tableHeaders: ["ID ya Dosiye", "Ibisobanuro", "Uwayitanze", "Ubwoko", "Itariki", "Imiterere", "Ibikorwa"],
+    actions: { review: "Sura", approve: "Kwemeza", reject: "Kwanze", request: "Saba inyandiko" },
+    statusTexts: { pending: "Irategereje", missing: "Inyandiko zibura", ready: "Yiteguye gucirwa urubanza" },
+    pagination: "Hagaragajwe {show} kuri {total} za dosiye",
+    prev: "Ibanziriza",
+    next: "Ikurikira"
   },
   fr: {
-    sidebar: {
-      dashboard: "Tableau de bord",
-      cases: "Mes dossiers",
-      ai: "Assistant IA",
-      lawyers: "Trouver un avocat",
-      appoint: "Rendez-vous",
-      resources: "Ressources juridiques",
-      settings: "Paramètres",
-      signOut: "Se déconnecter"
-    },
-    greeting: "Bon matin",
-    pendingSubtitle: "Vous avez {count} dossiers en attente de traitement",
+    greeting: "Bonjour",
+    pendingSubtitle: "Vous avez {count} dossiers en attente à traiter",
     scheduleBtn: "Programmer l'audience",
-    newFilingBtn: "Nouveau dépôt",
-    stats: ["Dépôts en attente", "Traités aujourd'hui", "Audiences prévues", "Demandes de documents"],
-    statTrends: ["aujourd'hui", "par rapport à hier", "Cette semaine", "urgents"],
-    tableTitle: "Dépôts en attente",
-    searchPlaceholder: "Rechercher des dépôts...",
-    tableHeaders: ["ID du dépôt", "Description", "Soumis par", "Type", "Date", "Statut", "Actions"],
+    newFilingBtn: "Nouveau dossier",
+    stats: ["Dossiers en attente", "Traités aujourd'hui", "Audiences prévues", "Demandes de documents"],
+    statTrends: ["aujourd'hui", "vs hier", "Cette semaine", "urgent"],
+    tableTitle: "Dossiers en attente",
+    searchPlaceholder: "Rechercher des dossiers...",
+    tableHeaders: ["ID du dossier", "Description", "Soumis par", "Type", "Date", "Statut", "Actions"],
     actions: { review: "Réviser", approve: "Approuver", reject: "Rejeter", request: "Demander documents" },
-    statusTexts: { pending: "Examen en cours", missing: "Documents manquants", ready: "Prêt pour le juge" },
-    pagination: "Affichage de {show} sur {total} dépôts",
+    statusTexts: { pending: "En attente", missing: "Documents manquants", ready: "Prêt pour le juge" },
+    pagination: "Affichage de {show} sur {total} dossiers",
     prev: "Précédent",
     next: "Suivant"
   }
-};
+} as const;
 
 interface ClerkDashboardProps {
-  lang?: string;
+  lang?: "en" | "rw" | "fr";
 }
 
 const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const t = translations[lang as keyof typeof translations] || translations.en;
+  
+  // FIX: Accessing the correct translation based on lang
+  const t = translations[lang] || translations.en;
 
-  const loggedInUser = localStorage.getItem("loggedInUser");
+  const loggedInUser = typeof window !== 'undefined' ? localStorage.getItem("loggedInUser") : null;
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
   const stats = [
@@ -138,43 +111,38 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
   return (
     <DashboardLayout 
       role="clerk" 
-      userName={user?.name || "Court Clerk"} 
+      userName={user?.name || "Kwizera Blaise"} 
       lang={lang} 
     >
       <div className="space-y-6">
-        {/* Welcome Section with LOGO */}
+        {/* CLEAN WELCOME SECTION - Extra Logo Completely Removed */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-4">
-            {/* BRAND LOGO ADDED HERE */}
-            <div className="hidden sm:flex w-14 h-14 bg-primary rounded-xl items-center justify-center p-2 shadow-soft">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <img
-                src={user?.profilePhoto || "/avatar/avatar.png"}
-                alt={user?.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-              />
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">
-                  {t.greeting}, {user?.name || "Diane"}!
-                </h1>
-                <p className="text-muted-foreground">{t.pendingSubtitle.replace("{count}", "24")}</p>
-              </div>
+            <img
+              src={user?.profilePhoto || "/avatar/avatar.png"}
+              alt={user?.name}
+              className="w-14 h-14 rounded-full object-cover shadow-sm"
+            />
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+                {t.greeting}, {user?.name || "Kwizera Blaise"}!
+              </h1>
+              <p className="text-muted-foreground font-medium">
+                {t.pendingSubtitle.replace("{count}", "24")}
+              </p>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2 border-slate-200">
               <Calendar className="w-4 h-4" />
               {t.scheduleBtn}
             </Button>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-[#1a2b4b] hover:bg-[#111c32]">
               <FileText className="w-4 h-4" />
               {t.newFilingBtn}
             </Button>
@@ -200,11 +168,11 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-card rounded-xl border shadow-soft"
+          className="bg-card rounded-xl border border-slate-200 shadow-sm"
         >
-          <div className="p-4 md:p-6 border-b">
+          <div className="p-4 md:p-6 border-b border-slate-100">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h2 className="text-xl font-semibold">{t.tableTitle}</h2>
+              <h2 className="text-xl font-bold text-slate-800">{t.tableTitle}</h2>
               <div className="flex gap-3">
                 <div className="relative flex-1 md:w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -212,10 +180,10 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
                     placeholder={t.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 bg-slate-50/50 border-slate-200"
                   />
                 </div>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="border-slate-200">
                   <Filter className="w-4 h-4" />
                 </Button>
               </div>
@@ -225,36 +193,36 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b bg-muted/30">
-                  {t.tableHeaders.map((header) => (
-                    <th key={header} className="text-left p-4 font-medium text-muted-foreground">{header}</th>
+                <tr className="border-b bg-slate-50/50">
+                  {t.tableHeaders.map((header: string) => (
+                    <th key={header} className="text-left p-4 font-semibold text-slate-500 text-sm uppercase tracking-wider">{header}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {pendingFilings.map((filing) => (
-                  <tr key={filing.id} className="border-b hover:bg-muted/20 transition-colors">
-                    <td className="p-4 font-mono text-sm">{filing.id}</td>
+                  <tr key={filing.id} className="border-b hover:bg-slate-50/30 transition-colors">
+                    <td className="p-4 font-mono text-xs text-slate-500">{filing.id}</td>
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">{filing.title}</p>
-                        <p className="text-sm text-muted-foreground">{filing.documents} docs</p>
+                        <p className="font-semibold text-slate-900">{filing.title}</p>
+                        <p className="text-xs text-muted-foreground">{filing.documents} docs</p>
                       </div>
                     </td>
-                    <td className="p-4 text-sm">{filing.submittedBy}</td>
+                    <td className="p-4 text-sm text-slate-700 font-medium">{filing.submittedBy}</td>
                     <td className="p-4">
-                      <Badge variant="outline">{filing.type}</Badge>
+                      <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">{filing.type}</Badge>
                     </td>
                     <td className="p-4 text-sm text-muted-foreground">{filing.date}</td>
                     <td className="p-4">
-                      <Badge variant={getStatusColor(filing.status)}>{filing.status}</Badge>
+                      <Badge variant={getStatusColor(filing.status)} className="font-semibold">{filing.status}</Badge>
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">{t.actions.review}</Button>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Button size="sm" variant="outline" className="h-8 border-slate-200">{t.actions.review}</Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="ghost">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -262,7 +230,7 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
                             <DropdownMenuItem className="gap-2">
                               <CheckCircle className="w-4 h-4" /> {t.actions.approve}
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2 text-destructive">
                               <XCircle className="w-4 h-4" /> {t.actions.reject}
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2">
@@ -283,8 +251,8 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
               {t.pagination.replace("{show}", "4").replace("{total}", "24")}
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>{t.prev}</Button>
-              <Button variant="outline" size="sm">{t.next}</Button>
+              <Button variant="outline" size="sm" className="border-slate-200" disabled>{t.prev}</Button>
+              <Button variant="outline" size="sm" className="border-slate-200">{t.next}</Button>
             </div>
           </div>
         </motion.div>
