@@ -114,7 +114,6 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
-  // 1. Re-enabled Stats with localized trends
   const stats = [
     { title: t.stats[0], value: "24", icon: FileText, trend: `8 ${t.statTrends[0]}`, color: "primary" as const },
     { title: t.stats[1], value: "18", icon: CheckCircle, trend: `+5 ${t.statTrends[1]}`, color: "secondary" as const },
@@ -122,7 +121,6 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
     { title: t.stats[3], value: "7", icon: Upload, trend: `3 ${t.statTrends[3]}`, color: "primary" as const },
   ];
 
-  // 2. Re-enabled Filings with localized status text
   const pendingFilings = [
     { id: "FILE-2024-156", title: "New Case Filing - Property Dispute", submittedBy: "Jean-Claude Mugisha", type: "Civil", date: "Jan 10, 2024", status: t.statusTexts.pending, documents: 5 },
     { id: "FILE-2024-155", title: "Appeal Submission - Criminal Case", submittedBy: "Me. Marie Uwimana", type: "Criminal", date: "Jan 10, 2024", status: t.statusTexts.missing, documents: 3 },
@@ -130,7 +128,6 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
     { id: "FILE-2024-153", title: "Motion for Extension", submittedBy: "Me. Patrick Nkurunziza", type: "Motion", date: "Jan 9, 2024", status: t.statusTexts.ready, documents: 2 },
   ];
 
-  // 3. Updated Status Color logic to match the translated strings
   const getStatusColor = (status: string) => {
     if (status === t.statusTexts.pending) return "default";
     if (status === t.statusTexts.missing) return "destructive";
@@ -145,23 +142,30 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
       lang={lang} 
     >
       <div className="space-y-6">
-        {/* Welcome Section */}
+        {/* Welcome Section with LOGO */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
-          <div className="flex items-center gap-3">
-            <img
-              src={user?.profilePhoto || "/avatar/avatar.png"}
-              alt={user?.name}
-              className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-            />
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                {t.greeting}, {user?.name || "Diane"}!
-              </h1>
-              <p className="text-muted-foreground">{t.pendingSubtitle.replace("{count}", "24")}</p>
+          <div className="flex items-center gap-4">
+            {/* BRAND LOGO ADDED HERE */}
+            <div className="hidden sm:flex w-14 h-14 bg-primary rounded-xl items-center justify-center p-2 shadow-soft">
+              <img src="/logow.png" alt="Logo" className="w-full h-full object-contain" />
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <img
+                src={user?.profilePhoto || "/avatar/avatar.png"}
+                alt={user?.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+              />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  {t.greeting}, {user?.name || "Diane"}!
+                </h1>
+                <p className="text-muted-foreground">{t.pendingSubtitle.replace("{count}", "24")}</p>
+              </div>
             </div>
           </div>
 
