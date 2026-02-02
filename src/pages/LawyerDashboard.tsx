@@ -13,12 +13,10 @@ import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 import CaseCard from "@/components/Dashboard/CaseCard";
 
-// 1. Define Props Interface
 interface LawyerDashboardProps {
   lang?: string;
 }
 
-// 2. Translations Object
 const translations = {
   en: {
     greeting: "Welcome",
@@ -59,10 +57,8 @@ const translations = {
 };
 
 const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
-  // Select translation
   const t = translations[lang as keyof typeof translations] || translations.en;
 
-  // Get User Data
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
@@ -113,42 +109,48 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
       lang={lang}
     >
       <div className="space-y-6">
-        {/* Welcome Section with Institution Logo */}
+        {/* CLEANED Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
-          <div className="flex items-center gap-4">
-            {/* BRAND LOGO ADDED HERE */}
-            <div className="hidden sm:flex w-14 h-14 bg-primary rounded-xl items-center justify-center p-2 shadow-lg">
+          <div className="flex items-center gap-5">
+            {/* BRAND LOGO - Background removed for a floating, clean effect */}
+            <div className="hidden sm:flex w-12 h-12 items-center justify-center">
               <img 
                 src="/logo.png" 
                 alt="UBUTABERAhub Logo" 
-                className="w-full h-full object-contain" 
+                className="w-full h-full object-contain filter grayscale brightness-50 contrast-125" 
               />
             </div>
 
-            <div className="flex items-center gap-3">
-              <img
-                src={user?.profilePhoto || "/avatar/avatar.png"}
-                alt={user?.name || "Lawyer"}
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary"
-              />
+            <div className="flex items-center gap-4 border-l pl-5 border-border">
+              <div className="relative">
+                <img
+                  src={user?.profilePhoto || "/avatar/avatar.png"}
+                  alt={user?.name || "Lawyer"}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-primary shadow-sm"
+                />
+                <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full"></div>
+              </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                   {t.greeting}, {user?.name || "Advocate"}!
                 </h1>
-                <p className="text-muted-foreground">{t.subtitle.replace("{count}", "6")}</p>
+                <p className="text-muted-foreground font-medium">
+                  {t.subtitle.replace("{count}", "6")}
+                </p>
               </div>
             </div>
           </div>
+          
           <div className="flex gap-3">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2 shadow-sm">
               <Calendar className="w-4 h-4" />
               {t.btns.schedule}
             </Button>
-            <Button className="gap-2">
+            <Button className="gap-2 shadow-sm">
               <Plus className="w-4 h-4" />
               {t.btns.newClient}
             </Button>
@@ -173,8 +175,8 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
           {/* Cases List */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{t.titles.activeCases}</h2>
-              <Button variant="ghost" size="sm">{t.viewAll}</Button>
+              <h2 className="text-xl font-semibold tracking-tight">{t.titles.activeCases}</h2>
+              <Button variant="ghost" size="sm" className="text-primary">{t.viewAll}</Button>
             </div>
             <div className="space-y-4">
               {cases.map((caseItem, index) => (
@@ -192,22 +194,21 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Today's Schedule */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               className="bg-card rounded-xl p-6 border shadow-soft"
             >
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-muted-foreground">
                 <Clock className="w-4 h-4 text-primary" />
                 {t.titles.schedule}
               </h3>
               <div className="space-y-4">
                 {upcomingHearings.map((hearing, index) => (
-                  <div key={index} className="flex gap-3 p-3 rounded-lg bg-muted/50 border-l-4 border-primary">
-                    <div className="text-sm font-medium text-primary">{hearing.time}</div>
+                  <div key={index} className="flex gap-4 p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
+                    <div className="text-xs font-bold text-primary">{hearing.time}</div>
                     <div>
-                      <p className="text-sm font-medium">{hearing.case}</p>
+                      <p className="text-sm font-semibold">{hearing.case}</p>
                       <p className="text-xs text-muted-foreground">{hearing.court}</p>
                     </div>
                   </div>
@@ -215,14 +216,13 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
               </div>
             </motion.div>
 
-            {/* Client Messages */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
               className="bg-card rounded-xl p-6 border shadow-soft"
             >
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <h3 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-muted-foreground">
                 <MessageSquare className="w-4 h-4 text-secondary" />
                 {t.titles.messages}
               </h3>
@@ -231,19 +231,19 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
                   { name: "Jean-Claude M.", message: "Thank you for the update...", time: `2h ${t.msgTime}` },
                   { name: "Marie U.", message: "When is our next meeting?", time: `5h ${t.msgTime}` }
                 ].map((msg, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/20 cursor-pointer transition-colors border border-transparent hover:border-border">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold border border-primary/20">
+                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border border-transparent hover:border-border">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
                       {msg.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{msg.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{msg.message}</p>
+                      <p className="text-sm font-semibold">{msg.name}</p>
+                      <p className="text-xs text-muted-foreground truncate font-medium">{msg.message}</p>
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">{msg.time}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{msg.time}</span>
                   </div>
                 ))}
               </div>
-              <Button variant="ghost" size="sm" className="w-full mt-3">
+              <Button variant="ghost" size="sm" className="w-full mt-3 text-xs font-bold uppercase tracking-tighter">
                 {t.viewAllMsgs}
               </Button>
             </motion.div>
