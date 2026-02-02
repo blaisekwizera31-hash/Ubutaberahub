@@ -151,7 +151,7 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
           <div className="flex items-center gap-4">
             {/* BRAND LOGO ADDED HERE */}
             <div className="hidden sm:flex w-14 h-14 bg-primary rounded-xl items-center justify-center p-2 shadow-soft">
-              <img src="/logow.png" alt="Logo" className="w-full h-full object-contain" />
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             
             <div className="flex items-center gap-3">
