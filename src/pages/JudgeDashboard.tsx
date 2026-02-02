@@ -140,7 +140,7 @@ const JudgeDashboard = ({ lang = "en" }: JudgeDashboardProps) => {
             {/* BRAND LOGO ADDED HERE */}
             <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center p-2 shadow-lg">
               <img 
-                src="/logow.png" 
+                src="/logo.png" 
                 alt="UBUTABERAhub Logo" 
                 className="w-full h-full object-contain" 
               />
