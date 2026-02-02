@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Scale, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Camera } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,11 +139,9 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   
-  // Photo State
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Role Specific States
   const [licenseNumber, setLicenseNumber] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [lawFirm, setLawFirm] = useState("");
@@ -211,6 +209,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
   return (
     <div className="min-h-screen flex">
+      {/* Left Side: Hero Branding */}
       <div className="hidden lg:flex lg:w-1/2 gradient-hero relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-64 h-64 bg-accent/20 rounded-full blur-3xl" />
@@ -219,10 +218,11 @@ const Auth = ({ lang = "en" }: AuthProps) => {
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 gradient-gold rounded-xl flex items-center justify-center">
-                <Scale className="w-6 h-6 text-primary" />
+              {/* White Logo Container */}
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img src="/logow.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="font-display text-2xl font-bold">
+              <span className="font-display text-2xl font-bold text-white">
                 UBUTABERA<span className="text-accent">hub</span>
               </span>
             </div>
@@ -232,6 +232,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
         </div>
       </div>
 
+      {/* Right Side: Auth Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
@@ -251,7 +252,6 @@ const Auth = ({ lang = "en" }: AuthProps) => {
           <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
             {mode === "signup" && (
               <>
-                {/* Photo Upload Section */}
                 <div className="flex flex-col items-center gap-3 mb-4">
                   <Label>{t.uploadPhoto}</Label>
                   <div 
@@ -264,13 +264,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                       <Camera className="w-8 h-8 text-muted-foreground group-hover:text-accent transition-colors" />
                     )}
                   </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handlePhotoChange} 
-                    className="hidden" 
-                    accept="image/*" 
-                  />
+                  <input type="file" ref={fileInputRef} onChange={handlePhotoChange} className="hidden" accept="image/*" />
                 </div>
 
                 <div className="space-y-2">
@@ -298,7 +292,6 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                   </div>
                 </div>
 
-                {/* Role Specifics - Now Visible and Functional */}
                 {selectedRole === "lawyer" && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                     <div className="space-y-2">
@@ -307,27 +300,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                     </div>
                     <div className="space-y-2">
                       <Label>{t.fields.specialization}</Label>
-                      <Input value={specialization} onChange={(e) => setSpecialization(e.target.value)} placeholder="Criminal Law, Family Law..." />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t.fields.lawFirm}</Label>
-                      <Input value={lawFirm} onChange={(e) => setLawFirm(e.target.value)} placeholder="Firm name" />
-                    </div>
-                  </div>
-                )}
-
-                {(selectedRole === "clerk" || selectedRole === "judge") && (
-                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                    <div className="space-y-2">
-                      <Label>{selectedRole === "judge" ? t.fields.judgeId : t.fields.empId}</Label>
-                      <Input 
-                        value={selectedRole === "judge" ? judgeId : employeeId} 
-                        onChange={(e) => selectedRole === "judge" ? setJudgeId(e.target.value) : setEmployeeId(e.target.value)} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t.fields.court}</Label>
-                      <Input value={courtAssigned} onChange={(e) => setCourtAssigned(e.target.value)} placeholder="High Court, Nyarugenge..." />
+                      <Input value={specialization} onChange={(e) => setSpecialization(e.target.value)} placeholder="Criminal Law..." />
                     </div>
                   </div>
                 )}

@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Scale,
   MessageSquare,
   FileText,
   Calendar,
   Bell,
   Search,
-  User,
   ChevronRight,
   Plus,
   Mic,
@@ -17,17 +15,15 @@ import {
   HelpCircle,
   Settings,
   LogOut,
-} from "lucide-react";
+} from "lucide-react"; // Removed Scale import
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
-// 1. Define the Prop Interface
 interface DashboardProps {
   lang?: string;
 }
 
-// 2. Comprehensive Translation Object
 const translations = {
   en: {
     sidebar: {
@@ -194,8 +190,13 @@ const CitizenDashboard = ({ lang = "en" }: DashboardProps) => {
       <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card">
         <div className="p-6 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 gradient-hero rounded-lg flex items-center justify-center">
-              <Scale className="w-4 h-4 text-primary-foreground" />
+            {/* LOGO ADDED HERE */}
+            <div className="w-9 h-9 flex items-center justify-center">
+              <img 
+                src="/logow.png" 
+                alt="UBUTABERAhub" 
+                className="w-full h-full object-contain" 
+              />
             </div>
             <span className="font-display text-lg font-bold">
               UBUTABERA<span className="text-accent">hub</span>
@@ -267,7 +268,6 @@ const CitizenDashboard = ({ lang = "en" }: DashboardProps) => {
 
         {/* Dashboard Content */}
         <div className="p-6 space-y-6">
-          {/* Welcome Section */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <h1 className="text-2xl font-display font-bold mb-1">
               {t.welcome}, {user?.name || "Amahoro"}!
@@ -299,7 +299,6 @@ const CitizenDashboard = ({ lang = "en" }: DashboardProps) => {
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Cases */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="lg:col-span-2">
               <div className="bg-card rounded-2xl border border-border shadow-soft">
                 <div className="flex items-center justify-between p-5 border-b border-border">
