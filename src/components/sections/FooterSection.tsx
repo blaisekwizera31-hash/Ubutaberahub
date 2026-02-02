@@ -1,4 +1,4 @@
-import { Scale, Github, Twitter, Linkedin, Mail } from "lucide-react";
+import { Github, Twitter, Linkedin, Mail } from "lucide-react"; // Removed Scale import
 
 const translations = {
   en: {
@@ -50,8 +50,13 @@ export function FooterSection({ lang }: FooterSectionProps) {
           {/* Brand */}
           <div className="md:col-span-1">
             <a href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 gradient-gold rounded-lg flex items-center justify-center">
-                <Scale className="w-5 h-5 text-primary" />
+              {/* FIXED: Replaced Scale icon with your logo from public folder */}
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img 
+                  src="/logow.png" 
+                  alt="Logo" 
+                  className="w-full h-full object-contain" 
+                />
               </div>
               <span className="font-display text-xl font-bold">
                 UBUTABERA<span className="text-accent">hub</span>
@@ -60,17 +65,19 @@ export function FooterSection({ lang }: FooterSectionProps) {
             <p className="text-primary-foreground/70 text-sm mb-4">
               {t.tagline}
             </p>
+            
+            {/* Social Media Links - Replace "DEMO_LINK" with your real URLs later */}
             <div className="flex gap-3">
-              <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="https://twitter.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
                 <Twitter className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="https://linkedin.com/company/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="https://github.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
                 <Github className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="mailto:contact@DEMO_LINK.com" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
                 <Mail className="w-4 h-4" />
               </a>
             </div>

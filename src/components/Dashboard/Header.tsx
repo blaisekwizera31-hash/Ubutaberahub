@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Menu, X, Globe, Scale } from "lucide-react";
+;
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, Globe } from "lucide-react"; // Removed Scale import
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -60,7 +61,7 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
       <div className="glass border-b border-border/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
+            {/* Logo Section */}
             <motion.a
               href="/"
               className="flex items-center gap-2"
@@ -68,9 +69,15 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="w-10 h-10 gradient-hero rounded-lg flex items-center justify-center">
-                <Scale className="w-5 h-5 text-primary-foreground" />
+              {/* Logo Image from Public Folder */}
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img 
+                  src="/logo.png" 
+                  alt="UBUTABERAhub Logo" 
+                  className="w-full h-full object-contain" 
+                />
               </div>
+              
               <span className="font-display text-xl font-bold text-foreground">
                 UBUTABERA<span className="text-accent">hub</span>
               </span>
@@ -137,29 +144,31 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
       </div>
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="md:hidden glass border-b border-border/50"
-        >
-          <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
-            <a href="#features" className="text-sm font-medium py-2">{t.features}</a>
-            <a href="#how-it-works" className="text-sm font-medium py-2">{t.howItWorks}</a>
-            <a href="#roles" className="text-sm font-medium py-2">{t.roles}</a>
-            <a href="#ai-assistant" className="text-sm font-medium py-2">{t.aiAssistant}</a>
-            <div className="flex gap-2 pt-2">
-              <Button variant="outline" className="flex-1" asChild>
-                <Link to="/auth">{t.signIn}</Link>
-              </Button>
-              <Button variant="hero" className="flex-1" asChild>
-                <Link to="/auth">{t.getStarted}</Link>
-              </Button>
-            </div>
-          </nav>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="md:hidden glass border-b border-border/50 absolute w-full"
+          >
+            <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
+              <a href="#features" className="text-sm font-medium py-2">{t.features}</a>
+              <a href="#how-it-works" className="text-sm font-medium py-2">{t.howItWorks}</a>
+              <a href="#roles" className="text-sm font-medium py-2">{t.roles}</a>
+              <a href="#ai-assistant" className="text-sm font-medium py-2">{t.aiAssistant}</a>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" asChild>
+                  <Link to="/auth">{t.signIn}</Link>
+                </Button>
+                <Button variant="hero" className="flex-1" asChild>
+                  <Link to="/auth">{t.getStarted}</Link>
+                </Button>
+              </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
