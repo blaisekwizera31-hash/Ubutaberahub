@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
+import { useLocation, Routes, Route } from "react-router-dom"; // Added useLocation
 import { Toaster } from "./components/ui/toaster";
 import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
 
-// Import your new Loading Screen
+// Import your refined Loading Screen
 import LoadingScreen from "./components/ui/LoadingScreen";
 
 // Page Imports
@@ -25,55 +25,51 @@ import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  // 1. LOADING STATE
+const AppContent = () => {
+  const location = useLocation(); // Hook to listen for URL changes
   const [isLoading, setIsLoading] = useState(true);
-
-  // 2. LANGUAGE STATE 
-  // Unified key to "appLang" to match your Settings.tsx logic
   const [currentLang, setCurrentLang] = useState(
     localStorage.getItem("appLang") || "en"
   );
 
+  // 1. Initial Load & Route Change Trigger
   useEffect(() => {
-    // A. Handle initial loading delay
+    setIsLoading(true);
+    
+    // Set a duration that allows your breathing animation to complete at least once
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 1200); 
 
-    // B. Listen for language changes from Settings.tsx (via 'storage' event)
+    return () => clearTimeout(timer);
+  }, [location.pathname]); // This triggers the loader EVERY time the URL changes
+
+  // 2. Sync Language State
+  useEffect(() => {
     const handleStorageChange = () => {
       const updatedLang = localStorage.getItem("appLang");
       if (updatedLang) setCurrentLang(updatedLang);
     };
 
     window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // 3. RENDER LOADING SCREEN
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="animate-fade-in"> {/* Smooth entry after loading */}
+    <>
+      {/* 3. Render Loading Screen Overlay */}
+      {isLoading && <LoadingScreen />}
+
+      {/* 4. Main App Wrapper */}
+      <div className={`${isLoading ? "hidden" : "block animate-fade-in"}`}>
+        <TooltipProvider>
           <Toaster />
           <Sonner />
-
           <Routes>
             <Route 
               path="/" 
               element={<Index currentLang={currentLang} onLanguageChange={setCurrentLang} />} 
             />
-            
-            {/* Note: Ensure these components accept 'lang' as a prop in their definitions */}
             <Route path="/auth" element={<Auth lang={currentLang} />} />
             <Route path="/dashboard" element={<CitizenDashboard lang={currentLang} />} />
             <Route path="/appointments" element={<Appointments lang={currentLang} />} />
@@ -81,17 +77,22 @@ const App = () => {
             <Route path="/judge-dashboard" element={<JudgeDashboard lang={currentLang} />} />
             <Route path="/clerk-dashboard" element={<CourtClerkDashboard lang={currentLang}/>} />
             <Route path="/legal-resources" element={<LegalResources lang={currentLang}/>} />
-            
-            {/* This fixes the red error line by passing the prop correctly */}
             <Route path="/settings" element={<Settings />} /> 
-            
             <Route path="/find-lawyer" element={<FindLawyer lang={currentLang} />} />
             <Route path="/submit-case" element={<SubmitCase lang={currentLang}/>} />
-            
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </div>
-      </TooltipProvider>
+        </TooltipProvider>
+      </div>
+    </>
+  );
+};
+
+// Main App component must wrap everything in QueryClient and Router context
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+        <AppContent />
     </QueryClientProvider>
   );
 };

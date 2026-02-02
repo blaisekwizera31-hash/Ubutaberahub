@@ -1,36 +1,78 @@
-import React from "react";
-// Make sure this path matches where you saved the logo
-import Logo from "../assets/logo.png"; 
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Logo from "../../assets/logo.png";
 
 const LoadingScreen = () => {
+  const [lang, setLang] = useState(localStorage.getItem("appLang") || "en");
+
+  const loaderText: Record<string, string> = {
+    en: "Loading your workspace...",
+    rw: "Turimo gufungura...",
+    fr: "Chargement de votre espace..."
+  };
+
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[9999]">
-      <div className="relative">
-        {/* Soft glow behind the logo */}
-        <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-[9999]">
+      <motion.div
+        animate={{
+          scale: [1, 1.05, 1],
+          opacity: [1, 0.9, 1],
+        }}
+        transition={{
+          duration: 2.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="relative"
+      >
+        {/* Subtle glow behind the logo */}
+        <div className="absolute inset-0 rounded-full bg-blue-50 blur-2xl opacity-40 scale-150" />
         
-        {/* Your Transparent Logo */}
-        <img 
-          src={Logo} 
-          alt="UBUTABERA Logo" 
-          className="w-40 h-40 object-contain relative animate-bounce-slow"
+        <img
+          src={Logo}
+          alt="UBUTABERA Logo"
+          className="w-40 h-40 object-contain relative drop-shadow-sm"
+        />
+      </motion.div>
+
+      {/* Branding Text */}
+      <motion.div 
+        initial={{ opacity: 0, y: 5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mt-4 flex flex-col items-center gap-1"
+      >
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          UBUTABERA<span className="text-blue-600">hub</span>
+        </h1>
+      </motion.div>
+
+      {/* Modern Progress Bar */}
+      <div className="mt-8 w-48 h-1 bg-slate-100 rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-blue-600"
+          initial={{ x: "-100%" }}
+          animate={{ x: "100%" }}
+          transition={{ 
+            duration: 1.8, 
+            repeat: Infinity, 
+            ease: "linear" 
+          }}
         />
       </div>
 
-      {/* Progress Bar Container */}
-      <div className="mt-10 w-64 h-1.5 bg-muted rounded-full overflow-hidden">
-        {/* Animated Progress Fill */}
-        <div className="h-full bg-primary animate-loading-bar origin-left" />
-      </div>
-
-      <div className="mt-4 flex flex-col items-center gap-1">
-        <h2 className="text-xl font-bold tracking-wider">
-          UBUTABERA<span className="text-primary">hub</span>
-        </h2>
-        <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] animate-pulse">
-          Loading Security...
-        </p>
-      </div>
+      {/* Language-Aware Subtext */}
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={lang}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="mt-6 text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]"
+        >
+          {loaderText[lang] || loaderText.en}
+        </motion.p>
+      </AnimatePresence>
     </div>
   );
 };
