@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Logo from "../../assets/logo.png";
+
+// REMOVED: import Logo from "../../assets/logo.png"; 
+// Because the file is now in the 'public' folder.
 
 const LoadingScreen = () => {
-  const [lang, setLang] = useState(localStorage.getItem("appLang") || "en");
+  const [lang] = useState(localStorage.getItem("appLang") || "en");
 
   const loaderText: Record<string, string> = {
     en: "Loading your workspace...",
@@ -29,7 +31,7 @@ const LoadingScreen = () => {
         <div className="absolute inset-0 rounded-full bg-blue-50 blur-2xl opacity-40 scale-150" />
         
         <img
-          src={Logo}
+          src="/logo.png" // UPDATED: Points directly to public/logo.png
           alt="UBUTABERA Logo"
           className="w-40 h-40 object-contain relative drop-shadow-sm"
         />
