@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
-  Scale, Home, FileText, MessageSquare, Users, Settings, 
+  Home, FileText, MessageSquare, Users, Settings, 
   Search, Menu, X, LogOut, User, Briefcase, Gavel, 
   Bot, Calendar, HelpCircle 
 } from "lucide-react";
@@ -15,7 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// 1. UPDATED ROLE TYPE
+// 1. IMPORT YOUR LOGO
+import Logo from "@/assets/logo.png"; 
+
 type Role = "citizen" | "lawyer" | "judge" | "clerk" | "client";
 
 interface DashboardLayoutProps {
@@ -25,7 +27,6 @@ interface DashboardLayoutProps {
   lang?: string; 
 }
 
-// 2. UPDATED TRANSLATIONS (Added 'client' to roleNames)
 const sidebarTranslations: Record<string, any> = {
   en: {
     dashboard: "Dashboard",
@@ -77,11 +78,10 @@ const sidebarTranslations: Record<string, any> = {
   }
 };
 
-// 3. UPDATED ROLE CONFIG (Added 'client' mapping)
 const roleConfig = {
   citizen: {
     icon: User,
-    color: "bg-primary",
+    color: "bg-primary", // Uses Royal Blue from your config
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/dashboard/citizen" },
       { icon: FileText, label: t.cases, href: "#" },
@@ -90,7 +90,7 @@ const roleConfig = {
       { icon: Bot, label: t.ai, href: "#" },
     ],
   },
-  client: { // Added this to prevent "undefined" errors
+  client: { 
     icon: User,
     color: "bg-blue-600",
     navItems: (t: any) => [
@@ -101,7 +101,7 @@ const roleConfig = {
   },
   lawyer: {
     icon: Briefcase,
-    color: "bg-secondary",
+    color: "bg-secondary", // Uses Deep Blue from your config
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/dashboard/lawyer" },
       { icon: FileText, label: t.cases, href: "#" },
@@ -111,7 +111,7 @@ const roleConfig = {
   },
   judge: {
     icon: Gavel,
-    color: "bg-accent",
+    color: "bg-blue-900",
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/dashboard/judge" },
       { icon: FileText, label: t.cases, href: "#" },
@@ -134,98 +134,117 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // Use a fallback to 'en' if the passed lang doesn't exist
   const t = sidebarTranslations[lang] || sidebarTranslations.en;
-  
-  // Safeguard: Fallback to citizen if role is not found in config
   const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.citizen;
   const RoleIcon = config.icon;
   const navItems = config.navItems(t);
 
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
-    navigate("/login");
+    navigate("/auth"); // Redirect to your auth/login page
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* Sidebar Mobile Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" 
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <Scale className="w-6 h-6 text-white" />
+          {/* Logo Section */}
+          <div className="p-4 border-b border-border">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
+                <img src={Logo} alt="Logo" className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
               </div>
-              <span className="text-lg font-bold uppercase">UBUTABERA<span className="text-primary">hub</span></span>
+              <span className="text-lg font-bold tracking-tight uppercase">
+                UBUTABERA<span className="text-primary">hub</span>
+              </span>
             </Link>
           </div>
 
-          <nav className="flex-1 p-4 space-y-1">
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item: any) => (
-              <Link key={item.label} to={item.href} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+              <Link 
+                key={item.label} 
+                to={item.href} 
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-all duration-200"
+              >
                 <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
+                <span className="font-medium text-sm">{item.label}</span>
               </Link>
             ))}
           </nav>
 
-          <div className="p-4 border-t space-y-1">
-            <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted">
+          {/* Footer Nav */}
+          <div className="p-4 border-t border-border space-y-1">
+            <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-colors">
               <Settings className="w-5 h-5" />
-              <span>{t.settings}</span>
+              <span className="text-sm font-medium">{t.settings}</span>
             </Link>
-            <Link to="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted">
+            <Link to="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
               <HelpCircle className="w-5 h-5" />
-              <span>{t.help}</span>
+              <span className="text-sm font-medium">{t.help}</span>
             </Link>
           </div>
         </div>
       </aside>
 
-      <div className="lg:ml-64">
-        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-lg border-b h-16 flex items-center justify-between px-6">
-          <button className="lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? <X /> : <Menu />}
+      {/* Main Content Area */}
+      <div className="lg:ml-64 flex flex-col min-h-screen">
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border h-16 flex items-center justify-between px-6">
+          <button className="lg:hidden text-foreground p-2 hover:bg-muted rounded-md" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
+          {/* Search Bar */}
           <div className="hidden md:block flex-1 max-w-md relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder={t.search} className="pl-9" />
+            <Input 
+              placeholder={t.search} 
+              className="pl-9 bg-background border-border focus:ring-primary focus:border-primary" 
+            />
           </div>
 
           <div className="flex items-center gap-4">
+            {/* User Dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
-                <div className={`w-8 h-8 rounded-full ${config.color} flex items-center justify-center`}>
+              <DropdownMenuTrigger className="flex items-center gap-3 p-1 px-2 rounded-full hover:bg-muted transition-colors outline-none border border-transparent focus:border-border">
+                <div className={`w-8 h-8 rounded-full ${config.color} flex items-center justify-center shadow-md shadow-primary/20`}>
                   <RoleIcon className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-sm font-medium">{userName}</span>
+                <div className="hidden sm:block text-left">
+                  <p className="text-xs font-semibold leading-none mb-1">{userName}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t.roleNames[role] || role}</p>
+                </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5 font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                  {t.roleNames[role] || role}
+              <DropdownMenuContent align="end" className="w-56 mt-2 bg-card border-border shadow-xl">
+                <div className="px-2 py-2 font-bold text-[10px] uppercase tracking-[0.15em] text-muted-foreground opacity-70">
+                  Account Management
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/settings")}>
-                  <User className="mr-2 w-4 h-4" /> {t.profile}
+                <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer focus:bg-primary/10">
+                  <User className="mr-2 w-4 h-4 text-primary" /> {t.profile}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive font-medium">
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive font-medium cursor-pointer focus:bg-destructive/10">
                   <LogOut className="mr-2 w-4 h-4" /> {t.signOut}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
-        <main className="p-6">{children}</main>
+
+        <main className="p-6 flex-1 animate-fade-in">
+          {children}
+        </main>
       </div>
     </div>
   );
