@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Scale, Home, FileText, MessageSquare, Users, Settings, 
-  Bell, Search, Menu, X, LogOut, User, Briefcase, Gavel, 
+  Search, Menu, X, LogOut, User, Briefcase, Gavel, 
   Bot, Calendar, HelpCircle 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type Role = "citizen" | "lawyer" | "judge" | "clerk"| "client";
+// 1. UPDATED ROLE TYPE
+type Role = "citizen" | "lawyer" | "judge" | "clerk" | "client";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -24,6 +25,7 @@ interface DashboardLayoutProps {
   lang?: string; 
 }
 
+// 2. UPDATED TRANSLATIONS (Added 'client' to roleNames)
 const sidebarTranslations: Record<string, any> = {
   en: {
     dashboard: "Dashboard",
@@ -39,7 +41,7 @@ const sidebarTranslations: Record<string, any> = {
     messages: "Messages",
     clients: "Clients",
     registry: "Registry",
-    roleNames: { judge: "Judge", clerk: "Clerk", lawyer: "Lawyer", citizen: "Citizen" }
+    roleNames: { judge: "Judge", clerk: "Clerk", lawyer: "Lawyer", citizen: "Citizen", client: "Client" }
   },
   rw: {
     dashboard: "Ikarita mpuruza",
@@ -55,7 +57,7 @@ const sidebarTranslations: Record<string, any> = {
     messages: "Ubutumwa",
     clients: "Abakiriya",
     registry: "Ubwanditsi",
-    roleNames: { judge: "Umucamanza", clerk: "Umwanditsi", lawyer: "Umunyamategeko", citizen: "Umwenyegihugu" }
+    roleNames: { judge: "Umucamanza", clerk: "Umwanditsi", lawyer: "Umunyamategeko", citizen: "Umwenyegihugu", client: "Umukiriya" }
   },
   fr: {
     dashboard: "Tableau de bord",
@@ -71,11 +73,11 @@ const sidebarTranslations: Record<string, any> = {
     messages: "Messages",
     clients: "Clients",
     registry: "Greffe",
-    roleNames: { judge: "Juge", clerk: "Greffier", lawyer: "Avocat", citizen: "Citoyen" }
+    roleNames: { judge: "Juge", clerk: "Greffier", lawyer: "Avocat", citizen: "Citoyen", client: "Client" }
   }
 };
 
-// This maps icons and colors to roles and generates the nav links
+// 3. UPDATED ROLE CONFIG (Added 'client' mapping)
 const roleConfig = {
   citizen: {
     icon: User,
@@ -86,6 +88,15 @@ const roleConfig = {
       { icon: Search, label: t.lawyers, href: "#" },
       { icon: MessageSquare, label: t.messages, href: "#" },
       { icon: Bot, label: t.ai, href: "#" },
+    ],
+  },
+  client: { // Added this to prevent "undefined" errors
+    icon: User,
+    color: "bg-blue-600",
+    navItems: (t: any) => [
+      { icon: Home, label: t.dashboard, href: "/dashboard/client" },
+      { icon: FileText, label: t.cases, href: "#" },
+      { icon: MessageSquare, label: t.messages, href: "#" },
     ],
   },
   lawyer: {
@@ -123,15 +134,29 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  const t = sidebarTranslations[lang as keyof typeof sidebarTranslations] || sidebarTranslations.en;
-  const config = roleConfig[role];
+  // Use a fallback to 'en' if the passed lang doesn't exist
+  const t = sidebarTranslations[lang] || sidebarTranslations.en;
+  
+  // Safeguard: Fallback to citizen if role is not found in config
+  const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.citizen;
   const RoleIcon = config.icon;
   const navItems = config.navItems(t);
 
-  const handleLogout = () => navigate("/login");
+  const handleLogout = () => {
+    localStorage.removeItem("loggedInUser");
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Sidebar Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b">
@@ -139,7 +164,7 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
               <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
                 <Scale className="w-6 h-6 text-white" />
               </div>
-              <span className="text-lg font-bold">UBUTABERA<span className="text-primary">hub</span></span>
+              <span className="text-lg font-bold uppercase">UBUTABERA<span className="text-primary">hub</span></span>
             </Link>
           </div>
 
@@ -153,8 +178,14 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
           </nav>
 
           <div className="p-4 border-t space-y-1">
-            <Link to="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted"><Settings className="w-5 h-5" /><span>{t.settings}</span></Link>
-            <Link to="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted"><HelpCircle className="w-5 h-5" /><span>{t.help}</span></Link>
+            <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted">
+              <Settings className="w-5 h-5" />
+              <span>{t.settings}</span>
+            </Link>
+            <Link to="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted">
+              <HelpCircle className="w-5 h-5" />
+              <span>{t.help}</span>
+            </Link>
           </div>
         </div>
       </aside>
@@ -179,9 +210,17 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
                 <span className="text-sm font-medium">{userName}</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5 font-medium">{t.roleNames[role]}</div>
+                <div className="px-2 py-1.5 font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                  {t.roleNames[role] || role}
+                </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 w-4 h-4" />{t.signOut}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  <User className="mr-2 w-4 h-4" /> {t.profile}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive font-medium">
+                  <LogOut className="mr-2 w-4 h-4" /> {t.signOut}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
