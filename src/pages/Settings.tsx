@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 
-// 1. DEFINE SHARED TYPES
+// 1. IMPORT THE LOADING SCREEN
+import LoadingScreen from "@/components/ui/LoadingScreen";
+
 type LanguageCode = 'en' | 'rw' | 'fr';
 type Role = "citizen" | "lawyer" | "judge" | "clerk" | "client";
 
@@ -70,7 +72,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
 };
 
 const Settings = () => {
-  // 2. STATE & DATA MANAGEMENT
+  // 2. STATE MANAGEMENT
+  const [isLoading, setIsLoading] = useState(true); // Added Loading State
+  
   const [currentLang, setCurrentLang] = useState<LanguageCode>(
     (localStorage.getItem("appLang") as LanguageCode) || "en"
   );
@@ -81,7 +85,7 @@ const Settings = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Parse User and Role from storage
+  // Parse User data
   const loggedInUser = localStorage.getItem("loggedInUser");
   const userData = loggedInUser ? JSON.parse(loggedInUser) : null;
   const userRole: Role = userData?.role || "citizen"; 
@@ -89,7 +93,15 @@ const Settings = () => {
 
   const t = translations[currentLang];
 
-  // 3. HANDLERS
+  // 3. EFFECT FOR LOADING SIMULATION
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1200); // 1.2s for a quick, smooth transition on sub-pages
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 4. HANDLERS
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value as LanguageCode;
     setCurrentLang(newLang);
@@ -117,17 +129,22 @@ const Settings = () => {
     }
   };
 
+  // 5. RETURN LOADING SCREEN IF LOADING
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <DashboardLayout 
       role={userRole} 
       userName={userName} 
       lang={currentLang}
     >
-      <div className="max-w-3xl space-y-6">
+      <div className="max-w-3xl space-y-6 animate-fade-in">
         <motion.h1 
           initial={{ opacity: 0, x: -20 }} 
           animate={{ opacity: 1, x: 0 }} 
-          className="text-2xl font-bold"
+          className="text-2xl font-bold text-foreground"
         >
           {t.title}
         </motion.h1>
@@ -145,7 +162,7 @@ const Settings = () => {
           
           <div className="flex items-center gap-6 mb-6">
             <div 
-              className="relative w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-border group cursor-pointer"
+              className="relative w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-border group cursor-pointer shadow-inner"
               onClick={handlePhotoClick}
             >
               {profileImage ? (
@@ -158,20 +175,24 @@ const Settings = () => {
               </div>
             </div>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-            <Button variant="outline" onClick={handlePhotoClick}>{t.changePhoto}</Button>
+            <Button variant="outline" onClick={handlePhotoClick} className="border-border hover:bg-muted">
+              {t.changePhoto}
+            </Button>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">{t.fullName}</label>
-              <Input defaultValue={userName} />
+              <Input defaultValue={userName} className="bg-background border-border" />
             </div>
             <div>
               <label className="text-sm font-medium mb-2 block">{t.email}</label>
-              <Input defaultValue={userData?.email || "user@example.com"} type="email" />
+              <Input defaultValue={userData?.email || "user@example.com"} type="email" className="bg-background border-border" />
             </div>
           </div>
-          <Button className="mt-6" onClick={() => alert(t.toastSuccess)}>{t.save}</Button>
+          <Button className="mt-6 bg-primary hover:bg-primary/90" onClick={() => alert(t.toastSuccess)}>
+            {t.save}
+          </Button>
         </motion.div>
 
         {/* Preferences Card */}
@@ -195,7 +216,7 @@ const Settings = () => {
               <select 
                 value={currentLang}
                 onChange={handleLanguageChange}
-                className="bg-muted rounded-lg px-3 py-2 text-sm border-none focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                className="bg-background text-foreground rounded-lg px-3 py-2 text-sm border border-border focus:ring-2 focus:ring-primary outline-none cursor-pointer"
               >
                 <option value="en">English</option>
                 <option value="rw">Kinyarwanda</option>
@@ -218,7 +239,7 @@ const Settings = () => {
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.2 }} 
-          className="bg-destructive/5 rounded-2xl border border-destructive/20 p-6"
+          className="bg-destructive/10 rounded-2xl border border-destructive/20 p-6"
         >
           <h2 className="text-lg font-semibold text-destructive mb-2">{t.danger}</h2>
           <p className="text-sm text-muted-foreground mb-4">{t.dangerDesc}</p>
