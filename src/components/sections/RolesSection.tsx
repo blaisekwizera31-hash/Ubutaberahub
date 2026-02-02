@@ -8,6 +8,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const translations = {
   en: {
@@ -16,31 +17,11 @@ const translations = {
     description: "Tailored dashboards and tools for citizens, legal professionals, and administrators.",
     getStarted: "Get Started",
     roles: [
-      {
-        title: "Citizens",
-        desc: "Submit legal issues, explore laws, find lawyers, and track your case progress.",
-        features: ["Submit legal questions", "Find qualified lawyers", "Track case status", "Access legal resources"],
-      },
-      {
-        title: "Lawyers",
-        desc: "Manage consultations, upload evidence, and receive AI-generated case summaries.",
-        features: ["Manage client cases", "AI case summaries", "Document management", "Consultation scheduling"],
-      },
-      {
-        title: "Court Clerks",
-        desc: "Verify cases, schedule hearings, and manage court documentation efficiently.",
-        features: ["Case verification", "Hearing scheduling", "Document processing", "Status updates"],
-      },
-      {
-        title: "Judges",
-        desc: "Review cases with AI assistance, access summaries, and manage proceedings.",
-        features: ["Case review tools", "AI-powered insights", "Legal precedents", "Decision support"],
-      },
-      {
-        title: "Administrators",
-        desc: "Monitor system analytics, manage users, and oversee platform operations.",
-        features: ["Analytics dashboard", "User management", "System monitoring", "Audit trails"],
-      },
+      { id: "citizen", title: "Citizens", desc: "Submit legal issues, explore laws, find lawyers, and track your case progress.", features: ["Submit legal questions", "Find qualified lawyers", "Track case status", "Access legal resources"] },
+      { id: "lawyer", title: "Lawyers", desc: "Manage consultations, upload evidence, and receive AI-generated case summaries.", features: ["Manage client cases", "AI case summaries", "Document management", "Consultation scheduling"] },
+      { id: "clerk", title: "Court Clerks", desc: "Verify cases, schedule hearings, and manage court documentation efficiently.", features: ["Case verification", "Hearing scheduling", "Document processing", "Status updates"] },
+      { id: "judge", title: "Judges", desc: "Review cases with AI assistance, access summaries, and manage proceedings.", features: ["Case review tools", "AI-powered insights", "Legal precedents", "Decision support"] },
+      { id: "admin", title: "Administrators", desc: "Monitor system analytics, manage users, and oversee platform operations.", features: ["Analytics dashboard", "User management", "System monitoring", "Audit trails"] },
     ],
   },
   rw: {
@@ -49,31 +30,11 @@ const translations = {
     description: "Dashibodi n'ibikoresho bigenewe abaturage, abanyamategeko, n'abayobozi.",
     getStarted: "Tangira",
     roles: [
-      {
-        title: "Abaturage",
-        desc: "Ohereza ibibazo by'amategeko, shakisha amategeko, shaka abanyamategeko, ukanakurikirana aho dosiye yawe igeze.",
-        features: ["Ohereza ibibazo by'amategeko", "Shaka abanyamategeko b'inzobere", "Kurikirana uko dosiye ihagaze", "Gera ku bikoresho by'amategeko"],
-      },
-      {
-        title: "Abanyamategeko",
-        desc: "Cunga inama, shyiraho ibimenyetso, ukanahabwe incamake ya dosiye yakozwe na AI.",
-        features: ["Cunga dosiye z'abakiriya", "Incamake za dosiye na AI", "Gucunga inyandiko", "Gupanga gahunda z'inama"],
-      },
-      {
-        title: "Abanditsi b'Inkiko",
-        desc: "Genzura amadosiye, panga amatariki y'imiburanishirize, ukanacunge inyandiko z'inkiko neza.",
-        features: ["Kugenzura dosiye", "Gupanga imiburanishirize", "Gutunganya inyandiko", "Kuvugurura uko dosiye ihagaze"],
-      },
-      {
-        title: "Abacamanza",
-        desc: "Genzura amadosiye ubinyujije kuri AI, gera ku ncamake, ukanacunge imigendekere y'urubanza.",
-        features: ["Ibikoresho byo gusuzuma dosiye", "Inama zitanzwe na AI", "Ingero z'imanza zabaye", "Ubufasha mu gufata imyanzuro"],
-      },
-      {
-        title: "Abayobozi",
-        desc: "Genzura imibare ya sisitemu, cunga abakoresha, ukanagenzure imikorere y'urubuga.",
-        features: ["Dashibodi y'imibare", "Gucunga abakoresha", "Kugenzura sisitemu", "Gukurikirana ibyakozwe"],
-      },
+      { id: "citizen", title: "Abaturage", desc: "Ohereza ibibazo by'amategeko, shakisha amategeko, shaka abanyamategeko, ukanakurikirana aho dosiye yawe igeze.", features: ["Ohereza ibibazo by'amategeko", "Shaka abanyamategeko b'inzobere", "Kurikirana uko dosiye ihagaze", "Gera ku bikoresho by'amategeko"] },
+      { id: "lawyer", title: "Abanyamategeko", desc: "Cunga inama, shyiraho ibimenyetso, ukanahabwe incamake ya dosiye yakozwe na AI.", features: ["Cunga dosiye z'abakiriya", "Incamake za dosiye na AI", "Gucunga inyandiko", "Gupanga gahunda z'inama"] },
+      { id: "clerk", title: "Abanditsi b'Inkiko", desc: "Genzura amadosiye, panga amatariki y'imiburanishirize, ukanacunge inyandiko z'inkiko neza.", features: ["Kugenzura dosiye", "Gupanga imiburanishirize", "Gutunganya inyandiko", "Kuvugurura uko dosiye ihagaze"] },
+      { id: "judge", title: "Abacamanza", desc: "Genzura amadosiye ubinyujije kuri AI, gera ku ncamake, ukanacunge imigendekere y'urubanza.", features: ["Ibikoresho byo gusuzuma dosiye", "Inama zitanzwe na AI", "Ingero z'imanza zabaye", "Ubufasha mu gufata imyanzuro"] },
+      { id: "admin", title: "Abayobozi", desc: "Genzura imibare ya sisitemu, cunga abakoresha, ukanagenzure imikorere y'urubuga.", features: ["Dashibodi y'imibare", "Gucunga abakoresha", "Kugenzura sisitemu", "Gukurikirana ibyakozwe"] },
     ],
   },
   fr: {
@@ -82,36 +43,16 @@ const translations = {
     description: "Tableaux de bord et outils adaptés aux citoyens, aux professionnels du droit et aux administrateurs.",
     getStarted: "Commencer",
     roles: [
-      {
-        title: "Citoyens",
-        desc: "Soumettez des problèmes juridiques, explorez les lois, trouvez des avocats et suivez vos dossiers.",
-        features: ["Soumettre des questions", "Trouver des avocats qualifiés", "Suivre le statut du dossier", "Accéder aux ressources"],
-      },
-      {
-        title: "Avocats",
-        desc: "Gérez les consultations, téléchargez des preuves et recevez des résumés générés par l'IA.",
-        features: ["Gérer les dossiers clients", "Résumés de cas par l'IA", "Gestion documentaire", "Planification de consultations"],
-      },
-      {
-        title: "Greffiers",
-        desc: "Vérifiez les dossiers, planifiez les audiences et gérez efficacement la documentation du tribunal.",
-        features: ["Vérification des dossiers", "Planification d'audiences", "Traitement des documents", "Mises à jour du statut"],
-      },
-      {
-        title: "Juges",
-        desc: "Examinez les dossiers avec l'aide de l'IA, accédez aux résumés et gérez les procédures.",
-        features: ["Outils d'examen de cas", "Aperçus alimentés par l'IA", "Précédents juridiques", "Aide à la décision"],
-      },
-      {
-        title: "Administrateurs",
-        desc: "Surveillez les analyses du système, gérez les utilisateurs et supervisez les opérations.",
-        features: ["Tableau de bord analytique", "Gestion des utilisateurs", "Surveillance du système", "Pistes d'audit"],
-      },
+      { id: "citizen", title: "Citoyens", desc: "Soumettez des problèmes juridiques, explorez les lois, trouvez des avocats et suivez vos dossiers.", features: ["Soumettre des questions", "Trouver des avocats qualifiés", "Suivre le statut du dossier", "Accéder aux ressources"] },
+      { id: "lawyer", title: "Avocats", desc: "Gérez les consultations, téléchargez des preuves et recevez des résumés générés par l'IA.", features: ["Gérer les dossiers clients", "Résumés de cas par l'IA", "Gestion documentaire", "Planification de consultations"] },
+      { id: "clerk", title: "Greffiers", desc: "Vérifiez les dossiers, planifiez les audiences et gérez efficacement la documentation du tribunal.", features: ["Vérification des dossiers", "Planification d'audiences", "Traitement des documents", "Mises à jour du statut"] },
+      { id: "judge", title: "Juges", desc: "Examinez les dossiers avec l'aide de l'IA, accédez aux résumés et gérez les procédures.", features: ["Outils d'examen de cas", "Aperçus alimentés par l'IA", "Précédents juridiques", "Aide à la décision"] },
+      { id: "admin", title: "Administrateurs", desc: "Surveillez les analyses du système, gérez les utilisateurs et supervisez les opérations.", features: ["Tableau de bord analytique", "Gestion des utilisateurs", "Surveillance du système", "Pistes d'audit"] },
     ],
   },
 };
 
-// We keep the icons and colors outside since they don't change
+// RESTORED ORIGINAL VIBRANT COLORS
 const roleStyles = [
   { icon: User, color: "from-accent to-amber-400" },
   { icon: Briefcase, color: "from-secondary to-teal-400" },
@@ -151,7 +92,7 @@ export function RolesSection({ lang }: RolesSectionProps) {
             const style = roleStyles[index];
             return (
               <motion.div
-                key={role.title}
+                key={role.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -172,8 +113,17 @@ export function RolesSection({ lang }: RolesSectionProps) {
                       </li>
                     ))}
                   </ul>
-                  <Button variant="ghost" className="group/btn p-0 h-auto text-accent hover:text-accent">
-                    {t.getStarted} <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+
+                  {/* RESTORED VIBRANT BUTTON WITH WORKING LINK */}
+                  <Button 
+                    variant="ghost" 
+                    className="group/btn p-0 h-auto text-accent hover:bg-transparent hover:text-accent font-semibold"
+                    asChild
+                  >
+                    <Link to={`/auth?role=${role.id}`}>
+                      {t.getStarted} 
+                      <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
                   </Button>
                 </div>
               </motion.div>
