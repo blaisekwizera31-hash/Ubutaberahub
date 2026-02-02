@@ -5,6 +5,11 @@ import { TooltipProvider } from "./components/ui/tooltip";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
+
+// Import your new Loading Screen
+import LoadingScreen from "./components/ui/LoadingScreen";
+
+// Page Imports
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CitizenDashboard from "./pages/CitizenDashboard";
@@ -21,44 +26,71 @@ import Settings from "./pages/Settings";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // 1. Initialize language state from localStorage (remembers user choice on refresh)
+  // 1. LOADING STATE
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 2. LANGUAGE STATE 
+  // Unified key to "appLang" to match your Settings.tsx logic
   const [currentLang, setCurrentLang] = useState(
-    localStorage.getItem("preferredLang") || "en"
+    localStorage.getItem("appLang") || "en"
   );
 
-  // 2. Sync state with localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("preferredLang", currentLang);
-  }, [currentLang]);
+    // A. Handle initial loading delay
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    // B. Listen for language changes from Settings.tsx (via 'storage' event)
+    const handleStorageChange = () => {
+      const updatedLang = localStorage.getItem("appLang");
+      if (updatedLang) setCurrentLang(updatedLang);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  // 3. RENDER LOADING SCREEN
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
+        <div className="animate-fade-in"> {/* Smooth entry after loading */}
+          <Toaster />
+          <Sonner />
 
-        <Routes>
-          {/* Landing Page: Pass state AND the setter function */}
-          <Route 
-            path="/" 
-            element={<Index currentLang={currentLang} onLanguageChange={setCurrentLang} />} 
-          />
-          
-          {/* Other Pages: Pass ONLY the state for translation */}
-          <Route path="/auth" element={<Auth lang={currentLang} />} />
-          <Route path="/dashboard" element={<CitizenDashboard lang={currentLang} />} />
-          <Route path="/appointments" element={<Appointments  lang={currentLang} />} />
-          <Route path="/lawyer-dashboard" element={<LawyerDashboard lang={currentLang} />} />
-          <Route path="/judge-dashboard" element={<JudgeDashboard lang={currentLang} />} />
-          <Route path="/clerk-dashboard" element={<CourtClerkDashboard lang={currentLang}/>} />
-          <Route path="/legal-resources" element={<LegalResources  lang={currentLang}/>} />
-          <Route path="/settings" element={<Settings  lang={currentLang}/>} />
-          <Route path="/find-lawyer" element={<FindLawyer  lang={currentLang} />} />
-          <Route path="/submit-case" element={<SubmitCase  lang={currentLang}/>} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-
+          <Routes>
+            <Route 
+              path="/" 
+              element={<Index currentLang={currentLang} onLanguageChange={setCurrentLang} />} 
+            />
+            
+            {/* Note: Ensure these components accept 'lang' as a prop in their definitions */}
+            <Route path="/auth" element={<Auth lang={currentLang} />} />
+            <Route path="/dashboard" element={<CitizenDashboard lang={currentLang} />} />
+            <Route path="/appointments" element={<Appointments lang={currentLang} />} />
+            <Route path="/lawyer-dashboard" element={<LawyerDashboard lang={currentLang} />} />
+            <Route path="/judge-dashboard" element={<JudgeDashboard lang={currentLang} />} />
+            <Route path="/clerk-dashboard" element={<CourtClerkDashboard lang={currentLang}/>} />
+            <Route path="/legal-resources" element={<LegalResources lang={currentLang}/>} />
+            
+            {/* This fixes the red error line by passing the prop correctly */}
+            <Route path="/settings" element={<Settings />} /> 
+            
+            <Route path="/find-lawyer" element={<FindLawyer lang={currentLang} />} />
+            <Route path="/submit-case" element={<SubmitCase lang={currentLang}/>} />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
