@@ -82,49 +82,49 @@ const roleConfig = {
     icon: User,
     color: "bg-primary", 
     navItems: (t: any) => [
-      { icon: Home, label: t.dashboard, href: "/dashboard/citizen" },
-      { icon: FileText, label: t.cases, href: "#" },
-      { icon: Search, label: t.lawyers, href: "#" },
-      { icon: MessageSquare, label: t.messages, href: "#" },
-      { icon: Bot, label: t.ai, href: "#" },
+      { icon: Home, label: t.dashboard, href: "/dashboard" },
+      { icon: FileText, label: t.cases, href: "/my-cases" },
+      { icon: Search, label: t.lawyers, href: "/find-lawyer" },
+      { icon: Calendar, label: t.appoint, href: "/appointments" },
+      { icon: Bot, label: t.ai, href: "/dashboard" },
     ],
   },
   client: { 
     icon: User,
     color: "bg-blue-600",
     navItems: (t: any) => [
-      { icon: Home, label: t.dashboard, href: "/dashboard/client" },
-      { icon: FileText, label: t.cases, href: "#" },
-      { icon: MessageSquare, label: t.messages, href: "#" },
+      { icon: Home, label: t.dashboard, href: "/dashboard" },
+      { icon: FileText, label: t.cases, href: "/my-cases" },
+      { icon: MessageSquare, label: t.messages, href: "/messages" },
     ],
   },
   lawyer: {
     icon: Briefcase,
     color: "bg-secondary", 
     navItems: (t: any) => [
-      { icon: Home, label: t.dashboard, href: "/dashboard/lawyer" },
-      { icon: FileText, label: t.cases, href: "#" },
-      { icon: Users, label: t.clients, href: "#" },
-      { icon: Calendar, label: t.appoint, href: "#" },
+      { icon: Home, label: t.dashboard, href: "/lawyer-dashboard" },
+      { icon: FileText, label: t.cases, href: "/lawyer-cases" },
+      { icon: Users, label: t.clients, href: "/lawyer-clients" },
+      { icon: Calendar, label: t.appoint, href: "/appointments" },
     ],
   },
   judge: {
     icon: Gavel,
     color: "bg-blue-900",
     navItems: (t: any) => [
-      { icon: Home, label: t.dashboard, href: "/dashboard/judge" },
-      { icon: FileText, label: t.cases, href: "#" },
-      { icon: Calendar, label: t.appoint, href: "#" },
+      { icon: Home, label: t.dashboard, href: "/judge-dashboard" },
+      { icon: FileText, label: t.cases, href: "/judge-cases" },
+      { icon: Calendar, label: t.appoint, href: "/appointments" },
     ],
   },
   clerk: {
     icon: FileText,
     color: "bg-primary",
     navItems: (t: any) => [
-      { icon: Home, label: t.dashboard, href: "/dashboard/clerk" },
-      { icon: FileText, label: t.cases, href: "#" },
-      { icon: Calendar, label: t.appoint, href: "#" },
-      { icon: Users, label: t.registry, href: "#" },
+      { icon: Home, label: t.dashboard, href: "/clerk-dashboard" },
+      { icon: FileText, label: t.cases, href: "/clerk-cases" },
+      { icon: Calendar, label: t.appoint, href: "/appointments" },
+      { icon: Users, label: t.registry, href: "/clerk-registry" },
     ],
   },
 };
@@ -189,7 +189,7 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
               <Settings className="w-5 h-5" />
               <span className="text-sm font-medium">{t.settings}</span>
             </Link>
-            <Link to="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+            <Link to="/help-center" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
               <HelpCircle className="w-5 h-5" />
               <span className="text-sm font-medium">{t.help}</span>
             </Link>
