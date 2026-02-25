@@ -33,8 +33,7 @@ const AppleIcon = () => (
 
 const translations = {
   en: {
-    welcomeTitle: "Welcome to Rwanda's Digital Justice Platform",
-    welcomeSub: "Access legal guidance, connect with professionals, and navigate the justice system with confidence.",
+ 
     backHome: "Back to Home",
     signIn: "Sign In",
     createAccount: "Create Account",
@@ -76,8 +75,7 @@ const translations = {
     }
   },
   rw: {
-    welcomeTitle: "Ikaze ku rubuga rw'ubutabera bw'u Rwanda",
-    welcomeSub: "Gera ku bumenyi bw'amategeko, hura n'inzobere, kandi ukurikirane ibibazo byawe mu butabera ufite icyizere.",
+   
     backHome: "Subira Ahabanza",
     signIn: "Injira",
     createAccount: "Fungura Konti",
@@ -119,8 +117,7 @@ const translations = {
     }
   },
   fr: {
-    welcomeTitle: "Bienvenue sur la plateforme de justice numérique du Rwanda",
-    welcomeSub: "Accédez à des conseils juridiques, connectez-vous avec des professionnels et naviguez dans le système judiciaire en toute confiance.",
+   
     backHome: "Retour à l'accueil",
     signIn: "Se connecter",
     createAccount: "Créer un compte",
@@ -302,31 +299,125 @@ const Auth = ({ lang = "en" }: AuthProps) => {
           <div className="w-[400px] h-[400px] rounded-full bg-gray-100 blur-3xl" />
         </div>
         
-        {/* Lady Justice Image */}
+        {/* Lady Justice Image - More prominent */}
         <div className="absolute inset-0 flex items-center justify-center">
           <img
             src="/p.png"
             alt="Lady Justice"
-            className="w-[450px] h-[600px] object-contain opacity-30"
+            className="w-[550px] h-[700px] object-contain opacity-90"
             style={{ 
-              filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.1))',
+              filter: 'drop-shadow(0 30px 60px rgba(0, 0, 0, 0.2))',
             }}
           />
+        </div>
+        
+        {/* Imigongo Pattern Divider - Right Edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-40 bg-white overflow-hidden flex items-center">
+          <svg className="w-full h-full" viewBox="0 0 200 2000" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              {/* Define the repeating Imigongo pattern - square diamonds */}
+              <pattern id="imigongoPattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+                {/* Central Diamond Pattern - Perfect square rotated 45 degrees */}
+                <path
+                  d="M 100 10 L 190 100 L 100 190 L 10 100 Z"
+                  fill="#000"
+                  stroke="#000"
+                  strokeWidth="3"
+                />
+                
+                {/* Inner Diamond */}
+                <path
+                  d="M 100 35 L 165 100 L 100 165 L 35 100 Z"
+                  fill="#fff"
+                  stroke="#000"
+                  strokeWidth="2"
+                />
+                
+                {/* Center Diamond */}
+                <path
+                  d="M 100 60 L 140 100 L 100 140 L 60 100 Z"
+                  fill="#000"
+                  stroke="#000"
+                  strokeWidth="2"
+                />
+                
+                {/* Inner Center Diamond */}
+                <path
+                  d="M 100 80 L 120 100 L 100 120 L 80 100 Z"
+                  fill="#fff"
+                  stroke="#000"
+                  strokeWidth="1.5"
+                />
+                
+                {/* Corner Triangles */}
+                <path
+                  d="M 100 10 L 85 35 L 115 35 Z"
+                  fill="#000"
+                  stroke="#000"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M 190 100 L 165 85 L 165 115 Z"
+                  fill="#000"
+                  stroke="#000"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M 100 190 L 85 165 L 115 165 Z"
+                  fill="#000"
+                  stroke="#000"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M 10 100 L 35 85 L 35 115 Z"
+                  fill="#000"
+                  stroke="#000"
+                  strokeWidth="1.5"
+                />
+                
+                {/* Black Lines from each edge to center - Top */}
+                <line x1="100" y1="10" x2="100" y2="60" stroke="#000" strokeWidth="3" />
+                {/* Right */}
+                <line x1="190" y1="100" x2="140" y2="100" stroke="#000" strokeWidth="3" />
+                {/* Bottom */}
+                <line x1="100" y1="190" x2="100" y2="140" stroke="#000" strokeWidth="3" />
+                {/* Left */}
+                <line x1="10" y1="100" x2="60" y2="100" stroke="#000" strokeWidth="3" />
+                
+                {/* Additional Geometric Details */}
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="12"
+                  fill="#fff"
+                  stroke="#000"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="6"
+                  fill="#000"
+                  stroke="#000"
+                  strokeWidth="1"
+                />
+              </pattern>
+            </defs>
+            
+            {/* Apply the pattern to fill the entire height */}
+            <rect x="0" y="0" width="200" height="2000" fill="url(#imigongoPattern)" />
+          </svg>
         </div>
         
         <div className="relative z-10 flex flex-col justify-center px-12 text-black">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex items-center gap-3 mb-8">
               {/* Black Logo Container */}
-              <div className="w-12 h-12 flex items-center justify-center">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" style={{ filter: 'brightness(0)' }} />
-              </div>
-              <span className="font-display text-2xl font-bold text-black">
-                UBUTABERA<span className="text-black">hub</span>
-              </span>
+            
+              
+              
             </div>
-            <h1 className="text-4xl font-display font-bold mb-4 text-black">{t.welcomeTitle}</h1>
-            <p className="text-gray-700 text-lg max-w-md">{t.welcomeSub}</p>
+           
           </motion.div>
         </div>
       </div>
@@ -481,7 +572,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                 type="button"
                 variant="outline"
                 onClick={() => handleSocialLogin('google')}
-                className="w-full hover:bg-slate-50"
+                className="w-full hover:bg-black"
               >
                 <GoogleIcon />
               </Button>
@@ -489,7 +580,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                 type="button"
                 variant="outline"
                 onClick={() => handleSocialLogin('microsoft')}
-                className="w-full hover:bg-slate-50"
+                className="w-full hover:bg-black"
               >
                 <MicrosoftIcon />
               </Button>
@@ -497,7 +588,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                 type="button"
                 variant="outline"
                 onClick={() => handleSocialLogin('apple')}
-                className="w-full hover:bg-slate-50"
+                className="w-full  hover:bg-black"
               >
                 <AppleIcon />
               </Button>
