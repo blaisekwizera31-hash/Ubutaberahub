@@ -12,6 +12,7 @@ import LoadingScreen from "./components/ui/LoadingScreen";
 // Page Imports
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import LawyerDashboard from "./pages/LawyerDashboard";
 import JudgeDashboard from "./pages/JudgeDashboard";
@@ -72,6 +73,7 @@ const AppContent = () => {
               element={<Index currentLang={currentLang} onLanguageChange={setCurrentLang} />} 
             />
             <Route path="/auth" element={<Auth lang={currentLang} />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard" element={<CitizenDashboard lang={currentLang} />} />
             <Route path="/appointments" element={<Appointments lang={currentLang} />} />
             <Route path="/lawyer-dashboard" element={<LawyerDashboard lang={currentLang} />} />
