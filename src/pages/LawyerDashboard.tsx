@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 import CaseCard from "@/components/Dashboard/CaseCard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // 1. COMPLETE TRANSLATIONS OBJECT
 const translations = {
@@ -84,11 +85,12 @@ const translations = {
 } as const;
 
 interface LawyerDashboardProps {
-  lang?: "en" | "rw" | "fr";
+  // No props needed
 }
 
-const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
-  const t = translations[lang] || translations.en;
+const LawyerDashboard = () => {
+  const { language } = useLanguage();
+  const t = translations[language as keyof typeof translations] || translations.en;
   
   // User Session logic
   const [user, setUser] = useState<any>(null);
@@ -136,8 +138,7 @@ const LawyerDashboard = ({ lang = "en" }: LawyerDashboardProps) => {
   return (
     <DashboardLayout 
       role="lawyer" 
-      userName={user?.name || "Adv. Me. Lawyer"} 
-      lang={lang}
+      userName={user?.name || "Adv. Me. Lawyer"}
     >
       <div className="space-y-6">
         

@@ -296,10 +296,10 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   return (
     <div className="min-h-screen flex">
       {/* Left Side: Hero Branding */}
-      <div className="hidden lg:flex lg:w-1/2 gradient-hero relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-accent/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-20 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl" />
         </div>
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>

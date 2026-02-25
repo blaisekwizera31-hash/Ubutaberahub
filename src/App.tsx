@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 // Import your refined Loading Screen
 import LoadingScreen from "./components/ui/LoadingScreen";
@@ -83,30 +85,30 @@ const AppContent = () => {
             <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Citizen Routes */}
-            <Route path="/dashboard" element={<CitizenDashboard lang={currentLang} />} />
+            <Route path="/dashboard" element={<CitizenDashboard />} />
             <Route path="/my-cases" element={<MyCases />} />
-            <Route path="/messages" element={<Messages lang={currentLang} />} />
+            <Route path="/messages" element={<Messages />} />
             
             {/* Lawyer Routes */}
-            <Route path="/lawyer-dashboard" element={<LawyerDashboard lang={currentLang} />} />
-            <Route path="/lawyer-cases" element={<LawyerCases lang={currentLang} />} />
-            <Route path="/lawyer-clients" element={<LawyerClients lang={currentLang} />} />
+            <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
+            <Route path="/lawyer-cases" element={<LawyerCases />} />
+            <Route path="/lawyer-clients" element={<LawyerClients />} />
             
             {/* Judge Routes */}
-            <Route path="/judge-dashboard" element={<JudgeDashboard lang={currentLang} />} />
-            <Route path="/judge-cases" element={<JudgeCases lang={currentLang} />} />
+            <Route path="/judge-dashboard" element={<JudgeDashboard />} />
+            <Route path="/judge-cases" element={<JudgeCases />} />
             
             {/* Clerk Routes */}
-            <Route path="/clerk-dashboard" element={<CourtClerkDashboard lang={currentLang}/>} />
-            <Route path="/clerk-cases" element={<ClerkCases lang={currentLang} />} />
-            <Route path="/clerk-registry" element={<ClerkRegistry lang={currentLang} />} />
+            <Route path="/clerk-dashboard" element={<CourtClerkDashboard />} />
+            <Route path="/clerk-cases" element={<ClerkCases />} />
+            <Route path="/clerk-registry" element={<ClerkRegistry />} />
             
             {/* Shared Routes */}
-            <Route path="/appointments" element={<Appointments lang={currentLang} />} />
-            <Route path="/legal-resources" element={<LegalResources lang={currentLang}/>} />
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/legal-resources" element={<LegalResources />} />
             <Route path="/settings" element={<Settings />} /> 
-            <Route path="/find-lawyer" element={<FindLawyer lang={currentLang} />} />
-            <Route path="/submit-case" element={<SubmitCase lang={currentLang}/>} />
+            <Route path="/find-lawyer" element={<FindLawyer />} />
+            <Route path="/submit-case" element={<SubmitCase />} />
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="*" element={<NotFound />} />
     
@@ -121,7 +123,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContent />
+      <ThemeProvider>
+        <LanguageProvider>
+          <AppContent />
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

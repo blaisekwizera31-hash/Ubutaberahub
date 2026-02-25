@@ -13,10 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
-
-interface JudgeDashboardProps {
-  lang?: string;
-}
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const translations = {
   en: {
@@ -49,8 +46,9 @@ const translations = {
   // ... (rw and fr translations remain the same)
 };
 
-const JudgeDashboard = ({ lang = "en" }: JudgeDashboardProps) => {
-  const t = translations[lang as keyof typeof translations] || translations.en;
+const JudgeDashboard = () => {
+  const { language } = useLanguage();
+  const t = translations[language as keyof typeof translations] || translations.en;
   
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
@@ -77,8 +75,7 @@ const JudgeDashboard = ({ lang = "en" }: JudgeDashboardProps) => {
   return (
     <DashboardLayout 
       role="judge" 
-      userName={user?.name || "Hon. Kwizera Blaise"} 
-      lang={lang}
+      userName={user?.name || "Hon. Kwizera Blaise"}
     >
       <div className="space-y-6">
         {/* Clean Header - Blue Square Removed */}

@@ -42,7 +42,7 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="w-10 h-10 gradient-hero rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <Scale className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="font-display text-xl font-bold text-foreground">

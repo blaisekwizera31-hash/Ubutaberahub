@@ -6,101 +6,95 @@
 
 @layer base {
   :root {
-    /* UBUTABERAhub Design System */
-    /* Deep Navy - Trust & Professionalism */
-    --background: 220 30% 98%;
-    --foreground: 220 40% 13%;
+    /* Professional Legal Color System - Light Mode */
+    /* Deep Navy Blue - Trust, Authority, Stability */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
 
-    /* Cards with subtle warmth */
+    /* Cards - Clean White */
     --card: 0 0% 100%;
-    --card-foreground: 220 40% 13%;
+    --card-foreground: 215 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 40% 13%;
+    --popover-foreground: 215 25% 15%;
 
-    /* Primary: Deep Navy Blue */
-    --primary: 220 60% 20%;
-    --primary-foreground: 45 90% 96%;
+    /* Primary: Professional Navy Blue */
+    --primary: 217 91% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Teal/Green (Rwanda's nature) */
-    --secondary: 168 60% 40%;
+    /* Secondary: Emerald Green (Justice, Balance) */
+    --secondary: 160 84% 39%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted surfaces */
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 15% 45%;
+    /* Muted surfaces - Subtle Gray */
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 15% 45%;
 
-    /* Accent: Warm Gold (Rwandan inspiration) */
-    --accent: 42 90% 55%;
-    --accent-foreground: 220 40% 13%;
+    /* Accent: Amber Gold (Excellence, Achievement) */
+    --accent: 38 92% 50%;
+    --accent-foreground: 215 25% 15%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%;
-    --input: 220 20% 88%;
-    --ring: 220 60% 20%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 35%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Custom tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(220 60% 20%) 0%, hsl(220 50% 30%) 50%, hsl(168 60% 35%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(42 90% 55%) 0%, hsl(38 85% 50%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
-    --shadow-soft: 0 4px 20px -4px hsla(220, 40%, 13%, 0.1);
-    --shadow-elevated: 0 8px 40px -8px hsla(220, 40%, 13%, 0.15);
-    --shadow-glow: 0 0 40px hsla(42, 90%, 55%, 0.3);
-
-    --sidebar-background: 220 30% 98%;
-    --sidebar-foreground: 220 40% 13%;
-    --sidebar-primary: 220 60% 20%;
-    --sidebar-primary-foreground: 45 90% 96%;
-    --sidebar-accent: 42 90% 55%;
-    --sidebar-accent-foreground: 220 40% 13%;
-    --sidebar-border: 220 20% 88%;
-    --sidebar-ring: 220 60% 20%;
+    /* Sidebar colors */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 15%;
+    --sidebar-primary: 217 91% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 92% 50%;
+    --sidebar-accent-foreground: 215 25% 15%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 217 91% 35%;
   }
 
   .dark {
-    --background: 220 40% 8%;
-    --foreground: 220 20% 95%;
+    /* Professional Legal Color System - Dark Mode */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --card: 220 35% 12%;
-    --card-foreground: 220 20% 95%;
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 220 35% 12%;
-    --popover-foreground: 220 20% 95%;
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 42 90% 55%;
-    --primary-foreground: 220 40% 10%;
+    /* Primary: Bright Blue (maintains trust in dark) */
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 168 50% 45%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary: Emerald (softer in dark) */
+    --secondary: 160 84% 45%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 220 30% 18%;
-    --muted-foreground: 220 15% 60%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 42 80% 50%;
-    --accent-foreground: 220 40% 10%;
+    /* Accent: Gold (prestige) */
+    --accent: 38 92% 55%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 30% 20%;
-    --input: 220 30% 20%;
-    --ring: 42 90% 55%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 217 91% 60%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(220 40% 8%) 0%, hsl(220 35% 15%) 50%, hsl(168 40% 20%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(30,35,50,0.9) 0%, rgba(30,35,50,0.7) 100%);
-
-    --sidebar-background: 220 35% 12%;
-    --sidebar-foreground: 220 20% 95%;
-    --sidebar-primary: 42 90% 55%;
-    --sidebar-primary-foreground: 220 40% 10%;
-    --sidebar-accent: 168 50% 45%;
-    --sidebar-accent-foreground: 220 20% 95%;
-    --sidebar-border: 220 30% 20%;
-    --sidebar-ring: 42 90% 55%;
+    --sidebar-background: 222 47% 14%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 38 92% 55%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 217 91% 60%;
   }
 }
 
@@ -121,34 +115,18 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+    @apply bg-white/90 backdrop-blur-md border border-border;
   }
 
   .glass-dark {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50;
-  }
-
-  .gradient-hero {
-    background: var(--gradient-hero);
-  }
-
-  .gradient-gold {
-    background: var(--gradient-gold);
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent via-amber-500 to-accent;
+    @apply bg-card/90 backdrop-blur-md border border-border;
   }
 
   .shadow-soft {
-    box-shadow: var(--shadow-soft);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
   .shadow-elevated {
-    box-shadow: var(--shadow-elevated);
-  }
-
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
 }
