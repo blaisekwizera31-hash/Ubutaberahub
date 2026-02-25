@@ -3,7 +3,6 @@ import { HeroSection } from "@/components/sections/HeroSection";
 import { FeaturesSection } from "@/components/sections/FeaturesSection";
 import { HowItWorksSection } from "@/components/sections/HowItWorksSection";
 import { RolesSection } from "@/components/sections/RolesSection";
-import { AIAssistantSection } from "@/components/sections/AIAssistantSection";
 import { CTASection } from "@/components/sections/CTASection";
 import { FooterSection } from "@/components/sections/FooterSection";
 
@@ -25,7 +24,6 @@ const Index = ({ currentLang, onLanguageChange }: IndexProps) => {
         <FeaturesSection lang={currentLang} />
         <HowItWorksSection lang={currentLang} />
         <RolesSection lang={currentLang} />
-        <AIAssistantSection lang={currentLang} />
         <CTASection lang={currentLang} />
       </main>
 

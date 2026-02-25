@@ -45,8 +45,8 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <Scale className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-display text-xl font-bold text-foreground">
-                UBUTABERA<span className="text-accent">hub</span>
+              <span className="font-display text-xl font-bold">
+                <span className="text-black">UBUTABERA</span><span className="text-[#1292E2]">hub</span>
               </span>
             </motion.a>
 

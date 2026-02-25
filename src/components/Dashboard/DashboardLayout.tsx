@@ -175,7 +175,8 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
                 <img 
                   src="/logo.png" 
                   alt="Logo" 
-                  className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
+                  className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                  style={{ filter: 'brightness(0)' }}
                 />
               </div>
               <span className="text-lg font-bold tracking-tight uppercase">

@@ -9,7 +9,8 @@ const translations = {
     col2Links: ["Citizens Portal", "Lawyers Portal", "Court Officials", "Admin Dashboard"],
     col3Title: "Legal",
     col3Links: ["Privacy Policy", "Terms of Service", "Data Protection", "Accessibility"],
-    copyright: "© 2026 UBUTABERAhub. ",
+    copyright: "© 2026 UBUTABERA",
+    copyrightHub: "hub",
     madeWith: "Made with ❤️ for Rwanda"
   },
   rw: {
@@ -20,7 +21,8 @@ const translations = {
     col2Links: ["Abaturage", "Abanyamategeko", "Abakozi b'inkiko", "Abayobozi"],
     col3Title: "Amategeko",
     col3Links: ["Amategeko agenga ibanga", "Amategeko n'amabwiriza", "Kurinda amakuru", "Uburyo bworoshye"],
-    copyright: "© 2026 UBUTABERAhub. ",
+    copyright: "© 2026 UBUTABERA",
+    copyrightHub: "hub",
     madeWith: "Byakozwe n'urukundo ❤️ ku bw'u Rwanda"
   },
   fr: {
@@ -31,7 +33,8 @@ const translations = {
     col2Links: ["Portail Citoyens", "Portail Avocats", "Officiels de la cour", "Tableau de bord Admin"],
     col3Title: "Juridique",
     col3Links: ["Politique de confidentialité", "Conditions d'utilisation", "Protection des données", "Accessibilité"],
-    copyright: "© 2026 UBUTABERAhub. ",
+    copyright: "© 2026 UBUTABERA",
+    copyrightHub: "hub",
     madeWith: "Fait avec ❤️ pour le Rwanda"
   }
 };
@@ -44,7 +47,7 @@ export function FooterSection({ lang }: FooterSectionProps) {
   const t = translations[lang as keyof typeof translations] || translations.en;
 
   return (
-    <footer className="bg-primary text-primary-foreground py-16">
+    <footer className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
@@ -53,31 +56,32 @@ export function FooterSection({ lang }: FooterSectionProps) {
               {/* FIXED: Replaced Scale icon with your logo from public folder */}
               <div className="w-10 h-10 flex items-center justify-center">
                 <img 
-                  src="/logow.png" 
+                  src="/logo.png" 
                   alt="Logo" 
-                  className="w-full h-full object-contain" 
+                  className="w-full h-full object-contain"
+                  style={{ filter: 'brightness(0)' }}
                 />
               </div>
-              <span className="font-display text-xl font-bold">
-                UBUTABERA<span className="text-accent">hub</span>
+              <span className="font-display text-xl font-bold text-black">
+                <span className="text-black">UBUTABERA</span><span className="text-black">hub</span>
               </span>
             </a>
-            <p className="text-primary-foreground/70 text-sm mb-4">
+            <p className="text-black text-sm mb-4">
               {t.tagline}
             </p>
             
             {/* Social Media Links - Replace "DEMO_LINK" with your real URLs later */}
             <div className="flex gap-3">
-              <a href="https://twitter.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="https://twitter.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
                 <Twitter className="w-4 h-4" />
               </a>
-              <a href="https://linkedin.com/company/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="https://linkedin.com/company/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="https://github.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="https://github.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
                 <Github className="w-4 h-4" />
               </a>
-              <a href="mailto:contact@DEMO_LINK.com" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <a href="mailto:contact@DEMO_LINK.com" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
                 <Mail className="w-4 h-4" />
               </a>
             </div>
@@ -85,40 +89,40 @@ export function FooterSection({ lang }: FooterSectionProps) {
 
           {/* Column 1 */}
           <div>
-            <h4 className="font-semibold mb-4">{t.col1Title}</h4>
-            <ul className="space-y-2 text-sm text-primary-foreground/70">
+            <h4 className="font-semibold mb-4 text-black">{t.col1Title}</h4>
+            <ul className="space-y-2 text-sm text-black">
               {t.col1Links.map(link => (
-                <li key={link}><a href="#" className="hover:text-primary-foreground transition-colors">{link}</a></li>
+                <li key={link}><a href="#" className="hover:text-gray-700 transition-colors">{link}</a></li>
               ))}
             </ul>
           </div>
 
           {/* Column 2 */}
           <div>
-            <h4 className="font-semibold mb-4">{t.col2Title}</h4>
-            <ul className="space-y-2 text-sm text-primary-foreground/70">
+            <h4 className="font-semibold mb-4 text-black">{t.col2Title}</h4>
+            <ul className="space-y-2 text-sm text-black">
               {t.col2Links.map(link => (
-                <li key={link}><a href="#" className="hover:text-primary-foreground transition-colors">{link}</a></li>
+                <li key={link}><a href="#" className="hover:text-gray-700 transition-colors">{link}</a></li>
               ))}
             </ul>
           </div>
 
           {/* Column 3 */}
           <div>
-            <h4 className="font-semibold mb-4">{t.col3Title}</h4>
-            <ul className="space-y-2 text-sm text-primary-foreground/70">
+            <h4 className="font-semibold mb-4 text-black">{t.col3Title}</h4>
+            <ul className="space-y-2 text-sm text-black">
               {t.col3Links.map(link => (
-                <li key={link}><a href="#" className="hover:text-primary-foreground transition-colors">{link}</a></li>
+                <li key={link}><a href="#" className="hover:text-gray-700 transition-colors">{link}</a></li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-primary-foreground/70">
-            {t.copyright}
+        <div className="border-t border-black/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-black">
+            {t.copyright}<span className="text-black font-semibold">{t.copyrightHub}</span>. 
           </p>
-          <p className="text-sm text-primary-foreground/70">
+          <p className="text-sm text-black">
             {t.madeWith}
           </p>
         </div>

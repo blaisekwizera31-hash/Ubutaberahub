@@ -67,7 +67,7 @@ export function DashboardSidebar({ activePage }: DashboardSidebarProps) {
             <Scale className="w-4 h-4 text-primary-foreground" />
           </div>
           <span className="font-display text-lg font-bold">
-            UBUTABERA<span className="text-primary">hub</span>
+            <span className="text-black dark:text-white">UBUTABERA</span><span className="text-[#1292E2]">hub</span>
           </span>
         </Link>
       </div>
