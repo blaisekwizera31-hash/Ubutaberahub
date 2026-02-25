@@ -382,7 +382,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                     <div className="space-y-2">
                       <Label>{t.fields.citizenId}</Label>
-                      <Input value={citizenId} onChange={(e) => setCitizenId(e.target.value)} placeholder="1 XXXX X XXXXXXX X XX" />
+                      <Input value={citizenId} onChange={(e) => setCitizenId(e.target.value)} placeholder="1 XXXX X XXXXXXX X XX" required/>
                     </div>
                   </div>
                 )}
