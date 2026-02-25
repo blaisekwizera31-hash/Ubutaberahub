@@ -37,9 +37,9 @@ export function CTASection({ lang }: CTASectionProps) {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 gradient-hero" />
+      <div className="absolute inset-0 bg-primary" />
       <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
       </div>
 

@@ -1,9 +1,9 @@
 import { ReactNode, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   Home, FileText, MessageSquare, Users, Settings, 
   Search, Menu, X, LogOut, User, Briefcase, Gavel, 
-  Bot, Calendar, HelpCircle 
+  Bot, Calendar, HelpCircle, Moon, Sun, Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // REMOVED: import Logo from "@/assets/logo.png"; 
 
@@ -23,7 +25,6 @@ interface DashboardLayoutProps {
   children: ReactNode;
   role: Role;
   userName: string;
-  lang?: string; 
 }
 
 const sidebarTranslations: Record<string, any> = {
@@ -129,11 +130,14 @@ const roleConfig = {
   },
 };
 
-const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
   
-  const t = sidebarTranslations[lang] || sidebarTranslations.en;
+  const t = sidebarTranslations[language] || sidebarTranslations.en;
   const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.citizen;
   const RoleIcon = config.icon;
   const navItems = config.navItems(t);
@@ -142,6 +146,16 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
     localStorage.removeItem("loggedInUser");
     navigate("/auth");
   };
+
+  const isActive = (href: string) => {
+    return location.pathname === href;
+  };
+
+  const languages = [
+    { code: 'en', label: 'English', flag: '🇬🇧' },
+    { code: 'rw', label: 'Kinyarwanda', flag: '🇷🇼' },
+    { code: 'fr', label: 'Français', flag: '🇫🇷' }
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -158,7 +172,6 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
           <div className="p-4 border-b border-border">
             <Link to="/" className="flex items-center gap-3 group">
               <div className="w-10 h-10 flex items-center justify-center">
-                {/* UPDATED: Path points to public/logo.png */}
                 <img 
                   src="/logo.png" 
                   alt="Logo" 
@@ -172,26 +185,47 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
           </div>
 
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {navItems.map((item: any) => (
-              <Link 
-                key={item.label} 
-                to={item.href} 
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-all duration-200"
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium text-sm">{item.label}</span>
-              </Link>
-            ))}
+            {navItems.map((item: any) => {
+              const active = isActive(item.href);
+              return (
+                <Link 
+                  key={item.label} 
+                  to={item.href} 
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    active 
+                      ? 'bg-primary text-primary-foreground shadow-sm' 
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="p-4 border-t border-border space-y-1">
-            <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-colors">
+            <Link 
+              to="/settings" 
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/settings')
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
               <Settings className="w-5 h-5" />
-              <span className="text-sm font-medium">{t.settings}</span>
+              <span>{t.settings}</span>
             </Link>
-            <Link to="/help-center" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+            <Link 
+              to="/help-center" 
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/help-center')
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+            >
               <HelpCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">{t.help}</span>
+              <span>{t.help}</span>
             </Link>
           </div>
         </div>
@@ -211,7 +245,34 @@ const DashboardLayout = ({ children, role, userName, lang = "en" }: DashboardLay
             />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Globe className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {languages.map((lang) => (
+                  <DropdownMenuItem
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code as any)}
+                    className={`cursor-pointer ${language === lang.code ? 'bg-primary/10' : ''}`}
+                  >
+                    <span className="mr-2">{lang.flag}</span>
+                    {lang.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Theme Toggle */}
+            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </Button>
+
+            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-3 p-1 px-2 rounded-full hover:bg-muted transition-colors outline-none border border-transparent focus:border-border">
                 <div className={`w-8 h-8 rounded-full ${config.color} flex items-center justify-center shadow-md shadow-primary/20`}>

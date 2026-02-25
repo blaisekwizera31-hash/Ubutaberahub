@@ -52,13 +52,13 @@ const translations = {
   },
 };
 
-// RESTORED ORIGINAL VIBRANT COLORS
+// Professional Solid Colors for Legal Roles
 const roleStyles = [
-  { icon: User, color: "from-accent to-amber-400" },
-  { icon: Briefcase, color: "from-secondary to-teal-400" },
-  { icon: FileCheck, color: "from-primary to-blue-500" },
-  { icon: Scale, color: "from-purple-500 to-violet-500" },
-  { icon: BarChart3, color: "from-rose-500 to-pink-500" },
+  { icon: User, color: "bg-accent" },        // Citizen - Gold
+  { icon: Briefcase, color: "bg-secondary" }, // Lawyer - Emerald
+  { icon: FileCheck, color: "bg-primary" },   // Clerk - Navy Blue
+  { icon: Scale, color: "bg-primary" },       // Judge - Navy Blue
+  { icon: BarChart3, color: "bg-destructive" }, // Admin - Red
 ];
 
 interface RolesSectionProps {
@@ -100,7 +100,7 @@ export function RolesSection({ lang }: RolesSectionProps) {
                 className={`${index === 0 ? 'md:col-span-2 lg:col-span-1' : ''}`}
               >
                 <div className="bg-card rounded-2xl p-8 h-full shadow-soft border border-border/50 hover:shadow-elevated transition-all duration-300 group">
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${style.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <div className={`w-14 h-14 rounded-xl ${style.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     <style.icon className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="font-display text-xl font-semibold mb-3">{role.title}</h3>

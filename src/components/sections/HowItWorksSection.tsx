@@ -125,7 +125,7 @@ export function HowItWorksSection({ lang }: HowItWorksSectionProps) {
                   className="relative"
                 >
                   <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 text-center relative z-10 hover:shadow-elevated transition-all duration-300">
-                    <div className="w-16 h-16 gradient-gold rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
+                    <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft">
                       <IconComp className="w-8 h-8 text-primary" />
                     </div>
                     <div className="text-accent font-bold text-sm mb-2">
