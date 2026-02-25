@@ -31,6 +31,7 @@ const translations = {
       judge: { label: "Judge", desc: "Review & decide cases" },
     },
     fields: {
+      citizenId: "Citizen ID Number",
       license: "Lawyer License Number",
       specialization: "Specialization",
       lawFirm: "Law Firm",
@@ -69,6 +70,7 @@ const translations = {
       judge: { label: "Umucamanza", desc: "Suzuma imanza ufate n'imyanzuro" },
     },
     fields: {
+      citizenId: "Numero y'Indangamuntu",
       license: "Numero y'Uruhushya",
       specialization: "Inzobere mu",
       lawFirm: "Ibiro by'abanyamategeko",
@@ -107,6 +109,7 @@ const translations = {
       judge: { label: "Juge", desc: "Réviser et trancher les affaires" },
     },
     fields: {
+      citizenId: "Numéro d'identification du citoyen",
       license: "Numéro de licence d'avocat",
       specialization: "Spécialisation",
       lawFirm: "Cabinet d'avocats",
@@ -138,6 +141,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [citizenId, setCitizenId] = useState("");
   
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -184,7 +188,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     }
     const user = { 
       name, email, password, role: selectedRole, phone, profilePhoto,
-      licenseNumber, specialization, lawFirm, employeeId, courtAssigned, judgeId, yearsExperience 
+      citizenId, licenseNumber, specialization, lawFirm, employeeId, courtAssigned, judgeId, yearsExperience 
     };
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("loggedInUser", JSON.stringify(user));
@@ -292,6 +296,15 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                   </div>
                 </div>
 
+                {selectedRole === "citizen" && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="space-y-2">
+                      <Label>{t.fields.citizenId}</Label>
+                      <Input value={citizenId} onChange={(e) => setCitizenId(e.target.value)} placeholder="1 XXXX X XXXXXXX X XX" />
+                    </div>
+                  </div>
+                )}
+
                 {selectedRole === "lawyer" && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                     <div className="space-y-2">
@@ -301,6 +314,19 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                     <div className="space-y-2">
                       <Label>{t.fields.specialization}</Label>
                       <Input value={specialization} onChange={(e) => setSpecialization(e.target.value)} placeholder="Criminal Law..." />
+                    </div>
+                  </div>
+                )}
+
+                {selectedRole === "clerk" && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="space-y-2">
+                      <Label>{t.fields.empId}</Label>
+                      <Input value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} placeholder="CLK-2024-001" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t.fields.court}</Label>
+                      <Input value={courtAssigned} onChange={(e) => setCourtAssigned(e.target.value)} placeholder="Kigali High Court..." />
                     </div>
                   </div>
                 )}
