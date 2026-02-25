@@ -295,25 +295,38 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side: Hero Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl" />
+      {/* Left Side: Hero Branding with Lady Justice */}
+      <div className="hidden lg:flex lg:w-1/2 bg-white relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-[400px] h-[400px] rounded-full bg-gray-100 blur-3xl" />
         </div>
-        <div className="relative z-10 flex flex-col justify-center px-12 text-white">
+        
+        {/* Lady Justice Image */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img
+            src="/p.png"
+            alt="Lady Justice"
+            className="w-[450px] h-[600px] object-contain opacity-30"
+            style={{ 
+              filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.1))',
+            }}
+          />
+        </div>
+        
+        <div className="relative z-10 flex flex-col justify-center px-12 text-black">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex items-center gap-3 mb-8">
-              {/* White Logo Container */}
+              {/* Black Logo Container */}
               <div className="w-12 h-12 flex items-center justify-center">
-                <img src="/logow.png" alt="Logo" className="w-full h-full object-contain" />
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" style={{ filter: 'brightness(0)' }} />
               </div>
-              <span className="font-display text-2xl font-bold text-white">
-                UBUTABERA<span className="text-accent">hub</span>
+              <span className="font-display text-2xl font-bold text-black">
+                UBUTABERA<span className="text-black">hub</span>
               </span>
             </div>
-            <h1 className="text-4xl font-display font-bold mb-4">{t.welcomeTitle}</h1>
-            <p className="text-white/80 text-lg max-w-md">{t.welcomeSub}</p>
+            <h1 className="text-4xl font-display font-bold mb-4 text-black">{t.welcomeTitle}</h1>
+            <p className="text-gray-700 text-lg max-w-md">{t.welcomeSub}</p>
           </motion.div>
         </div>
       </div>

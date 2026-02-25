@@ -28,7 +28,7 @@ const LoadingScreen = () => {
         className="relative"
       >
         {/* Subtle glow behind the logo */}
-        <div className="absolute inset-0 rounded-full bg-blue-50 blur-2xl opacity-40 scale-150" />
+        <div className="absolute inset-0 rounded-full bg-gray-100 blur-2xl opacity-40 scale-150" />
         
         <img
           src="/logo.png"
@@ -45,15 +45,15 @@ const LoadingScreen = () => {
         transition={{ delay: 0.3 }}
         className="mt-4 flex flex-col items-center gap-1"
       >
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-          UBUTABERA<span className="text-blue-600">hub</span>
+        <h1 className="text-2xl font-extrabold tracking-tight text-black">
+          UBUTABERA<span className="text-black">hub</span>
         </h1>
       </motion.div>
 
       {/* Modern Progress Bar */}
-      <div className="mt-8 w-48 h-1 bg-slate-100 rounded-full overflow-hidden">
+      <div className="mt-8 w-48 h-1 bg-gray-200 rounded-full overflow-hidden">
         <motion.div 
-          className="h-full bg-blue-600"
+          className="h-full bg-black"
           initial={{ x: "-100%" }}
           animate={{ x: "100%" }}
           transition={{ 
@@ -71,7 +71,7 @@ const LoadingScreen = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="mt-6 text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]"
+          className="mt-6 text-gray-600 text-[10px] font-bold uppercase tracking-[0.3em]"
         >
           {loaderText[lang] || loaderText.en}
         </motion.p>

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, MessageSquare, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -97,8 +97,10 @@ export function HeroSection({ lang }: HeroSectionProps) {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button variant="outline" size="xl">
-                {t.ctaSecondary}
+              <Button variant="outline" size="xl" asChild>
+                <a href="#features">
+                  {t.ctaSecondary}
+                </a>
               </Button>
             </motion.div>
 
