@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
+import { signUp, signIn, signInWithOAuth } from "@/lib/auth";
 
 // Social provider icons as SVG components
 const GoogleIcon = () => (
@@ -176,6 +177,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [citizenId, setCitizenId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -215,79 +217,90 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     clerk: "/clerk-dashboard",
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!email || !password || !name) {
       alert(t.alerts.fillAll);
       return;
     }
-    const user = { 
-      name, email, password, role: selectedRole, phone, profilePhoto,
-      citizenId, licenseNumber, specialization, lawFirm, employeeId, courtAssigned, judgeId, yearsExperience 
+
+    setIsLoading(true);
+
+    const userData = { 
+      name,
+      phone,
+      profilePhoto,
+      role: selectedRole,
+      citizenId,
+      licenseNumber,
+      specialization,
+      lawFirm,
+      employeeId,
+      courtAssigned,
+      judgeId,
+      yearsExperience
     };
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("loggedInUser", JSON.stringify(user));
-    navigate(dashboardRoutes[selectedRole]);
+
+    const { user, error } = await signUp(email, password, userData);
+
+    setIsLoading(false);
+
+    if (error) {
+      // Better error messages
+      if (error.includes('rate limit')) {
+        alert('Too many signup attempts. Please wait a minute and try again.');
+      } else if (error.includes('already registered')) {
+        alert('This email is already registered. Please sign in instead.');
+      } else {
+        alert(`Signup failed: ${error}`);
+      }
+      return;
+    }
+
+    alert("Account created successfully! You can now sign in.");
+    setMode("login");
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const savedUser = localStorage.getItem("user");
-    if (!savedUser) {
-      alert(t.alerts.noAccount);
+
+    if (!email || !password) {
+      alert(t.alerts.fillAll);
       return;
     }
-    const user = JSON.parse(savedUser);
-    if (user.email !== email || user.password !== password) {
-      alert(t.alerts.invalid);
+
+    setIsLoading(true);
+
+    const { user, error } = await signIn(email, password);
+
+    setIsLoading(false);
+
+    if (error) {
+      // Better error messages
+      if (error.includes('Invalid login')) {
+        alert('Invalid email or password. Please try again.');
+      } else if (error.includes('Email not confirmed')) {
+        alert('Please verify your email before signing in.');
+      } else {
+        alert(`Login failed: ${error}`);
+      }
       return;
     }
-    localStorage.setItem("loggedInUser", JSON.stringify(user));
-    navigate(dashboardRoutes[user.role]);
+
+    if (user) {
+      navigate(dashboardRoutes[user.role]);
+    }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    // Get the current origin for redirect URI
-    const redirectUri = `${window.location.origin}/auth/callback`;
-    
-    // OAuth configuration for each provider
-    const oauthUrls: Record<string, string> = {
-      google: `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=YOUR_GOOGLE_CLIENT_ID&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `response_type=code&` +
-        `scope=email profile&` +
-        `access_type=offline&` +
-        `prompt=select_account`,
-      
-      microsoft: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?` +
-        `client_id=YOUR_MICROSOFT_CLIENT_ID&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `response_type=code&` +
-        `scope=openid email profile&` +
-        `prompt=select_account`,
-      
-      apple: `https://appleid.apple.com/auth/authorize?` +
-        `client_id=YOUR_APPLE_CLIENT_ID&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `response_type=code&` +
-        `scope=name email&` +
-        `response_mode=form_post`
-    };
-
-    // Store the selected role before redirecting
+  const handleSocialLogin = async (provider: 'google' | 'azure' | 'apple') => {
+    // Store the selected role before OAuth redirect
     localStorage.setItem('pendingRole', selectedRole);
     
-    // Redirect to OAuth provider - this will show the account selection screen
-    window.location.href = oauthUrls[provider];
-    
-    // Note: After OAuth, the provider will redirect back to /auth/callback
-    // You'll need to create a callback handler that:
-    // 1. Extracts the authorization code from URL
-    // 2. Sends it to your backend
-    // 3. Backend exchanges code for access token
-    // 4. Backend fetches user info and creates/updates user
-    // 5. Backend returns JWT or session token
-    // 6. Frontend stores token and redirects to dashboard
+    const { data, error } = await signInWithOAuth(provider);
+
+    if (error) {
+      alert(`OAuth login failed: ${error}`);
+    }
+    // User will be redirected to OAuth provider
   };
 
   return (
@@ -551,8 +564,14 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               </div>
             </div>
 
-            <Button variant="hero" size="lg" className="w-full" onClick={mode === "signup" ? handleSignup : handleLogin}>
-              {mode === "login" ? t.signIn : t.createAccount}
+            <Button 
+              variant="hero" 
+              size="lg" 
+              className="w-full" 
+              onClick={mode === "signup" ? handleSignup : handleLogin}
+              disabled={isLoading}
+            >
+              {isLoading ? "Please wait..." : (mode === "login" ? t.signIn : t.createAccount)}
             </Button>
           </form>
 
@@ -579,7 +598,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => handleSocialLogin('microsoft')}
+                onClick={() => handleSocialLogin('azure')}
                 className="w-full hover:bg-black"
               >
                 <MicrosoftIcon />
