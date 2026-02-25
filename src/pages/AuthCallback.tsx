@@ -1,80 +1,90 @@
-import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import LoadingScreen from "@/components/ui/LoadingScreen";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 const AuthCallback = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      // Get the authorization code from URL
-      const code = searchParams.get('code');
-      const error = searchParams.get('error');
-
-      if (error) {
-        console.error('OAuth error:', error);
-        alert('Authentication failed. Please try again.');
-        navigate('/auth');
-        return;
-      }
-
-      if (!code) {
-        console.error('No authorization code received');
-        navigate('/auth');
-        return;
-      }
-
+    // Handle the OAuth callback
+    const handleCallback = async () => {
       try {
-        // In production, send the code to your backend
-        // const response = await fetch('/api/auth/oauth/callback', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ code, provider: 'google' }) // detect provider from state param
-        // });
-        // const data = await response.json();
-        
-        // For demo: simulate successful OAuth
-        const pendingRole = localStorage.getItem('pendingRole') || 'citizen';
-        const mockUser = {
-          name: "OAuth User",
-          email: "user@oauth.com",
-          role: pendingRole,
-          phone: "",
-          profilePhoto: null,
-          provider: "oauth",
-          citizenId: "",
-          licenseNumber: "",
-          specialization: "",
-          lawFirm: "",
-          employeeId: "",
-          courtAssigned: "",
-          judgeId: "",
-          yearsExperience: ""
-        };
+        // Get the session from the URL hash
+        const { data: { session }, error } = await supabase.auth.getSession();
 
-        localStorage.setItem("user", JSON.stringify(mockUser));
-        localStorage.setItem("loggedInUser", JSON.stringify(mockUser));
-        localStorage.removeItem('pendingRole');
+        if (error) {
+          console.error('OAuth error:', error);
+          alert('Authentication failed. Please try again.');
+          navigate('/auth');
+          return;
+        }
 
-        // Redirect to appropriate dashboard
-        const dashboardRoutes: Record<string, string> = {
-          citizen: "/dashboard",
-          lawyer: "/lawyer-dashboard",
-          judge: "/judge-dashboard",
-          clerk: "/clerk-dashboard",
-        };
+        if (!session) {
+          navigate('/auth');
+          return;
+        }
 
-        navigate(dashboardRoutes[pendingRole]);
+        // Check if user exists in our users table
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        // If user doesn't exist, create them
+        if (!userData) {
+          const pendingRole = localStorage.getItem('pendingRole') || 'citizen';
+          
+          const { error: insertError } = await supabase.from('users').insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.full_name || 
+                    session.user.user_metadata?.name || 
+                    session.user.email?.split('@')[0] || 
+                    'User',
+              profile_photo: session.user.user_metadata?.avatar_url || 
+                           session.user.user_metadata?.picture,
+              role: pendingRole,
+            },
+          ]);
+
+          if (insertError) {
+            console.error('Error creating user:', insertError);
+          }
+
+          localStorage.removeItem('pendingRole');
+
+          // Redirect based on role
+          const dashboardRoutes: Record<string, string> = {
+            citizen: '/dashboard',
+            lawyer: '/lawyer-dashboard',
+            judge: '/judge-dashboard',
+            clerk: '/clerk-dashboard',
+          };
+
+          navigate(dashboardRoutes[pendingRole]);
+        } else {
+          // User exists, redirect to their dashboard
+          const dashboardRoutes: Record<string, string> = {
+            citizen: '/dashboard',
+            lawyer: '/lawyer-dashboard',
+            judge: '/judge-dashboard',
+            clerk: '/clerk-dashboard',
+          };
+
+          navigate(dashboardRoutes[userData.role]);
+        }
       } catch (error) {
-        console.error('Error processing OAuth callback:', error);
+        console.error('Error in OAuth callback:', error);
         alert('Authentication failed. Please try again.');
         navigate('/auth');
       }
     };
 
-    handleOAuthCallback();
-  }, [searchParams, navigate]);
+    handleCallback();
+  }, [navigate]);
 
   return <LoadingScreen />;
 };

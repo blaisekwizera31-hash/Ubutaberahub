@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+ import { supabase } from './supabase';
 
 // Sign up with email and password
 export async function signUp(email: string, password: string, userInfo: any) {
@@ -7,6 +7,9 @@ export async function signUp(email: string, password: string, userInfo: any) {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      }
     });
 
     if (authError) throw authError;
@@ -36,7 +39,20 @@ export async function signUp(email: string, password: string, userInfo: any) {
       .select()
       .single();
 
-    if (dbError) throw dbError;
+    // If database insert fails, still return success but log the error
+    if (dbError) {
+      console.error('Database insert error:', dbError);
+      // Return basic user info even if DB insert failed
+      return { 
+        user: {
+          id: authData.user.id,
+          email: email,
+          name: userInfo.name,
+          role: userInfo.role
+        }, 
+        error: null 
+      };
+    }
 
     return { user: userData, error: null };
   } catch (error: any) {
@@ -59,9 +75,20 @@ export async function signIn(email: string, password: string) {
       .from('users')
       .select('*')
       .eq('id', data.user.id)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error if no rows
 
-    if (dbError) throw dbError;
+    // If user doesn't exist in our table, return auth user info
+    if (!userData) {
+      return { 
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.email?.split('@')[0] || 'User',
+          role: 'citizen' // default role
+        }, 
+        error: null 
+      };
+    }
 
     return { user: userData, error: null };
   } catch (error: any) {

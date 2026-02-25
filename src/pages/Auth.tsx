@@ -6,6 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { signUp, signIn, signInWithOAuth } from "@/lib/auth";
+import {
+  validateEmail,
+  validatePassword,
+  validateName,
+  validatePhone,
+  validateCitizenId,
+  validateLicenseNumber,
+  validateEmployeeId,
+  validateJudgeId,
+  validateTextField,
+} from "@/lib/validation";
 
 // Social provider icons as SVG components
 const GoogleIcon = () => (
@@ -179,6 +190,9 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [citizenId, setCitizenId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
+  // Error states for validation
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -218,8 +232,58 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   };
 
   const handleSignup = async () => {
-    if (!email || !password || !name) {
-      alert(t.alerts.fillAll);
+    // Clear previous errors
+    setErrors({});
+    const newErrors: Record<string, string> = {};
+
+    // Validate all fields
+    const nameValidation = validateName(name);
+    if (!nameValidation.isValid) newErrors.name = nameValidation.error!;
+
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) newErrors.email = emailValidation.error!;
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) newErrors.password = passwordValidation.error!;
+
+    const phoneValidation = validatePhone(phone);
+    if (!phoneValidation.isValid) newErrors.phone = phoneValidation.error!;
+
+    // Role-specific validation
+    if (selectedRole === 'citizen') {
+      const citizenIdValidation = validateCitizenId(citizenId);
+      if (!citizenIdValidation.isValid) newErrors.citizenId = citizenIdValidation.error!;
+    }
+
+    if (selectedRole === 'lawyer') {
+      const licenseValidation = validateLicenseNumber(licenseNumber);
+      if (!licenseValidation.isValid) newErrors.licenseNumber = licenseValidation.error!;
+      
+      const specializationValidation = validateTextField(specialization, 'Specialization');
+      if (!specializationValidation.isValid) newErrors.specialization = specializationValidation.error!;
+    }
+
+    if (selectedRole === 'clerk') {
+      const empIdValidation = validateEmployeeId(employeeId);
+      if (!empIdValidation.isValid) newErrors.employeeId = empIdValidation.error!;
+      
+      const courtValidation = validateTextField(courtAssigned, 'Court assigned');
+      if (!courtValidation.isValid) newErrors.courtAssigned = courtValidation.error!;
+    }
+
+    if (selectedRole === 'judge') {
+      const judgeIdValidation = validateJudgeId(judgeId);
+      if (!judgeIdValidation.isValid) newErrors.judgeId = judgeIdValidation.error!;
+    }
+
+    // If there are errors, show them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      // Show all errors in a detailed message
+      const errorMessages = Object.entries(newErrors)
+        .map(([field, error]) => `• ${error}`)
+        .join('\n');
+      alert(`Please fix the following errors:\n\n${errorMessages}`);
       return;
     }
 
@@ -263,8 +327,20 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      alert(t.alerts.fillAll);
+    // Clear previous errors
+    setErrors({});
+    const newErrors: Record<string, string> = {};
+
+    // Validate email and password
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) newErrors.email = emailValidation.error!;
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) newErrors.password = passwordValidation.error!;
+
+    // If there are errors, show them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
