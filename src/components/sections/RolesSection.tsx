@@ -78,11 +78,11 @@ export function RolesSection({ lang }: RolesSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t.badge}</span>
-          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4">
+          <span className="text-black font-semibold text-sm uppercase tracking-wider">{t.badge}</span>
+          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4 text-black">
             {t.title}
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-gray-600 max-w-2xl mx-auto">
             {t.description}
           </p>
         </motion.div>
@@ -99,16 +99,16 @@ export function RolesSection({ lang }: RolesSectionProps) {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className={`${index === 0 ? 'md:col-span-2 lg:col-span-1' : ''}`}
               >
-                <div className="bg-card rounded-2xl p-8 h-full shadow-soft border border-border/50 hover:shadow-elevated transition-all duration-300 group">
-                  <div className={`w-14 h-14 rounded-xl ${style.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                <div className="bg-white rounded-2xl p-8 h-full shadow-soft border border-gray-200 hover:shadow-elevated transition-all duration-300 group">
+                  <div className={`w-14 h-14 rounded-xl bg-black flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     <style.icon className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="font-display text-xl font-semibold mb-3">{role.title}</h3>
-                  <p className="text-muted-foreground mb-6">{role.desc}</p>
+                  <h3 className="font-display text-xl font-semibold mb-3 text-black">{role.title}</h3>
+                  <p className="text-gray-600 mb-6">{role.desc}</p>
                   <ul className="space-y-2 mb-6">
                     {role.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                      <li key={feature} className="flex items-center gap-2 text-sm text-black">
+                        <div className="w-1.5 h-1.5 rounded-full bg-black" />
                         {feature}
                       </li>
                     ))}
@@ -117,7 +117,7 @@ export function RolesSection({ lang }: RolesSectionProps) {
                   {/* RESTORED VIBRANT BUTTON WITH WORKING LINK */}
                   <Button 
                     variant="ghost" 
-                    className="group/btn p-0 h-auto text-accent hover:bg-transparent hover:text-accent font-semibold"
+                    className="group/btn p-0 h-auto text-black hover:bg-transparent hover:text-gray-700 font-semibold"
                     asChild
                   >
                     <Link to={`/auth?role=${role.id}`}>

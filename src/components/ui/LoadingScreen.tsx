@@ -31,9 +31,10 @@ const LoadingScreen = () => {
         <div className="absolute inset-0 rounded-full bg-blue-50 blur-2xl opacity-40 scale-150" />
         
         <img
-          src="/logo.png" // UPDATED: Points directly to public/logo.png
+          src="/logo.png"
           alt="UBUTABERA Logo"
           className="w-40 h-40 object-contain relative drop-shadow-sm"
+          style={{ filter: 'brightness(0)' }}
         />
       </motion.div>
 

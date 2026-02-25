@@ -17,7 +17,7 @@ const translations = {
     popularArticles: "Popular Articles",
     needMoreHelp: "Still need help?",
     categories: [
-      { title: "Getting Started", description: "Learn the basics of using UBUTABERAhub" },
+      { title: "Getting Started", description: "Learn the basics of using UBUTABERA", descriptionHub: "hub" },
       { title: "Case Management", description: "How to track and manage your legal cases" },
       { title: "Legal Resources", description: "Accessing templates and laws" },
       { title: "Account & Security", description: "Manage your profile and privacy" },
@@ -44,7 +44,7 @@ const translations = {
     popularArticles: "Inyandiko zikunzwe",
     needMoreHelp: "Uracyakeneye ubufasha?",
     categories: [
-      { title: "Gutangira", description: "Iga uburyo bw'ibanze bwo gukoresha UBUTABERAhub" },
+      { title: "Gutangira", description: "Iga uburyo bw'ibanze bwo gukoresha UBUTABERA", descriptionHub: "hub" },
       { title: "Gucunga Imanza", description: "Uko wakurikira kandi ugacunga imanza zawe" },
       { title: "Amategeko", description: "Gushaka inyandiko n'amategeko" },
       { title: "Konti n'Umutekano", description: "Cunga umwirondoro n'ubuzima bwite" },
@@ -132,7 +132,7 @@ const HelpCenter = () => {
                           {category.title}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          {category.description}
+                          {category.description}{category.descriptionHub && <span className="text-[#1292E2] font-semibold">{category.descriptionHub}</span>}
                         </p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />

@@ -74,7 +74,8 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
                 <img 
                   src="/logo.png" 
                   alt="UBUTABERAhub Logo" 
-                  className="w-full h-full object-contain" 
+                  className="w-full h-full object-contain"
+                  style={{ filter: 'brightness(0)' }}
                 />
               </div>
               

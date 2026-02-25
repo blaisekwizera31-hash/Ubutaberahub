@@ -98,19 +98,19 @@ export function HowItWorksSection({ lang }: HowItWorksSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-semibold text-sm uppercase tracking-wider">
+          <span className="text-black font-semibold text-sm uppercase tracking-wider">
             {t.badge}
           </span>
-          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4">
+          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4 text-black">
             {t.title}
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-gray-600 max-w-2xl mx-auto">
             {t.description}
           </p>
         </motion.div>
 
         <div className="relative">
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2" />
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2" />
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {t.steps.map((step, index) => {
@@ -124,15 +124,15 @@ export function HowItWorksSection({ lang }: HowItWorksSectionProps) {
                   transition={{ duration: 0.5, delay: index * 0.15 }}
                   className="relative"
                 >
-                  <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 text-center relative z-10 hover:shadow-elevated transition-all duration-300">
-                    <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft">
-                      <IconComp className="w-8 h-8 text-primary" />
+                  <div className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 text-center relative z-10 hover:shadow-elevated transition-all duration-300">
+                    <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft">
+                      <IconComp className="w-8 h-8 text-white" />
                     </div>
-                    <div className="text-accent font-bold text-sm mb-2">
+                    <div className="text-black font-bold text-sm mb-2">
                       {stepIcons[index].nr}
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
-                    <p className="text-muted-foreground text-sm">{step.desc}</p>
+                    <h3 className="font-semibold text-lg mb-2 text-black">{step.title}</h3>
+                    <p className="text-gray-600 text-sm">{step.desc}</p>
                   </div>
                 </motion.div>
               );

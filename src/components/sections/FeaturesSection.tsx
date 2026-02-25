@@ -80,7 +80,7 @@ export function FeaturesSection({ lang }: FeaturesSectionProps) {
 
   return (
     <section id="features" className="py-24 relative">
-      <div className="absolute inset-0 bg-muted/30" />
+      <div className="absolute inset-0" style={{ backgroundColor: 'rgb(245, 245, 245)' }} />
       
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
@@ -90,13 +90,13 @@ export function FeaturesSection({ lang }: FeaturesSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-semibold text-sm uppercase tracking-wider">
+          <span className="text-black font-semibold text-sm uppercase tracking-wider">
             {t.sectionBadge}
           </span>
-          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4">
+          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4 text-black">
             {t.sectionTitle}
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-gray-600 max-w-2xl mx-auto">
             {t.sectionDesc}
           </p>
         </motion.div>
@@ -111,12 +111,12 @@ export function FeaturesSection({ lang }: FeaturesSectionProps) {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group"
             >
-              <div className="bg-card rounded-2xl p-6 h-full shadow-soft hover:shadow-elevated transition-all duration-300 border border-border/50 hover:border-accent/30">
-                <div className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+              <div className="bg-white rounded-2xl p-6 h-full shadow-soft hover:shadow-elevated transition-all duration-300 border border-gray-200 hover:border-black/30">
+                <div className={`w-12 h-12 bg-black rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.desc}</p>
+                <h3 className="font-semibold text-lg mb-2 text-black">{feature.title}</h3>
+                <p className="text-gray-600 text-sm">{feature.desc}</p>
               </div>
             </motion.div>
           ))}

@@ -6,21 +6,24 @@ const translations = {
   en: {
     badge: "Secure & Confidential",
     title: "Ready to Access Justice?",
-    description: "Join thousands of Rwandans who are using UBUTABERAhub to understand their rights, connect with legal professionals, and navigate the justice system with confidence.",
+    description: "Join thousands of Rwandans who are using UBUTABERA to understand their rights, connect with legal professionals, and navigate the justice system with confidence.",
+    descriptionHub: "hub",
     ctaPrimary: "Get Started Free",
     ctaSecondary: "Schedule Demo"
   },
   rw: {
     badge: "Umutekano n'Ibanga",
     title: "Witeguye kugera ku Butabera?",
-    description: "Sanga ibihumbi by'Abanyarwanda bakoresha UBUTABERAhub kugira ngo basobanukirwe n'uburenganzira bwabo, bahure n'abanyamategeko, kandi banyure mu buryo bw'ubutabera bafite icyizere.",
+    description: "Sanga ibihumbi by'Abanyarwanda bakoresha UBUTABERA kugira ngo basobanukirwe n'uburenganzira bwabo, bahure n'abanyamategeko, kandi banyure mu buryo bw'ubutabera bafite icyizere.",
+    descriptionHub: "hub",
     ctaPrimary: "Tangira Ku buntu",
     ctaSecondary: "Saba Imbonankubone"
   },
   fr: {
     badge: "Sécurisé et Confidentiel",
     title: "Prêt à accéder à la justice ?",
-    description: "Rejoignez des milliers de Rwandais qui utilisent UBUTABERAhub pour comprendre leurs droits, se connecter avec des professionnels du droit et naviguer dans le système judiciaire en toute confiance.",
+    description: "Rejoignez des milliers de Rwandais qui utilisent UBUTABERA pour comprendre leurs droits, se connecter avec des professionnels du droit et naviguer dans le système judiciaire en toute confiance.",
+    descriptionHub: "hub",
     ctaPrimary: "Commencer gratuitement",
     ctaSecondary: "Planifier une démo"
   }
@@ -36,12 +39,8 @@ export function CTASection({ lang }: CTASectionProps) {
 
   return (
     <section className="py-24 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-primary" />
-      <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
-      </div>
+      {/* Background - Lighter Gray RGB(230,230,230) */}
+      <div className="absolute inset-0" style={{ backgroundColor: 'rgb(230, 230, 230)' }} />
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
@@ -52,19 +51,19 @@ export function CTASection({ lang }: CTASectionProps) {
           className="max-w-3xl mx-auto text-center"
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-8">
-            <Shield className="w-4 h-4 text-accent" />
-            <span className="text-sm font-medium text-white">{t.badge}</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/10 backdrop-blur-sm mb-8">
+            <Shield className="w-4 h-4 text-black" />
+            <span className="text-sm font-medium text-black">{t.badge}</span>
           </div>
 
           {/* Title */}
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-black mb-6">
             {t.title}
           </h2>
 
           {/* Description */}
-          <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
-            {t.description}
+          <p className="text-lg text-gray-800 mb-10 max-w-2xl mx-auto">
+            {t.description}<span className="text-black font-semibold">{t.descriptionHub}</span>
           </p>
 
           {/* Buttons */}
@@ -73,7 +72,7 @@ export function CTASection({ lang }: CTASectionProps) {
               {t.ctaPrimary}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="glass" size="xl" className="text-white border-white/20">
+            <Button variant="outline" size="xl" className="border-black/30">
               {t.ctaSecondary}
             </Button>
           </div>
