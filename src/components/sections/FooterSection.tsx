@@ -1,4 +1,4 @@
-import { Github, Twitter, Linkedin, Mail } from "lucide-react"; // Removed Scale import
+import { Github, Twitter, Linkedin, Mail, Instagram } from "lucide-react"; // Removed Scale import
 
 const translations = {
   en: {
@@ -72,48 +72,51 @@ export function FooterSection({ lang }: FooterSectionProps) {
             
             {/* Social Media Links - Replace "DEMO_LINK" with your real URLs later */}
             <div className="flex gap-3">
-              <a href="https://twitter.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
+              <a href="https://twitter.com/@blaiseikb" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
                 <Twitter className="w-4 h-4" />
               </a>
-              <a href="https://linkedin.com/company/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
-                <Linkedin className="w-4 h-4" />
+              <a href="https://www.instagram.com/blaiseikb" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
+                <Instagram className="w-4 h-4" />
               </a>
-              <a href="https://github.com/DEMO_LINK" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
+              <a href="https://github.com/blaisekwizera31-hash/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
                 <Github className="w-4 h-4" />
               </a>
-              <a href="mailto:contact@DEMO_LINK.com" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
+              <a href="mailto:blaisekwizera31@gmail.com" className="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors text-black">
                 <Mail className="w-4 h-4" />
               </a>
             </div>
           </div>
 
-          {/* Column 1 */}
+          {/* Column 1 - Platform */}
           <div>
             <h4 className="font-semibold mb-4 text-black">{t.col1Title}</h4>
             <ul className="space-y-2 text-sm text-black">
-              {t.col1Links.map(link => (
-                <li key={link}><a href="#" className="hover:text-gray-700 transition-colors">{link}</a></li>
-              ))}
+              <li><a href="#features" className="hover:text-gray-700 transition-colors">{t.col1Links[0]}</a></li>
+              <li><a href="#how-it-works" className="hover:text-gray-700 transition-colors">{t.col1Links[1]}</a></li>
+              <li><a href="#features" className="hover:text-gray-700 transition-colors">{t.col1Links[2]}</a></li>
+              <li><a href="/find-lawyer" className="hover:text-gray-700 transition-colors">{t.col1Links[3]}</a></li>
             </ul>
           </div>
 
-          {/* Column 2 */}
+          {/* Column 2 - For Users */}
           <div>
             <h4 className="font-semibold mb-4 text-black">{t.col2Title}</h4>
             <ul className="space-y-2 text-sm text-black">
-              {t.col2Links.map(link => (
-                <li key={link}><a href="#" className="hover:text-gray-700 transition-colors">{link}</a></li>
-              ))}
+              <li><a href="/auth?role=citizen" className="hover:text-gray-700 transition-colors">{t.col2Links[0]}</a></li>
+              <li><a href="/auth?role=lawyer" className="hover:text-gray-700 transition-colors">{t.col2Links[1]}</a></li>
+              <li><a href="/auth?role=judge" className="hover:text-gray-700 transition-colors">{t.col2Links[2]}</a></li>
+              <li><a href="/auth?role=clerk" className="hover:text-gray-700 transition-colors">{t.col2Links[3]}</a></li>
             </ul>
           </div>
 
-          {/* Column 3 */}
+          {/* Column 3 - Legal */}
           <div>
             <h4 className="font-semibold mb-4 text-black">{t.col3Title}</h4>
             <ul className="space-y-2 text-sm text-black">
-              {t.col3Links.map(link => (
-                <li key={link}><a href="#" className="hover:text-gray-700 transition-colors">{link}</a></li>
-              ))}
+              <li><a href="/legal/privacy" className="hover:text-gray-700 transition-colors">{t.col3Links[0]}</a></li>
+              <li><a href="/legal/terms" className="hover:text-gray-700 transition-colors">{t.col3Links[1]}</a></li>
+              <li><a href="/legal/data-protection" className="hover:text-gray-700 transition-colors">{t.col3Links[2]}</a></li>
+              <li><a href="/legal/accessibility" className="hover:text-gray-700 transition-colors">{t.col3Links[3]}</a></li>
             </ul>
           </div>
         </div>
