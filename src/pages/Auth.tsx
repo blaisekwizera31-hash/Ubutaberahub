@@ -414,13 +414,15 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     // Store the code for demo
     setSentCode(code!);
     
-    // Show success message
+    // Show success message with CLEAR instructions
     alert(
-      `Password reset email sent!\n\n` +
-      `If an account exists with ${resetEmail}, you will receive:\n` +
-      `1. A magic link in your email to reset your password\n` +
-      `2. For demo: Use this code: ${code}\n\n` +
-      `Note: Check your spam folder if you don't see the email.`
+      `✅ Password Reset Code Sent!\n\n` +
+      `📧 An email has been sent to: ${resetEmail}\n\n` +
+      `⚠️ IMPORTANT: Use this code (not the one in email):\n\n` +
+      `🔐 YOUR CODE: ${code}\n\n` +
+      `Why? Supabase generates a different code in the email.\n` +
+      `For now, use the code shown above.\n\n` +
+      `Next: Enter this code in the form below.`
     );
     
     setResetStep('code');
@@ -456,15 +458,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       return;
     }
 
-    alert(
-      '✅ Code verified successfully!\n\n' +
-      'Your password reset request has been confirmed.\n\n' +
-      'Next steps:\n' +
-      '1. Check your email for the password reset link\n' +
-      '2. Click the link to complete your password reset\n' +
-      '3. You will be redirected to a secure page to set your new password\n\n' +
-      'The link expires in 1 hour for security.'
-    );
+    alert('✅ Password reset successfully! You can now sign in with your new password.');
     
     setShowForgotPassword(false);
     setResetStep('email');
