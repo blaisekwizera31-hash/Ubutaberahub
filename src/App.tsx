@@ -10,11 +10,13 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 
 // Import your refined Loading Screen
 import LoadingScreen from "./components/ui/LoadingScreen";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Page Imports
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import ResetPassword from "./pages/ResetPassword";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import LawyerDashboard from "./pages/LawyerDashboard";
 import LawyerCases from "./pages/LawyerCases";
@@ -83,32 +85,91 @@ const AppContent = () => {
             />
             <Route path="/auth" element={<Auth lang={currentLang} />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             
-            {/* Citizen Routes */}
-            <Route path="/dashboard" element={<CitizenDashboard />} />
-            <Route path="/my-cases" element={<MyCases />} />
-            <Route path="/messages" element={<Messages />} />
+            {/* Citizen Routes - Protected */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <CitizenDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-cases" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <MyCases />
+              </ProtectedRoute>
+            } />
+            <Route path="/submit-case" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <SubmitCase />
+              </ProtectedRoute>
+            } />
             
-            {/* Lawyer Routes */}
-            <Route path="/lawyer-dashboard" element={<LawyerDashboard />} />
-            <Route path="/lawyer-cases" element={<LawyerCases />} />
-            <Route path="/lawyer-clients" element={<LawyerClients />} />
+            {/* Lawyer Routes - Protected */}
+            <Route path="/lawyer-dashboard" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <LawyerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/lawyer-cases" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <LawyerCases />
+              </ProtectedRoute>
+            } />
+            <Route path="/lawyer-clients" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <LawyerClients />
+              </ProtectedRoute>
+            } />
             
-            {/* Judge Routes */}
-            <Route path="/judge-dashboard" element={<JudgeDashboard />} />
-            <Route path="/judge-cases" element={<JudgeCases />} />
+            {/* Judge Routes - Protected */}
+            <Route path="/judge-dashboard" element={
+              <ProtectedRoute allowedRoles={['judge']}>
+                <JudgeDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/judge-cases" element={
+              <ProtectedRoute allowedRoles={['judge']}>
+                <JudgeCases />
+              </ProtectedRoute>
+            } />
             
-            {/* Clerk Routes */}
-            <Route path="/clerk-dashboard" element={<CourtClerkDashboard />} />
-            <Route path="/clerk-cases" element={<ClerkCases />} />
-            <Route path="/clerk-registry" element={<ClerkRegistry />} />
+            {/* Clerk Routes - Protected */}
+            <Route path="/clerk-dashboard" element={
+              <ProtectedRoute allowedRoles={['clerk']}>
+                <CourtClerkDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/clerk-cases" element={
+              <ProtectedRoute allowedRoles={['clerk']}>
+                <ClerkCases />
+              </ProtectedRoute>
+            } />
+            <Route path="/clerk-registry" element={
+              <ProtectedRoute allowedRoles={['clerk']}>
+                <ClerkRegistry />
+              </ProtectedRoute>
+            } />
             
-            {/* Shared Routes */}
-            <Route path="/appointments" element={<Appointments />} />
+            {/* Shared Protected Routes - All logged-in users */}
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <Messages />
+              </ProtectedRoute>
+            } />
+            <Route path="/appointments" element={
+              <ProtectedRoute>
+                <Appointments />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            
+            {/* Public Routes */}
             <Route path="/legal-resources" element={<LegalResources />} />
-            <Route path="/settings" element={<Settings />} /> 
             <Route path="/find-lawyer" element={<FindLawyer />} />
-            <Route path="/submit-case" element={<SubmitCase />} />
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="*" element={<NotFound />} />
     

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { signUp, signIn, signInWithOAuth } from "@/lib/auth";
+import { signUp, signIn, signInWithOAuth, requestPasswordReset, verifyCodeAndResetPassword } from "@/lib/auth";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   validateEmail,
   validatePassword,
@@ -189,6 +190,12 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [phone, setPhone] = useState("");
   const [citizenId, setCitizenId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetStep, setResetStep] = useState<'email' | 'code' | 'password'>('email');
+  const [verificationCode, setVerificationCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [sentCode, setSentCode] = useState("");
   
   // Error states for validation
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -320,8 +327,14 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       return;
     }
 
-    alert("Account created successfully! You can now sign in.");
-    setMode("login");
+    if (user) {
+      // Store user info for immediate access
+      localStorage.setItem('userRole', user.role);
+      localStorage.setItem('userId', user.id);
+      
+      alert("Account created successfully! You can now sign in.");
+      setMode("login");
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -363,8 +376,111 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     }
 
     if (user) {
-      navigate(dashboardRoutes[user.role]);
+      console.log('✅ Login successful!');
+      console.log('👤 User:', user);
+      console.log('🎯 Role:', user.role);
+      console.log('🚀 Navigating to:', dashboardRoutes[user.role]);
+      
+      // Store user role in localStorage as backup
+      localStorage.setItem('userRole', user.role);
+      localStorage.setItem('userId', user.id);
+      
+      // Navigate to dashboard
+      navigate(dashboardRoutes[user.role], { replace: true });
+    } else {
+      console.error('❌ No user returned from signIn');
+      alert('Login failed. Please try again.');
     }
+  };
+
+  const handleForgotPassword = async () => {
+    setErrors({});
+    
+    const emailValidation = validateEmail(resetEmail);
+    if (!emailValidation.isValid) {
+      alert(emailValidation.error);
+      return;
+    }
+
+    setIsLoading(true);
+    const { code, error } = await requestPasswordReset(resetEmail);
+    setIsLoading(false);
+
+    if (error) {
+      alert(`Failed to send reset email: ${error}`);
+      return;
+    }
+
+    // Store the code for demo
+    setSentCode(code!);
+    
+    // Show success message
+    alert(
+      `Password reset email sent!\n\n` +
+      `If an account exists with ${resetEmail}, you will receive:\n` +
+      `1. A magic link in your email to reset your password\n` +
+      `2. For demo: Use this code: ${code}\n\n` +
+      `Note: Check your spam folder if you don't see the email.`
+    );
+    
+    setResetStep('code');
+  };
+
+  const handleVerifyCode = () => {
+    if (verificationCode.length !== 6) {
+      alert('Please enter the 6-digit code');
+      return;
+    }
+
+    if (verificationCode !== sentCode) {
+      alert('Invalid code. Please try again.');
+      return;
+    }
+
+    setResetStep('password');
+  };
+
+  const handleResetPassword = async () => {
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      alert(passwordValidation.error);
+      return;
+    }
+
+    setIsLoading(true);
+    const result = await verifyCodeAndResetPassword(resetEmail, verificationCode, newPassword);
+    setIsLoading(false);
+
+    if (result.error) {
+      alert(`Failed to reset password: ${result.error}`);
+      return;
+    }
+
+    alert(
+      '✅ Code verified successfully!\n\n' +
+      'Your password reset request has been confirmed.\n\n' +
+      'Next steps:\n' +
+      '1. Check your email for the password reset link\n' +
+      '2. Click the link to complete your password reset\n' +
+      '3. You will be redirected to a secure page to set your new password\n\n' +
+      'The link expires in 1 hour for security.'
+    );
+    
+    setShowForgotPassword(false);
+    setResetStep('email');
+    setResetEmail('');
+    setVerificationCode('');
+    setNewPassword('');
+    setSentCode('');
+  };
+
+  const handleCloseForgotPassword = () => {
+    setShowForgotPassword(false);
+    setResetStep('email');
+    setResetEmail('');
+    setVerificationCode('');
+    setNewPassword('');
+    setSentCode('');
   };
 
   const handleSocialLogin = async (provider: 'google' | 'azure' | 'apple') => {
@@ -380,7 +496,11 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <>
+      {/* Loading Screen Overlay */}
+      {isLoading && <LoadingScreen />}
+      
+      <div className="min-h-screen flex">
       {/* Left Side: Hero Branding with Lady Justice */}
       <div className="hidden lg:flex lg:w-1/2 bg-white relative overflow-hidden">
         {/* Subtle background glow */}
@@ -630,7 +750,18 @@ const Auth = ({ lang = "en" }: AuthProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">{t.password}</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">{t.password}</Label>
+                {mode === "login" && (
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-accent hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input id="password" type={showPassword ? "text" : "password"} className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -699,6 +830,155 @@ const Auth = ({ lang = "en" }: AuthProps) => {
         </motion.div>
       </div>
     </div>
+
+    {/* Forgot Password Modal */}
+    {showForgotPassword && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+        >
+          <h2 className="text-2xl font-bold mb-2">Reset Password</h2>
+          
+          {/* Step 1: Enter Email */}
+          {resetStep === 'email' && (
+            <>
+              <p className="text-muted-foreground mb-6">
+                Enter your email address and we'll send you a 6-digit verification code.
+              </p>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      className="pl-10"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleCloseForgotPassword}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="hero"
+                    className="flex-1"
+                    onClick={handleForgotPassword}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Sending..." : "Send Code"}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Step 2: Enter Verification Code */}
+          {resetStep === 'code' && (
+            <>
+              <p className="text-muted-foreground mb-6">
+                Enter the 6-digit code sent to <strong>{resetEmail}</strong>
+              </p>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="verification-code">Verification Code</Label>
+                  <Input
+                    id="verification-code"
+                    type="text"
+                    placeholder="000000"
+                    maxLength={6}
+                    className="text-center text-2xl tracking-widest font-mono"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                  />
+                  <p className="text-xs text-muted-foreground text-center">
+                    Code expires in 10 minutes
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setResetStep('email')}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    variant="hero"
+                    className="flex-1"
+                    onClick={handleVerifyCode}
+                  >
+                    Verify Code
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Step 3: Enter New Password */}
+          {resetStep === 'password' && (
+            <>
+              <p className="text-muted-foreground mb-6">
+                Enter your new password
+              </p>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="Enter new password"
+                      className="pl-10"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Must be at least 8 characters with uppercase, lowercase, and number
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleCloseForgotPassword}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="hero"
+                    className="flex-1"
+                    onClick={handleResetPassword}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Resetting..." : "Reset Password"}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </motion.div>
+      </div>
+    )}
+    </>
   );
 };
 
