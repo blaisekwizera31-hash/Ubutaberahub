@@ -6,6 +6,8 @@ import {
   CheckCircle,
   FileText,
   X,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { classifyCase } from "@/services/ai/gemini";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const translations = {
   en: {
@@ -125,6 +129,12 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
   });
   
   const [files, setFiles] = useState<File[]>([]);
+  const [aiSuggestion, setAiSuggestion] = useState<{
+    category: string;
+    priority: string;
+    reasoning: string;
+  } | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // FUNCTIONALITY: Handle File Selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,11 +147,36 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
     setFiles(files.filter((_, i) => i !== index));
   };
 
+  // FUNCTIONALITY: AI-Powered Case Analysis
+  const analyzeCase = async () => {
+    if (!formData.title || !formData.description || formData.description.length < 20) {
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const result = await classifyCase(formData.title, formData.description);
+      setAiSuggestion(result);
+      
+      // Auto-fill if fields are empty
+      if (!formData.caseType && result.category) {
+        setFormData(prev => ({ ...prev, caseType: result.category.toLowerCase().replace(/ /g, '-') }));
+      }
+      if (!formData.priority && result.priority) {
+        setFormData(prev => ({ ...prev, priority: result.priority }));
+      }
+    } catch (error) {
+      console.error('AI Analysis Error:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   // FUNCTIONALITY: Handle Submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Simulate API call
-    console.log("Submitting:", { ...formData, attachedFiles: files });
+    console.log("Submitting:", { ...formData, attachedFiles: files, aiSuggestion });
     alert(t.success);
     navigate("/dashboard");
   };
@@ -206,7 +241,29 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">{t.description}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">{t.description}</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={analyzeCase}
+                disabled={isAnalyzing || !formData.title || formData.description.length < 20}
+                className="gap-2"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3" />
+                    AI Analyze
+                  </>
+                )}
+              </Button>
+            </div>
             <Textarea
               id="description"
               placeholder={t.descPlaceholder}
@@ -217,6 +274,26 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
             />
             <p className="text-xs text-muted-foreground">{t.minChars}</p>
           </div>
+
+          {/* AI Suggestion Card */}
+          {aiSuggestion && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Alert className="bg-primary/5 border-primary/20">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <AlertDescription>
+                  <p className="font-medium text-sm mb-2">AI Analysis Results:</p>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Suggested Category:</span> {aiSuggestion.category}</p>
+                    <p><span className="font-medium">Suggested Priority:</span> {aiSuggestion.priority}</p>
+                    <p className="text-muted-foreground italic">{aiSuggestion.reasoning}</p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
 
           <div className="space-y-2">
             <Label>{t.documents}</Label>

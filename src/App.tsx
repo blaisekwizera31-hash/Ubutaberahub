@@ -35,6 +35,7 @@ import Settings from "./pages/Settings";
 import HelpCenter from "./pages/HelpCenter";
 import MyCases from "./pages/MyCases";
 import Messages from "./pages/Messages";
+import AIAssistant from "./pages/AIAssistant";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,11 @@ const AppContent = () => {
             <Route path="/submit-case" element={
               <ProtectedRoute allowedRoles={['citizen']}>
                 <SubmitCase />
+              </ProtectedRoute>
+            } />
+            <Route path="/ai-assistant" element={
+              <ProtectedRoute>
+                <AIAssistant />
               </ProtectedRoute>
             } />
             
