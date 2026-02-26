@@ -458,7 +458,11 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       return;
     }
 
-    alert('✅ Password reset successfully! You can now sign in with your new password.');
+    alert(
+      '✅ Password Reset Successful!\n\n' +
+      'Your password has been updated.\n\n' +
+      'You can now sign in with your new password.'
+    );
     
     setShowForgotPassword(false);
     setResetStep('email');
@@ -466,6 +470,9 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     setVerificationCode('');
     setNewPassword('');
     setSentCode('');
+    
+    // Auto-fill email for convenience
+    setEmail(resetEmail);
   };
 
   const handleCloseForgotPassword = () => {

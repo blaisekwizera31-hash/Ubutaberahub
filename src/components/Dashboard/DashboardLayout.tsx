@@ -87,7 +87,7 @@ const roleConfig = {
       { icon: FileText, label: t.cases, href: "/my-cases" },
       { icon: Search, label: t.lawyers, href: "/find-lawyer" },
       { icon: Calendar, label: t.appoint, href: "/appointments" },
-      { icon: Bot, label: t.ai, href: "/dashboard" },
+      { icon: Bot, label: t.ai, href: "/ai-assistant" },
     ],
   },
   client: { 
