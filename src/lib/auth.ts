@@ -145,53 +145,25 @@ export async function signInWithOAuth(provider: 'google' | 'azure' | 'apple') {
   }
 }
 
-// Request password reset (sends magic link via Supabase)
+// Request password reset (generates code only, no email for now)
 export async function requestPasswordReset(email: string) {
   try {
-    console.log('📧 Sending password reset email to:', email);
-    console.log('🔍 Checking Supabase configuration...');
+    console.log('📧 Generating password reset code for:', email);
     
-    // Use Supabase's built-in password reset
-    // This sends a magic link to the user's email
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-
-    console.log('📬 Supabase response:', { data, error });
-
-    if (error) {
-      console.error('❌ Password reset error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.status,
-        name: error.name,
-      });
-      
-      // Check for specific errors
-      if (error.message.includes('rate limit')) {
-        throw new Error('Too many requests. Please wait a minute and try again.');
+    // Check if user exists in Supabase Auth
+    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+    
+    if (!listError && users) {
+      const userExists = users.some(u => u.email === email);
+      if (!userExists) {
+        throw new Error('No account found with this email address.');
       }
-      
-      if (error.message.includes('Email rate limit exceeded')) {
-        throw new Error('Email rate limit exceeded. Please wait 60 seconds and try again.');
-      }
-
-      if (error.message.includes('not found')) {
-        throw new Error('No account found with this email. Please check your email or sign up.');
-      }
-
-      // Generic error
-      throw new Error(`Email sending failed: ${error.message}`);
     }
-
-    console.log('✅ Password reset email sent successfully');
-    console.log('📧 Email should arrive within 1-2 minutes');
-    console.log('⚠️ Check spam folder if you don\'t see it');
     
-    // For demo purposes, also generate a code
+    // Generate a random 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Store code in localStorage for demo
+    // Store code in localStorage with expiration
     const resetData = {
       email,
       code,
@@ -200,8 +172,11 @@ export async function requestPasswordReset(email: string) {
     };
     localStorage.setItem('passwordResetData', JSON.stringify(resetData));
     
-    console.log(`🔐 Demo Code (for testing): ${code}`);
-    console.log('📝 Note: In production, user would only use the email link');
+    console.log(`✅ Password reset code generated: ${code}`);
+    console.log('⏰ Code expires in 10 minutes');
+    
+    // TODO: In production, send this code via email using Resend or SendGrid
+    // For now, code is shown in the alert
     
     return { code, error: null };
   } catch (error: any) {
@@ -239,39 +214,35 @@ export async function verifyCodeAndResetPassword(email: string, code: string, ne
     }
 
     console.log('✅ Code verified successfully');
-    console.log('🔄 Attempting to update password...');
+    console.log('🔄 Updating password via Supabase...');
     
-    // Sign in the user with OTP to create a session, then update password
-    // First, send OTP
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: email,
-      options: {
-        shouldCreateUser: false,
-      },
+    // Use Supabase's password reset with a temporary sign-in
+    // Step 1: Send password reset email (this creates a valid token)
+    const { error: resetEmailError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth?password_reset=true`,
     });
-
-    if (otpError) {
-      console.error('❌ OTP error:', otpError);
-      // Continue anyway - we'll try alternative method
-    }
-
-    // Alternative: Use the verification code as a token to update password
-    // This is a workaround since we can't directly update password without session
     
-    // Clear reset data
-    localStorage.removeItem('passwordResetData');
-
-    // Store the new password temporarily for the user to complete reset
-    localStorage.setItem('pendingPasswordReset', JSON.stringify({
+    if (resetEmailError) {
+      console.error('Reset email error:', resetEmailError);
+    }
+    
+    // Step 2: Store the new password for when user clicks the link
+    sessionStorage.setItem('newPasswordPending', JSON.stringify({
       email,
-      newPassword,
+      password: newPassword,
       timestamp: Date.now(),
     }));
     
+    // Clear reset data
+    localStorage.removeItem('passwordResetData');
+    
+    console.log('✅ Code verified! Password reset initiated.');
+    console.log('📧 Check your email and click the link to complete the reset.');
+    
     return { 
       error: null,
-      message: 'Code verified! Password will be updated.',
-      requiresEmailLink: true,
+      requiresEmailConfirmation: true,
+      message: 'Code verified! Check your email to complete password reset.',
     };
   } catch (error: any) {
     console.error('❌ Password reset verification error:', error);
