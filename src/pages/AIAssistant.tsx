@@ -70,9 +70,13 @@ export default function AIAssistant() {
     try {
       const response = await chatWithAI([...messages, userMessage], lang);
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-    } catch (err) {
-      setError(t.error);
+    } catch (err: any) {
+      const errorMessage = err?.message || t.error;
+      setError(errorMessage);
       console.error('AI Chat Error:', err);
+      
+      // Remove the user message if there was an error
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
