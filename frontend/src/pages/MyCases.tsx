@@ -1,11 +1,13 @@
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Filter, Plus } from "lucide-react";
+import { ChevronRight, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
+import { getMyCases } from "@/services/backend";
 
 const MyCases = () => {
   const { language } = useLanguage();
@@ -13,48 +15,65 @@ const MyCases = () => {
     language === "rw"
       ? {
           title: "Imanza zanjye",
-          subtitle: "Kurikirana no gucunga dosiye zawe z'amategeko",
+          subtitle: "Imanza washizemo uruhare",
           unassigned: "Nta munyamategeko",
           searchPlaceholder: "Shakisha imanza...",
           filed: "Byatanzwe",
           lawyer: "Umunyamategeko",
+          empty: "Nta manza ufitemo uruhare ziraboneka.",
+          newCase: "Urubanza rushya",
         }
       : language === "fr"
         ? {
             title: "Mes dossiers",
-            subtitle: "Suivez et gérez vos dossiers juridiques",
-            unassigned: "Non attribué",
+            subtitle: "Dossiers auxquels vous participez",
+            unassigned: "Non attribue",
             searchPlaceholder: "Rechercher des dossiers...",
-            filed: "Déposé",
+            filed: "Depose",
             lawyer: "Avocat",
+            empty: "Aucun dossier de participation trouve.",
+            newCase: "Nouveau dossier",
           }
         : {
             title: "My Cases",
-            subtitle: "Track and manage your legal case files",
+            subtitle: "Cases you participate in",
             unassigned: "Unassigned",
             searchPlaceholder: "Search cases...",
             filed: "Filed",
             lawyer: "Lawyer",
+            empty: "No participating cases found yet.",
+            newCase: "New Case",
           };
-  const dashboardT =
-    language === "rw"
-      ? { caseStatuses: { inProgress: "Irakurikiranwa", completed: "Yarangiye", pending: "Itegereje", resolved: "Yakemutse" } }
-      : language === "fr"
-        ? { caseStatuses: { inProgress: "En cours", completed: "Terminé", pending: "En attente", resolved: "Résolu" } }
-        : { caseStatuses: { inProgress: "In Progress", completed: "Completed", pending: "Pending", resolved: "Resolved" } };
-  const commonT =
-    language === "rw"
-      ? { filter: "Shungura", newCase: "Urubanza rushya" }
-      : language === "fr"
-        ? { filter: "Filtrer", newCase: "Nouveau dossier" }
-        : { filter: "Filter", newCase: "New Case" };
 
-  const cases = [
-    { id: "CASE-2024-001", title: "Property Dispute Resolution", status: dashboardT.caseStatuses.inProgress, statusColor: "bg-amber-500", date: "Jan 10, 2024", type: "Property Law", lawyer: "Me. Jean Habimana" },
-    { id: "CASE-2024-002", title: "Employment Contract Review", status: dashboardT.caseStatuses.completed, statusColor: "bg-secondary", date: "Jan 5, 2024", type: "Employment Law", lawyer: "Me. Marie Uwimana" },
-    { id: "CASE-2023-089", title: "Family Law Consultation", status: dashboardT.caseStatuses.pending, statusColor: "bg-muted-foreground", date: "Dec 28, 2023", type: "Family Law", lawyer: t.unassigned },
-    { id: "CASE-2023-075", title: "Business Registration Query", status: dashboardT.caseStatuses.resolved, statusColor: "bg-green-500", date: "Dec 15, 2023", type: "Business Law", lawyer: "Me. Patrick Niyonzima" },
-  ];
+  const [cases, setCases] = useState<any[]>([]);
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    getMyCases()
+      .then((data) => {
+        setCases(Array.isArray(data.cases) ? data.cases : []);
+      })
+      .catch(() => {
+        setCases([]);
+      });
+  }, []);
+
+  const displayedCases = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const normalized = cases.map((c) => ({
+      id: c.id,
+      title: c.title,
+      status: c.status || "Pending",
+      statusColor: /completed|resolved|closed/i.test(c.status) ? "bg-secondary" : /pending|awaiting|review/i.test(c.status) ? "bg-muted-foreground" : "bg-amber-500",
+      date: c.date || "",
+      type: c.type || "Other",
+      lawyer: c.lawyer || t.unassigned,
+    }));
+    if (!q) return normalized;
+    return normalized.filter((item) =>
+      `${item.id} ${item.title} ${item.type} ${item.lawyer} ${item.status}`.toLowerCase().includes(q),
+    );
+  }, [cases, query, t.unassigned]);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -62,20 +81,44 @@ const MyCases = () => {
       <main className="flex-1 overflow-auto">
         <DashboardHeader searchPlaceholder={t.searchPlaceholder} />
         <div className="p-6 space-y-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex items-center justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center justify-between"
+          >
             <div>
               <h1 className="text-2xl font-display font-bold mb-1">{t.title}</h1>
               <p className="text-muted-foreground">{t.subtitle}</p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="gap-2"><Filter className="w-4 h-4" />{commonT.filter}</Button>
-              <Link to="/submit-case"><Button className="gap-2"><Plus className="w-4 h-4" />{commonT.newCase}</Button></Link>
-            </div>
+            <Link to="/submit-case">
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                {t.newCase}
+              </Button>
+            </Link>
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="bg-card rounded-2xl border border-border shadow-soft">
+
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.searchPlaceholder} className="pl-10" />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="bg-card rounded-2xl border border-border shadow-soft"
+          >
             <div className="divide-y divide-border">
-              {cases.map((caseItem, index) => (
-                <motion.div key={caseItem.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: index * 0.1 }} className="p-5 hover:bg-muted/50 transition-colors cursor-pointer">
+              {displayedCases.map((caseItem, index) => (
+                <motion.div
+                  key={caseItem.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.06 }}
+                  className="p-5 hover:bg-muted/50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -85,14 +128,19 @@ const MyCases = () => {
                       </div>
                       <h3 className="font-medium text-lg">{caseItem.title}</h3>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>{t.filed}: {caseItem.date}</span>
-                        <span>{t.lawyer}: {caseItem.lawyer}</span>
+                        <span>
+                          {t.filed}: {caseItem.date}
+                        </span>
+                        <span>
+                          {t.lawyer}: {caseItem.lawyer}
+                        </span>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </motion.div>
               ))}
+              {displayedCases.length === 0 && <div className="p-5 text-sm text-muted-foreground">{t.empty}</div>}
             </div>
           </motion.div>
         </div>

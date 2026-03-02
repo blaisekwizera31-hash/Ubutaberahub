@@ -7,7 +7,6 @@ import {
   getAppointmentsByRole,
   getCasesByRole,
   getDashboardBundle,
-  getLawyers,
   getMessagesByRole,
 } from "./dataStore.js";
 import {
@@ -63,6 +62,33 @@ function mapLang(language = "en") {
 
 function safeRole(value) {
   return ["citizen", "lawyer", "judge", "clerk"].includes(value) ? value : "citizen";
+}
+
+function safePriority(value) {
+  return ["low", "medium", "high", "urgent"].includes(value) ? value : "medium";
+}
+
+function createCaseNumber() {
+  const stamp = new Date().getFullYear();
+  const rand = Math.floor(100000 + Math.random() * 900000);
+  return `CASE-${stamp}-${rand}`;
+}
+
+async function getProfileById(userId) {
+  if (!supabaseAdmin || !userId) return null;
+  const { data } = await supabaseAdmin.from("users").select("*").eq("id", userId).maybeSingle();
+  return data || null;
+}
+
+async function isConversationParticipant(conversationId, userId) {
+  if (!supabaseAdmin || !conversationId || !userId) return false;
+  const { data, error } = await supabaseAdmin
+    .from("conversation_participants")
+    .select("id")
+    .eq("conversation_id", conversationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return !error && !!data;
 }
 
 async function askGemini(prompt) {
@@ -221,6 +247,61 @@ app.get("/api/cases/:role", async (req, res) => {
   return res.json({ cases: fromDb || getCasesByRole(role) });
 });
 
+app.get("/api/cases/me", async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
+    const authUser = await getUserFromBearer(req);
+    if (!authUser) return res.status(401).json({ error: "Unauthorized" });
+
+    const orFilter = [
+      `citizen_id.eq.${authUser.id}`,
+      `assigned_lawyer_id.eq.${authUser.id}`,
+      `assigned_judge_id.eq.${authUser.id}`,
+      `assigned_clerk_id.eq.${authUser.id}`,
+    ].join(",");
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("cases")
+      .select("*")
+      .or(orFilter)
+      .order("filed_at", { ascending: false })
+      .limit(200);
+    if (error) return res.status(500).json({ error: "Failed to load my cases", message: error.message });
+
+    const lawyerIds = [...new Set((rows || []).map((r) => r.assigned_lawyer_id).filter(Boolean))];
+    const citizenIds = [...new Set((rows || []).map((r) => r.citizen_id).filter(Boolean))];
+    const profileIds = [...new Set([...lawyerIds, ...citizenIds])];
+    const { data: profiles } = profileIds.length
+      ? await supabaseAdmin.from("users").select("id, name, email").in("id", profileIds)
+      : { data: [] };
+    const profileById = new Map((profiles || []).map((u) => [u.id, u]));
+
+    const cases = (rows || []).map((row) => {
+      const assignedLawyer = profileById.get(row.assigned_lawyer_id);
+      const citizen = profileById.get(row.citizen_id);
+      return {
+        id: row.case_number || row.id,
+        title: row.title,
+        type: row.case_type || "Other",
+        status: row.status || "Pending",
+        priority: row.priority || "medium",
+        date: row.filed_at ? new Date(row.filed_at).toISOString().slice(0, 10) : "",
+        lawyer:
+          assignedLawyer?.name ||
+          assignedLawyer?.email?.split("@")[0] ||
+          row.metadata?.lawyer ||
+          "",
+        citizen: citizen?.name || citizen?.email?.split("@")[0] || "",
+        requestedBy: citizen?.name || citizen?.email?.split("@")[0] || "",
+      };
+    });
+
+    return res.json({ cases });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to load my cases", message: error.message });
+  }
+});
+
 app.get("/api/appointments/:role", async (req, res) => {
   const role = safeRole(req.params.role);
   const fromDb = await fetchAppointmentsByRoleFromDb(supabaseAdmin, role);
@@ -235,7 +316,299 @@ app.get("/api/messages/:role", async (req, res) => {
 
 app.get("/api/lawyers", async (req, res) => {
   const fromDb = await fetchLawyersFromDb(supabaseAdmin);
-  return res.json({ lawyers: fromDb || getLawyers() });
+  return res.json({ lawyers: fromDb || [] });
+});
+
+app.post("/api/cases/submit-to-lawyer", async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
+    const authUser = await getUserFromBearer(req);
+    if (!authUser) return res.status(401).json({ error: "Unauthorized" });
+
+    const citizenProfile = await getProfileById(authUser.id);
+    if (!citizenProfile) return res.status(400).json({ error: "Citizen profile not found" });
+    if (citizenProfile.role !== "citizen") return res.status(403).json({ error: "Only citizens can submit cases to lawyers" });
+
+    const { title, description, caseType, priority, lawyerId, initialMessage } = req.body || {};
+    if (!title || !description || !caseType || !lawyerId) {
+      return res.status(400).json({ error: "title, description, caseType and lawyerId are required" });
+    }
+
+    const lawyerProfile = await getProfileById(lawyerId);
+    if (!lawyerProfile || lawyerProfile.role !== "lawyer") {
+      return res.status(400).json({ error: "Selected lawyer is invalid" });
+    }
+
+    const caseNumber = createCaseNumber();
+    const casePayload = {
+      case_number: caseNumber,
+      title: String(title).trim(),
+      description: String(description).trim(),
+      case_type: String(caseType).trim(),
+      status: "Pending",
+      priority: safePriority(priority),
+      citizen_id: authUser.id,
+      assigned_lawyer_id: lawyerId,
+      metadata: {
+        submitted_to_lawyer: true,
+        submitted_at: new Date().toISOString(),
+      },
+    };
+
+    const { data: insertedCase, error: caseError } = await supabaseAdmin
+      .from("cases")
+      .insert([casePayload])
+      .select("*")
+      .single();
+    if (caseError) {
+      return res.status(500).json({ error: "Failed to create case", message: caseError.message });
+    }
+
+    const { data: conversation, error: convError } = await supabaseAdmin
+      .from("conversations")
+      .insert([
+        {
+          subject: `Case ${insertedCase.case_number}: ${insertedCase.title}`,
+          case_id: insertedCase.id,
+          created_by: authUser.id,
+        },
+      ])
+      .select("*")
+      .single();
+    if (convError) {
+      return res.status(500).json({ error: "Case created but failed to create conversation", message: convError.message });
+    }
+
+    const { error: participantsError } = await supabaseAdmin.from("conversation_participants").insert([
+      { conversation_id: conversation.id, user_id: authUser.id, role: "citizen", unread_count: 0 },
+      { conversation_id: conversation.id, user_id: lawyerId, role: "lawyer", unread_count: 1 },
+    ]);
+    if (participantsError) {
+      return res.status(500).json({ error: "Case created but failed to add participants", message: participantsError.message });
+    }
+
+    const firstMessage = String(initialMessage || description).trim();
+    if (firstMessage) {
+      await supabaseAdmin.from("messages").insert([
+        {
+          conversation_id: conversation.id,
+          sender_id: authUser.id,
+          body: firstMessage,
+        },
+      ]);
+    }
+
+    return res.status(201).json({
+      ok: true,
+      case: insertedCase,
+      conversation: {
+        id: conversation.id,
+        subject: conversation.subject,
+        lawyer: {
+          id: lawyerProfile.id,
+          name: lawyerProfile.name || lawyerProfile.email?.split("@")[0] || "Lawyer",
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to submit case to lawyer", message: error.message });
+  }
+});
+
+app.get("/api/conversations", async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
+    const authUser = await getUserFromBearer(req);
+    if (!authUser) return res.status(401).json({ error: "Unauthorized" });
+
+    const { data: participantRows, error: participantError } = await supabaseAdmin
+      .from("conversation_participants")
+      .select("conversation_id, unread_count")
+      .eq("user_id", authUser.id);
+    if (participantError) {
+      return res.status(500).json({ error: "Failed to load conversations", message: participantError.message });
+    }
+
+    const conversationIds = (participantRows || []).map((row) => row.conversation_id);
+    if (conversationIds.length === 0) return res.json({ conversations: [] });
+
+    const { data: conversations, error: conversationsError } = await supabaseAdmin
+      .from("conversations")
+      .select("*")
+      .in("id", conversationIds);
+    if (conversationsError) {
+      return res.status(500).json({ error: "Failed to load conversations", message: conversationsError.message });
+    }
+
+    const { data: participants, error: peersError } = await supabaseAdmin
+      .from("conversation_participants")
+      .select("conversation_id, user_id, role")
+      .in("conversation_id", conversationIds)
+      .neq("user_id", authUser.id);
+    if (peersError) {
+      return res.status(500).json({ error: "Failed to load conversation participants", message: peersError.message });
+    }
+
+    const peerIds = [...new Set((participants || []).map((row) => row.user_id).filter(Boolean))];
+    const { data: peerProfiles } = peerIds.length
+      ? await supabaseAdmin.from("users").select("id, name, email, role").in("id", peerIds)
+      : { data: [] };
+    const peerById = new Map((peerProfiles || []).map((p) => [p.id, p]));
+
+    const { data: recentMessages, error: messageError } = await supabaseAdmin
+      .from("messages")
+      .select("id, conversation_id, body, created_at, sender_id")
+      .in("conversation_id", conversationIds)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (messageError) {
+      return res.status(500).json({ error: "Failed to load conversation messages", message: messageError.message });
+    }
+
+    const latestByConversation = new Map();
+    for (const msg of recentMessages || []) {
+      if (!latestByConversation.has(msg.conversation_id)) latestByConversation.set(msg.conversation_id, msg);
+    }
+
+    const unreadByConversation = new Map((participantRows || []).map((r) => [r.conversation_id, r.unread_count || 0]));
+    const peerByConversation = new Map();
+    for (const row of participants || []) {
+      if (!peerByConversation.has(row.conversation_id)) peerByConversation.set(row.conversation_id, row);
+    }
+
+    const payload = (conversations || [])
+      .map((conv) => {
+        const peer = peerByConversation.get(conv.id);
+        const peerProfile = peer ? peerById.get(peer.user_id) : null;
+        const latest = latestByConversation.get(conv.id);
+        return {
+          id: conv.id,
+          subject: conv.subject,
+          caseId: conv.case_id || null,
+          updatedAt: latest?.created_at || conv.updated_at || conv.created_at,
+          unread: unreadByConversation.get(conv.id) || 0,
+          contact: peerProfile?.name || peerProfile?.email?.split("@")[0] || "Contact",
+          contactId: peerProfile?.id || null,
+          role: peerProfile?.role || peer?.role || "user",
+          lastMessage: latest?.body || "",
+          lastMessageAt: latest?.created_at || conv.updated_at || conv.created_at,
+          online: false,
+        };
+      })
+      .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
+
+    return res.json({ conversations: payload });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to load conversations", message: error.message });
+  }
+});
+
+app.get("/api/conversations/:conversationId/messages", async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
+    const authUser = await getUserFromBearer(req);
+    if (!authUser) return res.status(401).json({ error: "Unauthorized" });
+
+    const conversationId = req.params.conversationId;
+    const allowed = await isConversationParticipant(conversationId, authUser.id);
+    if (!allowed) return res.status(403).json({ error: "Forbidden" });
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("messages")
+      .select("id, conversation_id, sender_id, body, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+    if (error) return res.status(500).json({ error: "Failed to load messages", message: error.message });
+
+    const senderIds = [...new Set((rows || []).map((m) => m.sender_id).filter(Boolean))];
+    const { data: senders } = senderIds.length
+      ? await supabaseAdmin.from("users").select("id, name, email").in("id", senderIds)
+      : { data: [] };
+    const senderById = new Map((senders || []).map((u) => [u.id, u]));
+
+    await supabaseAdmin
+      .from("conversation_participants")
+      .update({ unread_count: 0 })
+      .eq("conversation_id", conversationId)
+      .eq("user_id", authUser.id);
+
+    const messages = (rows || []).map((m) => {
+      const sender = senderById.get(m.sender_id);
+      return {
+        id: m.id,
+        conversationId: m.conversation_id,
+        senderId: m.sender_id,
+        senderName: sender?.name || sender?.email?.split("@")[0] || "User",
+        body: m.body,
+        createdAt: m.created_at,
+        isOwn: m.sender_id === authUser.id,
+      };
+    });
+
+    return res.json({ messages });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to load messages", message: error.message });
+  }
+});
+
+app.post("/api/conversations/:conversationId/messages", async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
+    const authUser = await getUserFromBearer(req);
+    if (!authUser) return res.status(401).json({ error: "Unauthorized" });
+
+    const conversationId = req.params.conversationId;
+    const allowed = await isConversationParticipant(conversationId, authUser.id);
+    if (!allowed) return res.status(403).json({ error: "Forbidden" });
+
+    const body = String(req.body?.body || req.body?.message || "").trim();
+    if (!body) return res.status(400).json({ error: "Message body is required" });
+
+    const { data: inserted, error } = await supabaseAdmin
+      .from("messages")
+      .insert([
+        {
+          conversation_id: conversationId,
+          sender_id: authUser.id,
+          body,
+        },
+      ])
+      .select("id, conversation_id, sender_id, body, created_at")
+      .single();
+    if (error) return res.status(500).json({ error: "Failed to send message", message: error.message });
+
+    const { data: others } = await supabaseAdmin
+      .from("conversation_participants")
+      .select("id, user_id, unread_count")
+      .eq("conversation_id", conversationId)
+      .neq("user_id", authUser.id);
+
+    for (const participant of others || []) {
+      await supabaseAdmin
+        .from("conversation_participants")
+        .update({ unread_count: Number(participant.unread_count || 0) + 1 })
+        .eq("id", participant.id);
+    }
+
+    await supabaseAdmin
+      .from("conversation_participants")
+      .update({ unread_count: 0 })
+      .eq("conversation_id", conversationId)
+      .eq("user_id", authUser.id);
+
+    return res.status(201).json({
+      message: {
+        id: inserted.id,
+        conversationId: inserted.conversation_id,
+        senderId: inserted.sender_id,
+        body: inserted.body,
+        createdAt: inserted.created_at,
+        isOwn: true,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to send message", message: error.message });
+  }
 });
 
 app.post("/api/chat", async (req, res) => {

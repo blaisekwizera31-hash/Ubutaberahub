@@ -43,3 +43,39 @@ export async function getAppointments(role: Role) {
   return apiGet<{ appointments: any[] }>(`/api/appointments/${role}`);
 }
 
+export async function getMyCases() {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiGet<{ cases: any[] }>("/api/cases/me", token);
+}
+
+export async function submitCaseToLawyer(payload: {
+  title: string;
+  description: string;
+  caseType: string;
+  priority: string;
+  lawyerId: string;
+  initialMessage?: string;
+}) {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiPost<{ ok: boolean; case: any; conversation: any }>("/api/cases/submit-to-lawyer", payload, token);
+}
+
+export async function getConversations() {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiGet<{ conversations: any[] }>("/api/conversations", token);
+}
+
+export async function getConversationMessages(conversationId: string) {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiGet<{ messages: any[] }>(`/api/conversations/${conversationId}/messages`, token);
+}
+
+export async function sendConversationMessage(conversationId: string, body: string) {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiPost<{ message: any }>(`/api/conversations/${conversationId}/messages`, { body }, token);
+}

@@ -28,26 +28,92 @@ function normalizeAppointmentRow(row) {
 }
 
 export async function fetchLawyersFromDb(supabaseAdmin) {
-  if (!supabaseAdmin) return null;
+  if (!supabaseAdmin) return [];
 
-  const { data, error } = await supabaseAdmin
-    .from("lawyers")
+  // Source of truth: signed-up users with role "lawyer".
+  const { data: users, error } = await supabaseAdmin
+    .from("users")
     .select("*")
-    .order("rating", { ascending: false })
-    .limit(50);
+    .eq("role", "lawyer")
+    .order("created_at", { ascending: false })
+    .limit(100);
 
-  if (error) return null;
-  return (data || []).map((row) => ({
-    id: row.id,
-    name: row.display_name,
-    specialization: row.specialization || [],
-    experience: row.years_experience || 0,
-    rating: Number(row.rating || 4.5),
-    reviews: row.reviews_count || 0,
-    location: row.location || "Kigali, Rwanda",
-    hourlyRate: row.hourly_rate || 50000,
-    available: row.is_available !== false,
-  }));
+  if (error) return [];
+  if (!users || users.length === 0) return [];
+
+  // Optional enrichment from the dedicated lawyers directory when available.
+  const userIds = users.map((u) => u.id).filter(Boolean);
+  let directoryByUserId = new Map();
+  if (userIds.length > 0) {
+    const { data: directoryRows, error: directoryError } = await supabaseAdmin
+      .from("lawyers")
+      .select("*")
+      .in("user_id", userIds);
+
+    if (!directoryError && Array.isArray(directoryRows)) {
+      directoryByUserId = new Map(directoryRows.map((row) => [row.user_id, row]));
+    }
+  }
+
+  const hasTruthyFlag = (value) => {
+    if (value === true) return true;
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      return normalized === "true" || normalized === "yes" || normalized === "approved" || normalized === "verified";
+    }
+    return false;
+  };
+
+  const hasApprovalSignal = (user, directory) => {
+    return (
+      hasTruthyFlag(user?.is_verified) ||
+      hasTruthyFlag(user?.verified) ||
+      hasTruthyFlag(user?.is_approved) ||
+      hasTruthyFlag(user?.approved) ||
+      hasTruthyFlag(directory?.is_verified) ||
+      hasTruthyFlag(directory?.verified) ||
+      hasTruthyFlag(directory?.is_approved) ||
+      hasTruthyFlag(directory?.approved) ||
+      String(user?.verification_status || "").toLowerCase() === "verified" ||
+      String(user?.verification_status || "").toLowerCase() === "approved" ||
+      String(directory?.verification_status || "").toLowerCase() === "verified" ||
+      String(directory?.verification_status || "").toLowerCase() === "approved" ||
+      !!user?.approved_at ||
+      !!directory?.approved_at
+    );
+  };
+
+  const hasValidLicense = (user) => {
+    const license = String(user?.license_number || "").trim();
+    return license.length >= 4;
+  };
+
+  return users
+    .map((user) => {
+    const directory = directoryByUserId.get(user.id);
+    const rawSpecialization = directory?.specialization ?? user.specialization;
+    const specialization = Array.isArray(rawSpecialization)
+      ? rawSpecialization
+      : typeof rawSpecialization === "string" && rawSpecialization.trim().length > 0
+        ? rawSpecialization.split(",").map((item) => item.trim()).filter(Boolean)
+        : [];
+
+    return {
+      id: user.id,
+      name: directory?.display_name || user.name || user.email?.split("@")[0] || "Lawyer",
+      email: user.email || null,
+      specialization,
+      experience: Number(directory?.years_experience ?? user.years_experience ?? 0),
+      rating: Number(directory?.rating ?? 0),
+      reviews: Number(directory?.reviews_count ?? 0),
+      location: directory?.location || user.law_firm || "Rwanda",
+      hourlyRate: Number(directory?.hourly_rate ?? 50000),
+      available: directory?.is_available !== false,
+      verified: hasApprovalSignal(user, directory),
+      hasLicense: hasValidLicense(user),
+    };
+  })
+    .filter((lawyer) => lawyer.hasLicense && lawyer.verified);
 }
 
 export async function fetchCasesByRoleFromDb(supabaseAdmin, role) {
@@ -123,4 +189,3 @@ export async function fetchDashboardBundleFromDb(supabaseAdmin, role) {
     messages,
   };
 }
-

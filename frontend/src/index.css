@@ -133,4 +133,31 @@
   .shadow-elevated {
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
+
+  /* Dark-mode readability overrides for hardcoded light utility classes used across pages */
+  .dark .bg-white {
+    @apply bg-card !important;
+  }
+
+  .dark .bg-slate-50,
+  .dark .bg-slate-100 {
+    @apply bg-muted !important;
+  }
+
+  .dark .text-black,
+  .dark .text-slate-900,
+  .dark .text-slate-800 {
+    @apply text-foreground !important;
+  }
+
+  .dark .text-slate-700,
+  .dark .text-slate-600,
+  .dark .text-slate-500 {
+    @apply text-muted-foreground !important;
+  }
+
+  .dark .border-slate-200,
+  .dark .border-slate-300 {
+    @apply border-border !important;
+  }
 }

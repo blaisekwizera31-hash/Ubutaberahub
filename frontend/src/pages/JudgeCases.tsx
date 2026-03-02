@@ -1,8 +1,12 @@
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Filter, Eye, Gavel, Clock, AlertCircle } from "lucide-react";
+import { Filter, Eye, Gavel, Clock, AlertCircle, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
+import { getMyCases } from "@/services/backend";
 
 interface JudgeCasesProps {
   lang?: string;
@@ -10,133 +14,109 @@ interface JudgeCasesProps {
 
 const translations = {
   en: {
-    title: "Cases for Review",
-    subtitle: "All cases assigned to you for judgment",
+    title: "Cases in Your Court",
+    subtitle: "All real cases assigned to your judge account",
     filter: "Filter",
     review: "Review",
     ruling: "Issue Ruling",
-    priority: { urgent: "Urgent", high: "High", normal: "Normal" },
-    status: { awaiting: "Awaiting Ruling", review: "Evidence Review", scheduled: "Hearing Scheduled", closed: "Closed" },
     filed: "Filed",
-    type: "Type",
-    parties: "Parties"
+    search: "Search cases...",
+    noCases: "No cases found for your account.",
   },
-  rw: {
-    title: "Imanza zo gusuzuma",
-    subtitle: "Imanza zose wahawe gusuzuma",
-    filter: "Shungura",
-    review: "Sura",
-    ruling: "Tanga icyemezo",
-    priority: { urgent: "Byihutirwa", high: "Byingenzi", normal: "Bisanzwe" },
-    status: { awaiting: "Itegereje icyemezo", review: "Isuzuma ry'ibimenyetso", scheduled: "Iburanisha ryateganijwe", closed: "Ryarangiye" },
-    filed: "Ryatanzwe",
-    type: "Ubwoko",
-    parties: "Abarwanira"
-  },
-  fr: {
-    title: "Dossiers à examiner",
-    subtitle: "Tous les dossiers qui vous sont assignés",
-    filter: "Filtrer",
-    review: "Réviser",
-    ruling: "Rendre jugement",
-    priority: { urgent: "Urgent", high: "Élevé", normal: "Normal" },
-    status: { awaiting: "En attente de jugement", review: "Examen des preuves", scheduled: "Audience prévue", closed: "Fermé" },
-    filed: "Déposé",
-    type: "Type",
-    parties: "Parties"
-  }
 };
 
 const JudgeCases = ({ lang = "en" }: JudgeCasesProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
+  const navigate = useNavigate();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
-  const cases = [
-    {
-      id: "CASE-2024-045",
-      title: "Commercial Dispute - ABC Corp vs XYZ Ltd",
-      type: "Civil",
-      parties: "ABC Corporation vs XYZ Limited",
-      status: t.status.awaiting,
-      priority: t.priority.high,
-      date: "Jan 8, 2024",
-      priorityColor: "bg-orange-500"
-    },
-    {
-      id: "CASE-2024-032",
-      title: "Criminal Defense - State vs Mugabo",
-      type: "Criminal",
-      parties: "Republic of Rwanda vs Patrick Mugabo",
-      status: t.status.review,
-      priority: t.priority.urgent,
-      date: "Jan 2, 2024",
-      priorityColor: "bg-red-500"
-    },
-    {
-      id: "CASE-2024-028",
-      title: "Family Matter - Inheritance Dispute",
-      type: "Family",
-      parties: "Uwimana Family",
-      status: t.status.scheduled,
-      priority: t.priority.normal,
-      date: "Dec 28, 2023",
-      priorityColor: "bg-slate-500"
-    },
-    {
-      id: "CASE-2023-089",
-      title: "Property Boundary Dispute",
-      type: "Civil",
-      parties: "Habimana vs Niyonzima",
-      status: t.status.closed,
-      priority: t.priority.normal,
-      date: "Dec 15, 2023",
-      priorityColor: "bg-slate-500"
-    }
-  ];
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "closed">("all");
+  const [cases, setCases] = useState<any[]>([]);
+
+  useEffect(() => {
+    getMyCases()
+      .then((data) => setCases(Array.isArray(data.cases) ? data.cases : []))
+      .catch(() => setCases([]));
+  }, []);
+
+  const displayedCases = useMemo(() => {
+    const normalized = cases.map((c) => ({
+      id: c.id,
+      title: c.title || "Untitled case",
+      type: c.type || "Case",
+      parties: `${c.citizen || c.requestedBy || "Citizen"} vs ${c.lawyer || "Lawyer"}`,
+      status: c.status || "Pending",
+      priority: c.priority || "Normal",
+      date: c.date || "",
+      priorityColor: /urgent/i.test(String(c.priority || ""))
+        ? "bg-red-500"
+        : /high/i.test(String(c.priority || ""))
+          ? "bg-orange-500"
+          : "bg-slate-500",
+    }));
+
+    const filteredByStatus = normalized.filter((item) => {
+      if (statusFilter === "all") return true;
+      if (statusFilter === "closed") return /closed|resolved|completed/i.test(item.status);
+      return /pending|awaiting|review|scheduled/i.test(item.status);
+    });
+
+    const q = query.trim().toLowerCase();
+    if (!q) return filteredByStatus;
+    return filteredByStatus.filter((item) =>
+      `${item.id} ${item.title} ${item.parties} ${item.type} ${item.status} ${item.priority}`.toLowerCase().includes(q),
+    );
+  }, [cases, query, statusFilter]);
 
   return (
     <DashboardLayout role="judge" userName={user?.name || "Hon. Judge"} lang={lang}>
       <div className="space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">{t.title}</h1>
+            <h1 className="text-3xl font-bold">{t.title}</h1>
             <p className="text-muted-foreground mt-1">{t.subtitle}</p>
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setStatusFilter((prev) => (prev === "all" ? "pending" : prev === "pending" ? "closed" : "all"))}
+          >
             <Filter className="w-4 h-4" />
-            {t.filter}
+            {t.filter}: {statusFilter}
           </Button>
         </motion.div>
 
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.search} className="pl-9" />
+        </div>
+
         <div className="grid gap-4">
-          {cases.map((caseItem, index) => (
+          {displayedCases.map((caseItem, index) => (
             <motion.div
               key={caseItem.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow"
+              className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-mono text-slate-500">{caseItem.id}</span>
-                    <Badge className={`${caseItem.priorityColor} text-white border-none`}>
-                      {caseItem.priority}
-                    </Badge>
+                    <span className="text-sm font-mono text-muted-foreground">{caseItem.id}</span>
+                    <Badge className={`${caseItem.priorityColor} text-white border-none`}>{caseItem.priority}</Badge>
                     <Badge variant="outline">{caseItem.type}</Badge>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">{caseItem.title}</h3>
-                  <p className="text-sm text-slate-600 mb-3">{caseItem.parties}</p>
-                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                  <h3 className="text-lg font-bold mb-2">{caseItem.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">{caseItem.parties}</p>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      <span>{t.filed}: {caseItem.date}</span>
+                      <span>
+                        {t.filed}: {caseItem.date || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <AlertCircle className="w-4 h-4" />
@@ -145,11 +125,11 @@ const JudgeCases = ({ lang = "en" }: JudgeCasesProps) => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="gap-2">
+                  <Button size="sm" variant="outline" className="gap-2" onClick={() => navigate("/judge-dashboard")}>
                     <Eye className="w-4 h-4" />
                     {t.review}
                   </Button>
-                  <Button size="sm" className="gap-2 bg-blue-900 hover:bg-blue-950">
+                  <Button size="sm" className="gap-2" onClick={() => navigate("/judge-dashboard")}>
                     <Gavel className="w-4 h-4" />
                     {t.ruling}
                   </Button>
@@ -157,6 +137,9 @@ const JudgeCases = ({ lang = "en" }: JudgeCasesProps) => {
               </div>
             </motion.div>
           ))}
+          {displayedCases.length === 0 && (
+            <div className="bg-card rounded-xl border border-border p-6 text-sm text-muted-foreground">{t.noCases}</div>
+          )}
         </div>
       </div>
     </DashboardLayout>

@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getLawyers } from "@/services/backend";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 // 1. Full Translation Object for 3 Languages
 const translations = {
@@ -22,9 +24,17 @@ const translations = {
     subtitle: "Browse verified legal professionals to assist with your case.",
     searchPlaceholder: "Search lawyers by name, specialization...",
     moreFilters: "More Filters",
+    lessFilters: "Hide Filters",
+    availabilityOnly: "Available Only",
+    sort: "Sort",
+    sortRecommended: "Recommended",
+    sortRating: "Highest Rating",
+    sortPriceLow: "Lowest Price",
+    sortPriceHigh: "Highest Price",
     exp: "yrs",
     rate: "RWF/hour",
     book: "Book Now",
+    empty: "No registered lawyer accounts found yet.",
     status: { available: "Available", busy: "Busy" },
     specs: ["All", "Family Law", "Criminal Law", "Property Law", "Corporate Law", "Immigration Law", "Human Rights"],
   },
@@ -33,9 +43,17 @@ const translations = {
     subtitle: "Shakisha abanyamategeko babifitiye uburenganzira bakufasha mu rubanza rwawe.",
     searchPlaceholder: "Shakisha izina cyangwa isomo...",
     moreFilters: "Gushungura bindi",
+    lessFilters: "Hisha gushungura",
+    availabilityOnly: "Ariho gusa",
+    sort: "Itondekanya",
+    sortRecommended: "Bisabwa",
+    sortRating: "Amanota menshi",
+    sortPriceLow: "Igiciro gito",
+    sortPriceHigh: "Igiciro kinini",
     exp: "imyaka",
     rate: "RWF/isaha",
     book: "Saba gahunda",
+    empty: "Nta konti z'abanyamategeko zanditswe ziboneka ubu.",
     status: { available: "Arahari", busy: "Arabyize" },
     specs: ["Byose", "Amategeko y'umuryango", "Amategeko mpanabyaha", "Amategeko y'ubutaka", "Amategeko y'ubucuruzi", "Amategeko y'abinjira n'abasohoka", "Uburenganzira bwa muntu"],
   },
@@ -44,9 +62,17 @@ const translations = {
     subtitle: "Parcourez les professionnels du droit vérifiés pour vous aider dans votre affaire.",
     searchPlaceholder: "Rechercher par nom, spécialisation...",
     moreFilters: "Plus de filtres",
+    lessFilters: "Masquer filtres",
+    availabilityOnly: "Disponibles seulement",
+    sort: "Trier",
+    sortRecommended: "Recommandés",
+    sortRating: "Mieux notés",
+    sortPriceLow: "Prix croissant",
+    sortPriceHigh: "Prix décroissant",
     exp: "ans",
     rate: "RWF/heure",
     book: "Prendre RDV",
+    empty: "Aucun compte avocat enregistre n'est disponible pour l'instant.",
     status: { available: "Disponible", busy: "Occupé" },
     specs: ["Tout", "Droit de la famille", "Droit pénal", "Droit de la propriété", "Droit des sociétés", "Droit de l'immigration", "Droits de l'homme"],
   }
@@ -58,60 +84,53 @@ interface FindLawyerProps {
 
 const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Get User Data safely
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User" };
   const [apiLawyers, setApiLawyers] = useState<any[]>([]);
-
-  // Lawyer data mapping using the selected language's specializations
-  const lawyers = [
-    {
-      id: 1,
-      name: "Me. Jean Habimana",
-      specialization: [t.specs[1], t.specs[3]],
-      experience: 12,
-      rating: 4.9,
-      reviews: 127,
-      location: "Kigali, Rwanda",
-      hourlyRate: 50000,
-      available: true,
-    },
-    {
-      id: 2,
-      name: "Me. Marie Uwimana",
-      specialization: [t.specs[2], t.specs[6]],
-      experience: 8,
-      rating: 4.8,
-      reviews: 89,
-      location: "Kigali, Rwanda",
-      hourlyRate: 45000,
-      available: true,
-    },
-    {
-      id: 3,
-      name: "Me. Patrick Niyonzima",
-      specialization: [t.specs[4]],
-      experience: 15,
-      rating: 4.7,
-      reviews: 156,
-      location: "Huye, Rwanda",
-      hourlyRate: 60000,
-      available: false,
-    },
-  ];
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSpec, setSelectedSpec] = useState(t.specs[0]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [sortMode, setSortMode] = useState<"recommended" | "rating" | "priceLow" | "priceHigh">("recommended");
 
   useEffect(() => {
     getLawyers()
       .then((data) => {
         if (Array.isArray(data.lawyers)) setApiLawyers(data.lawyers);
       })
-      .catch(() => {
-        // fallback to local data
-      });
+      .catch(() => {});
   }, []);
 
-  const displayedLawyers = apiLawyers.length > 0 ? apiLawyers : lawyers;
+  useEffect(() => {
+    setSelectedSpec(t.specs[0]);
+  }, [t.specs]);
+
+  const displayedLawyers = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const filtered = apiLawyers.filter((lawyer) => {
+      const specs = Array.isArray(lawyer.specialization) ? lawyer.specialization : [];
+      const matchesSpec = selectedSpec === t.specs[0] || specs.some((spec) => String(spec).toLowerCase() === selectedSpec.toLowerCase());
+      const haystack = `${lawyer.name || ""} ${lawyer.location || ""} ${specs.join(" ")}`.toLowerCase();
+      const matchesSearch = !normalizedQuery || haystack.includes(normalizedQuery);
+      const matchesAvailability = !availableOnly || lawyer.available;
+      return matchesSpec && matchesSearch && matchesAvailability;
+    });
+
+    if (sortMode === "rating") {
+      return [...filtered].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
+    }
+    if (sortMode === "priceLow") {
+      return [...filtered].sort((a, b) => Number(a.hourlyRate || 0) - Number(b.hourlyRate || 0));
+    }
+    if (sortMode === "priceHigh") {
+      return [...filtered].sort((a, b) => Number(b.hourlyRate || 0) - Number(a.hourlyRate || 0));
+    }
+    return filtered;
+  }, [apiLawyers, availableOnly, searchQuery, selectedSpec, sortMode, t.specs]);
 
   return (
     <DashboardLayout 
@@ -133,7 +152,12 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
         <div className="space-y-4">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder={t.searchPlaceholder} className="pl-10" />
+            <Input
+              placeholder={t.searchPlaceholder}
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
 
           <motion.div 
@@ -141,21 +165,66 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
             animate={{ opacity: 1 }}
             className="flex flex-wrap gap-2"
           >
-            {t.specs.map((spec, index) => (
+            {t.specs.map((spec) => (
               <Button
                 key={spec}
-                variant={index === 0 ? "default" : "outline"}
+                variant={selectedSpec === spec ? "default" : "outline"}
                 size="sm"
                 className="rounded-full"
+                onClick={() => setSelectedSpec(spec)}
               >
                 {spec}
               </Button>
             ))}
-            <Button variant="outline" size="sm" className="rounded-full">
+            <Button variant="outline" size="sm" className="rounded-full" onClick={() => setShowFilters((v) => !v)}>
               <Filter className="w-4 h-4 mr-2" />
-              {t.moreFilters}
+              {showFilters ? t.lessFilters : t.moreFilters}
             </Button>
           </motion.div>
+          {showFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant={availableOnly ? "default" : "outline"}
+                size="sm"
+                className="rounded-full"
+                onClick={() => setAvailableOnly((v) => !v)}
+              >
+                {t.availabilityOnly}
+              </Button>
+              <Button
+                variant={sortMode === "recommended" ? "default" : "outline"}
+                size="sm"
+                className="rounded-full"
+                onClick={() => setSortMode("recommended")}
+              >
+                {t.sort}: {t.sortRecommended}
+              </Button>
+              <Button
+                variant={sortMode === "rating" ? "default" : "outline"}
+                size="sm"
+                className="rounded-full"
+                onClick={() => setSortMode("rating")}
+              >
+                {t.sortRating}
+              </Button>
+              <Button
+                variant={sortMode === "priceLow" ? "default" : "outline"}
+                size="sm"
+                className="rounded-full"
+                onClick={() => setSortMode("priceLow")}
+              >
+                {t.sortPriceLow}
+              </Button>
+              <Button
+                variant={sortMode === "priceHigh" ? "default" : "outline"}
+                size="sm"
+                className="rounded-full"
+                onClick={() => setSortMode("priceHigh")}
+              >
+                {t.sortPriceHigh}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Lawyer Grid */}
@@ -180,7 +249,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
                   </div>
                   
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {lawyer.specialization.map((spec) => (
+                    {(Array.isArray(lawyer.specialization) ? lawyer.specialization : []).map((spec) => (
                       <Badge key={spec} variant="secondary" className="text-[10px] px-2 py-0">
                         {spec}
                       </Badge>
@@ -208,7 +277,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                 <div>
                   <span className="text-lg font-bold text-foreground">
-                    {lawyer.hourlyRate.toLocaleString()}
+                    {Number(lawyer.hourlyRate || 0).toLocaleString()}
                   </span>
                   <span className="text-xs text-muted-foreground ml-1">{t.rate}</span>
                 </div>
@@ -223,13 +292,28 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
                       {t.status.busy}
                     </Badge>
                   )}
-                  <Button size="sm" className="gap-1">
+                  <Button
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => {
+                      navigate(`/submit-case?lawyerId=${encodeURIComponent(lawyer.id)}&lawyerName=${encodeURIComponent(lawyer.name)}`);
+                      toast({
+                        title: t.book,
+                        description: `${lawyer.name}`,
+                      });
+                    }}
+                  >
                     {t.book} <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
             </motion.div>
           ))}
+          {displayedLawyers.length === 0 && (
+            <div className="bg-card rounded-2xl border border-border shadow-soft p-5 text-muted-foreground">
+              {t.empty}
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
