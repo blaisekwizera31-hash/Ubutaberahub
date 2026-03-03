@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getConversationMessages, getConversations, sendConversationMessage } from "@/services/backend";
 
 interface MessagesProps {
@@ -28,6 +28,7 @@ const translations = {
 const Messages = ({ lang = "en" }: MessagesProps) => {
   const t = translations.en;
   const location = useLocation();
+  const navigate = useNavigate();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
   const currentRole = user?.role === "lawyer" ? "lawyer" : "citizen";
@@ -56,6 +57,11 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
       .catch(() => {
         setConversations([]);
       });
+  }, [location.search]);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("q") || "";
+    if (q) setSearchQuery(q);
   }, [location.search]);
 
   useEffect(() => {
@@ -183,7 +189,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
                   <p className="text-xs text-slate-500">{selectedConversation?.online ? t.online : t.offline}</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
                 <MoreVertical className="w-5 h-5" />
               </Button>
             </div>

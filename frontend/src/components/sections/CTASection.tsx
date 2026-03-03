@@ -76,14 +76,13 @@ export function CTASection({ lang }: CTASectionProps) {
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="xl" className="group">
+            <Button variant="hero" size="xl" className="group" asChild>
               <Link to="/auth">
                 {t.ctaPrimary}
-              
               </Link>
             </Button>
-            <Button variant="outline" size="xl" className="border-black/30">
-              {t.ctaSecondary}
+            <Button variant="outline" size="xl" className="border-black/30" asChild>
+              <Link to="/help-center">{t.ctaSecondary}</Link>
             </Button>
           </div>
         </motion.div>

@@ -79,3 +79,21 @@ export async function sendConversationMessage(conversationId: string, body: stri
   if (!token) throw new Error("No active session");
   return apiPost<{ message: any }>(`/api/conversations/${conversationId}/messages`, { body }, token);
 }
+
+export async function getNotifications() {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiGet<{ notifications: any[]; unreadCount: number }>("/api/notifications", token);
+}
+
+export async function markNotificationRead(notificationId: string) {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiPost<{ ok: boolean }>("/api/notifications/read", { notificationId }, token);
+}
+
+export async function markAllNotificationsRead() {
+  const token = await getAccessToken();
+  if (!token) throw new Error("No active session");
+  return apiPost<{ ok: boolean }>("/api/notifications/read", { markAll: true }, token);
+}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { MessageSquare, Calendar, ChevronRight, Plus, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getDashboardData } from "@/services/backend";
@@ -60,6 +60,7 @@ const translations = {
 
 const CitizenDashboard = () => {
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const t = translations[language as keyof typeof translations] || translations.en;
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
@@ -124,7 +125,12 @@ const CitizenDashboard = () => {
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="font-bold text-foreground">{t.recentCases.title}</h2>
-              <Button variant="ghost" size="sm" className="text-muted-foreground font-bold text-xs uppercase tracking-wider">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground font-bold text-xs uppercase tracking-wider"
+                onClick={() => navigate("/my-cases")}
+              >
                 {t.recentCases.viewAll} <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
@@ -140,7 +146,11 @@ const CitizenDashboard = () => {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {displayedCases.map((caseItem) => (
-                    <tr key={caseItem.id} className="hover:bg-muted/30 transition-colors group cursor-pointer">
+                    <tr
+                      key={caseItem.id}
+                      className="hover:bg-muted/30 transition-colors group cursor-pointer"
+                      onClick={() => navigate(`/my-cases?q=${encodeURIComponent(caseItem.id)}`)}
+                    >
                       <td className="px-6 py-4 text-xs font-mono text-muted-foreground">{caseItem.id}</td>
                       <td className="px-6 py-4">
                         <p className="text-sm font-bold text-foreground">{caseItem.title}</p>

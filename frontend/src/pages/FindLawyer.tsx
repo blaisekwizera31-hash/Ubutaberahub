@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useEffect, useMemo, useState } from "react";
 import { getLawyers } from "@/services/backend";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 // 1. Full Translation Object for 3 Languages
@@ -85,6 +85,7 @@ interface FindLawyerProps {
 const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   // Get User Data safely
@@ -96,6 +97,11 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   const [showFilters, setShowFilters] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sortMode, setSortMode] = useState<"recommended" | "rating" | "priceLow" | "priceHigh">("recommended");
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("q") || "";
+    if (q) setSearchQuery(q);
+  }, [location.search]);
 
   useEffect(() => {
     getLawyers()

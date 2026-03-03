@@ -96,6 +96,21 @@ create table if not exists public.messages (
 
 create index if not exists idx_messages_conversation on public.messages(conversation_id, created_at desc);
 
+-- 5) Notifications
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  type text default 'general',
+  title text not null,
+  body text default '',
+  metadata jsonb default '{}'::jsonb,
+  is_read boolean default false,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_notifications_user_created_at on public.notifications(user_id, created_at desc);
+create index if not exists idx_notifications_user_is_read on public.notifications(user_id, is_read);
+
 -- 5) Generic timestamp trigger
 create or replace function public.update_updated_at_column()
 returns trigger as $$
@@ -128,6 +143,7 @@ alter table public.appointments enable row level security;
 alter table public.conversations enable row level security;
 alter table public.conversation_participants enable row level security;
 alter table public.messages enable row level security;
+alter table public.notifications enable row level security;
 
 -- Lawyers: public readable, owner editable
 drop policy if exists "lawyers_read_all" on public.lawyers;
@@ -219,6 +235,15 @@ drop policy if exists "messages_insert_sender" on public.messages;
 create policy "messages_insert_sender" on public.messages
 for insert with check (auth.uid() = sender_id);
 
+-- Notifications: each user sees and updates own notifications
+drop policy if exists "notifications_select_self" on public.notifications;
+create policy "notifications_select_self" on public.notifications
+for select using (auth.uid() = user_id);
+
+drop policy if exists "notifications_update_self" on public.notifications;
+create policy "notifications_update_self" on public.notifications
+for update using (auth.uid() = user_id);
+
 -- 7) Helpful demo seed (safe upserts)
 insert into public.cases (case_number, title, description, case_type, status, priority)
 values
@@ -226,4 +251,3 @@ values
   ('CASE-2024-039', 'Property Transfer - Uwimana Estate', 'Transfer documentation review.', 'Civil', 'Pending', 'medium'),
   ('CASE-2024-045', 'Commercial Dispute - ABC Corp vs XYZ Ltd', 'Contract and payment dispute.', 'Civil', 'Awaiting Ruling', 'high')
 on conflict (case_number) do nothing;
-

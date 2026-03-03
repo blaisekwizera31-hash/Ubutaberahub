@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
@@ -11,6 +11,8 @@ import { getMyCases } from "@/services/backend";
 
 const MyCases = () => {
   const { language } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
   const t =
     language === "rw"
       ? {
@@ -47,6 +49,11 @@ const MyCases = () => {
 
   const [cases, setCases] = useState<any[]>([]);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("q") || "";
+    setQuery(q);
+  }, [location.search]);
 
   useEffect(() => {
     getMyCases()
@@ -118,6 +125,7 @@ const MyCases = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.06 }}
                   className="p-5 hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/messages?q=${encodeURIComponent(caseItem.id)}`)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">

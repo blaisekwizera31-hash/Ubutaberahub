@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { getMyCases } from "@/services/backend";
+import { useLocation } from "react-router-dom";
 
 interface LawyerCasesProps {
   lang?: string;
@@ -23,11 +24,17 @@ const translations = {
 
 const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
   const t = translations.en;
+  const location = useLocation();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
   const [query, setQuery] = useState("");
   const [cases, setCases] = useState<any[]>([]);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("q") || "";
+    setQuery(q);
+  }, [location.search]);
 
   useEffect(() => {
     getMyCases()

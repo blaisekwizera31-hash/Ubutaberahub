@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
+import { useNavigate } from "react-router-dom";
 
 const translations = {
   en: {
@@ -117,8 +118,28 @@ interface LegalResourcesProps {
 
 const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
+  const navigate = useNavigate();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User" };
+
+  const handleDownload = () => {
+    const content = [
+      t.handbookTitle,
+      "",
+      t.handbookSub,
+      "",
+      ...t.faqs.map((faq, i) => `${i + 1}. ${faq}`),
+    ].join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "citizen-legal-handbook.txt";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <DashboardLayout 
@@ -142,6 +163,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                 key={cat.name}
                 whileHover={{ scale: 1.05 }}
                 className="bg-card rounded-2xl border border-border p-4 text-center shadow-sm hover:shadow-md transition-all"
+                onClick={() => navigate(`/help-center?q=${encodeURIComponent(cat.name)}`)}
               >
                 <span className="text-3xl mb-2 block">{cat.icon}</span>
                 <h3 className="font-medium text-sm">{cat.name}</h3>
@@ -164,12 +186,18 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                 <BookOpen className="w-5 h-5 text-primary" />
                 {t.popular}
               </h2>
-              <Button variant="ghost" size="sm" className="text-primary">{t.viewAll}</Button>
+              <Button variant="ghost" size="sm" className="text-primary" onClick={() => navigate("/help-center")}>
+                {t.viewAll}
+              </Button>
             </div>
             
             <div className="grid md:grid-cols-2 gap-4">
               {t.guides.map((guide, index) => (
-                <div key={index} className="bg-card rounded-2xl border border-border p-5 hover:border-primary/50 transition-all cursor-pointer group">
+                <button
+                  key={index}
+                  className="bg-card rounded-2xl border border-border p-5 hover:border-primary/50 transition-all cursor-pointer group text-left"
+                  onClick={() => navigate(`/help-center?q=${encodeURIComponent(guide.title)}`)}
+                >
                   <div className="flex justify-between items-start">
                     <span className="px-2 py-1 rounded-full text-[10px] uppercase font-bold bg-primary/10 text-primary">
                       {guide.type}
@@ -179,7 +207,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                   <h3 className="font-semibold mt-3 group-hover:text-primary transition-colors">{guide.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{guide.desc}</p>
                   <p className="text-xs text-muted-foreground mt-3 font-medium">{guide.time} {t.readTime}</p>
-                </div>
+                </button>
               ))}
             </div>
           </motion.div>
@@ -197,7 +225,11 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
             </h2>
             <div className="space-y-3">
               {t.faqs.map((faq, index) => (
-                <button key={index} className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-muted/50 transition-all text-sm flex items-center justify-between">
+                <button
+                  key={index}
+                  className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-muted/50 transition-all text-sm flex items-center justify-between"
+                  onClick={() => navigate(`/help-center?q=${encodeURIComponent(faq)}`)}
+                >
                   {faq}
                   <ExternalLink className="w-3 h-3 text-muted-foreground" />
                 </button>
@@ -221,7 +253,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
               <p className="text-primary-foreground/80">{t.handbookSub}</p>
             </div>
           </div>
-          <Button variant="secondary" size="lg" className="font-bold gap-2">
+          <Button variant="secondary" size="lg" className="font-bold gap-2" onClick={handleDownload}>
             <Download className="w-5 h-5" />
             {t.downloadBtn}
           </Button>

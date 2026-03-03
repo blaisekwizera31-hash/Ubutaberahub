@@ -103,7 +103,7 @@ export default function AIAssistant() {
     <div className="min-h-screen bg-background flex">
       <DashboardSidebar activePage="ai-assistant" />
       <main className="flex-1 overflow-hidden flex flex-col">
-        <DashboardHeader searchPlaceholder="Search legal topics..." />
+        <DashboardHeader searchPlaceholder="Search legal topics..." onSearch={(value) => setInput(value)} />
         
         <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
           {/* Header */}

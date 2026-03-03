@@ -1,6 +1,7 @@
 import { Clock, User, Calendar, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface CaseCardProps {
   id: string;
@@ -9,6 +10,7 @@ interface CaseCardProps {
   date: string;
   lawyer: string;
   nextHearing: string;
+  onOpen?: (id: string) => void;
 }
 
 const statusColors = {
@@ -17,7 +19,9 @@ const statusColors = {
   "Resolved": "outline",
 } as const;
 
-const CaseCard = ({ id, title, status, date, lawyer, nextHearing }: CaseCardProps) => {
+const CaseCard = ({ id, title, status, date, lawyer, nextHearing, onOpen }: CaseCardProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-card rounded-xl p-5 border shadow-soft hover:shadow-card transition-all group">
       <div className="flex items-start justify-between gap-4">
@@ -42,7 +46,12 @@ const CaseCard = ({ id, title, status, date, lawyer, nextHearing }: CaseCardProp
             </div>
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => (onOpen ? onOpen(id) : navigate(`/my-cases?q=${encodeURIComponent(id)}`))}
+        >
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>

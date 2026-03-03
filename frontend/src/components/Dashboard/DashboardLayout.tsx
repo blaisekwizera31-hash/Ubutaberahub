@@ -1,8 +1,8 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   Home, FileText, MessageSquare, Users, Settings, 
-  Search, Menu, X, LogOut, User, Briefcase, Gavel, 
+  Search, Menu, X, LogOut, User, Briefcase, Gavel, Bell,
   Bot, Calendar, HelpCircle, Moon, Sun, Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getNotifications, markAllNotificationsRead, markNotificationRead } from "@/services/backend";
 
 // REMOVED: import Logo from "@/assets/logo.png"; 
 
@@ -135,6 +136,9 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   
@@ -148,6 +152,20 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
     navigate("/auth");
   };
 
+  const getSearchTarget = () => {
+    if (role === "citizen") return "/my-cases";
+    if (role === "lawyer") return "/lawyer-cases";
+    if (role === "judge") return "/judge-cases";
+    if (role === "clerk") return "/clerk-cases";
+    return "/my-cases";
+  };
+
+  const submitSearch = () => {
+    const q = searchQuery.trim();
+    const target = getSearchTarget();
+    navigate(q ? `${target}?q=${encodeURIComponent(q)}` : target);
+  };
+
   const isActive = (href: string) => {
     return location.pathname === href;
   };
@@ -157,6 +175,59 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
     { code: 'rw', label: 'Kinyarwanda', flag: '🇷🇼' },
     { code: 'fr', label: 'Français', flag: '🇫🇷' }
   ];
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const data = await getNotifications();
+        if (!mounted) return;
+        setNotifications(Array.isArray(data.notifications) ? data.notifications : []);
+        setUnreadCount(Number(data.unreadCount || 0));
+      } catch {
+        if (!mounted) return;
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    };
+    load();
+    const timer = window.setInterval(load, 15000);
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const openNotification = async (item: any) => {
+    try {
+      if (!item?.isRead) {
+        await markNotificationRead(item.id);
+        setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch {}
+
+    const metadata = item?.metadata || {};
+    if (metadata.conversationId) {
+      navigate(`/messages?conversationId=${encodeURIComponent(metadata.conversationId)}`);
+      return;
+    }
+    if (metadata.caseNumber || metadata.caseId) {
+      const q = metadata.caseNumber || metadata.caseId;
+      const target = role === "lawyer" ? "/lawyer-cases" : role === "judge" ? "/judge-cases" : role === "clerk" ? "/clerk-cases" : "/my-cases";
+      navigate(`${target}?q=${encodeURIComponent(q)}`);
+      return;
+    }
+    navigate("/messages");
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch {}
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -243,11 +314,50 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
               placeholder={t.search} 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitSearch();
+              }}
               className="pl-9 bg-background border-border focus:ring-primary focus:border-primary" 
             />
           </div>
 
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notifications</span>
+                  <Button variant="ghost" size="sm" onClick={handleMarkAllNotificationsRead}>
+                    Mark all read
+                  </Button>
+                </div>
+                <DropdownMenuSeparator />
+                {notifications.slice(0, 8).map((item) => (
+                  <DropdownMenuItem key={item.id} onClick={() => openNotification(item)} className="cursor-pointer items-start py-2">
+                    <div className="w-full">
+                      <div className="flex items-center gap-2">
+                        {!item.isRead && <span className="w-2 h-2 rounded-full bg-primary" />}
+                        <p className="text-sm font-medium">{item.title}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.body}</p>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+                {notifications.length === 0 && <div className="px-2 py-3 text-sm text-muted-foreground">No notifications yet.</div>}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

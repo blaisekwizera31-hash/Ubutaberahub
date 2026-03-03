@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, Search, Video, UserRound, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useEffect, useMemo, useState } from "react";
 import { getAppointments, getLawyers } from "@/services/backend";
@@ -34,6 +34,7 @@ interface AppointmentsProps {
 const Appointments = ({ lang = "en" }: AppointmentsProps) => {
   const t = translations.en;
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const loggedInUser = localStorage.getItem("loggedInUser");
@@ -43,6 +44,11 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [apiAppointments, setApiAppointments] = useState<any[]>([]);
   const [apiLawyers, setApiLawyers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("q") || "";
+    if (q) setSearchQuery(q);
+  }, [location.search]);
 
   useEffect(() => {
     getAppointments(role)

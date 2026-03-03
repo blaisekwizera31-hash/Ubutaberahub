@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Filter, Eye, Gavel, Clock, AlertCircle, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ const translations = {
 const JudgeCases = ({ lang = "en" }: JudgeCasesProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
   const navigate = useNavigate();
+  const location = useLocation();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
@@ -40,6 +41,11 @@ const JudgeCases = ({ lang = "en" }: JudgeCasesProps) => {
       .then((data) => setCases(Array.isArray(data.cases) ? data.cases : []))
       .catch(() => setCases([]));
   }, []);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("q") || "";
+    setQuery(q);
+  }, [location.search]);
 
   const displayedCases = useMemo(() => {
     const normalized = cases.map((c) => ({

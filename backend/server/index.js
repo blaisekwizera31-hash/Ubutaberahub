@@ -91,6 +91,28 @@ async function isConversationParticipant(conversationId, userId) {
   return !error && !!data;
 }
 
+function isMissingNotificationsTable(error) {
+  const message = String(error?.message || "").toLowerCase();
+  return message.includes("notifications") && message.includes("does not exist");
+}
+
+async function createNotification({ userId, type, title, body, metadata = {} }) {
+  if (!supabaseAdmin || !userId) return;
+  const { error } = await supabaseAdmin.from("notifications").insert([
+    {
+      user_id: userId,
+      type: type || "general",
+      title: title || "Notification",
+      body: body || "",
+      metadata,
+      is_read: false,
+    },
+  ]);
+  if (error && !isMissingNotificationsTable(error)) {
+    console.error("Failed to create notification:", error.message);
+  }
+}
+
 async function askGemini(prompt) {
   if (!genAI) {
     const err = new Error("Gemini not available");
@@ -319,6 +341,70 @@ app.get("/api/lawyers", async (req, res) => {
   return res.json({ lawyers: fromDb || [] });
 });
 
+app.get("/api/notifications", async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
+    const authUser = await getUserFromBearer(req);
+    if (!authUser) return res.status(401).json({ error: "Unauthorized" });
+
+    const { data, error } = await supabaseAdmin
+      .from("notifications")
+      .select("id, type, title, body, metadata, is_read, created_at")
+      .eq("user_id", authUser.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      if (isMissingNotificationsTable(error)) {
+        return res.json({ notifications: [], unreadCount: 0 });
+      }
+      return res.status(500).json({ error: "Failed to load notifications", message: error.message });
+    }
+
+    const notifications = (data || []).map((item) => ({
+      id: item.id,
+      type: item.type || "general",
+      title: item.title || "Notification",
+      body: item.body || "",
+      metadata: item.metadata || {},
+      isRead: !!item.is_read,
+      createdAt: item.created_at,
+    }));
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
+    return res.json({ notifications, unreadCount });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to load notifications", message: error.message });
+  }
+});
+
+app.post("/api/notifications/read", async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
+    const authUser = await getUserFromBearer(req);
+    if (!authUser) return res.status(401).json({ error: "Unauthorized" });
+
+    const notificationId = req.body?.notificationId ? String(req.body.notificationId) : null;
+    const markAll = !!req.body?.markAll;
+
+    let query = supabaseAdmin
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", authUser.id);
+    if (!markAll && notificationId) query = query.eq("id", notificationId);
+
+    const { error } = await query;
+    if (error) {
+      if (isMissingNotificationsTable(error)) {
+        return res.json({ ok: true });
+      }
+      return res.status(500).json({ error: "Failed to update notifications", message: error.message });
+    }
+    return res.json({ ok: true });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to update notifications", message: error.message });
+  }
+});
+
 app.post("/api/cases/submit-to-lawyer", async (req, res) => {
   try {
     if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured on backend" });
@@ -397,6 +483,19 @@ app.post("/api/cases/submit-to-lawyer", async (req, res) => {
         },
       ]);
     }
+
+    await createNotification({
+      userId: lawyerId,
+      type: "new_case",
+      title: "New Case Assigned",
+      body: `${citizenProfile.name || "Citizen"} submitted "${insertedCase.title}"`,
+      metadata: {
+        caseId: insertedCase.id,
+        caseNumber: insertedCase.case_number,
+        conversationId: conversation.id,
+        fromUserId: authUser.id,
+      },
+    });
 
     return res.status(201).json({
       ok: true,
@@ -588,6 +687,18 @@ app.post("/api/conversations/:conversationId/messages", async (req, res) => {
         .from("conversation_participants")
         .update({ unread_count: Number(participant.unread_count || 0) + 1 })
         .eq("id", participant.id);
+
+      await createNotification({
+        userId: participant.user_id,
+        type: "new_message",
+        title: "New Message",
+        body,
+        metadata: {
+          conversationId,
+          messageId: inserted.id,
+          fromUserId: authUser.id,
+        },
+      });
     }
 
     await supabaseAdmin
