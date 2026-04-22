@@ -8,6 +8,7 @@ import { DashboardHeader } from "@/components/layout/DashboardHeader";
 import { chatWithAI, ChatMessage } from "@/services/ai/gemini";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useVoiceInput } from "@/hooks/use-voice-input";
 
 const translations = {
   en: {
@@ -50,6 +51,9 @@ export default function AIAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { isSupported, isListening, toggleListening, error: voiceError } = useVoiceInput(lang, (text) => {
+    setInput((prev) => `${prev}${prev ? " " : ""}${text}`.trim());
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -196,6 +200,12 @@ export default function AIAssistant() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+              {voiceError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{voiceError}</AlertDescription>
+                </Alert>
+              )}
               
               <div ref={messagesEndRef} />
             </div>
@@ -203,6 +213,15 @@ export default function AIAssistant() {
             {/* Input Area */}
             <div className="border-t border-border/50 p-4 bg-muted/30">
               <div className="flex gap-2">
+                <Button
+                  onClick={toggleListening}
+                  variant={isListening ? "destructive" : "outline"}
+                  size="icon"
+                  disabled={!isSupported || isLoading}
+                  title={t.voiceLabel}
+                >
+                  <Mic className={`h-4 w-4 ${isListening ? "animate-pulse" : ""}`} />
+                </Button>
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Send, Bot, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useVoiceInput } from "@/hooks/use-voice-input";
 
 const sampleConversation = [
   {
@@ -47,8 +48,11 @@ export function AIAssistantSection({ lang }: AIAssistantSectionProps) {
   const t = translations[lang as keyof typeof translations] || translations.en;
   const [messages, setMessages] = useState(sampleConversation);
   const [input, setInput] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const voiceLang = (lang === "rw" || lang === "fr" ? lang : "en") as "en" | "rw" | "fr";
+  const { isSupported, isListening, toggleListening } = useVoiceInput(voiceLang, (text) => {
+    setInput((prev) => `${prev}${prev ? " " : ""}${text}`.trim());
+  });
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -158,12 +162,14 @@ export function AIAssistantSection({ lang }: AIAssistantSectionProps) {
             <div className="p-4 border-t border-border/50">
               <div className="flex gap-2">
                 <Button
-                  variant={isRecording ? "destructive" : "outline"}
+                  variant={isListening ? "destructive" : "outline"}
                   size="icon"
-                  onClick={() => setIsRecording(!isRecording)}
+                  onClick={toggleListening}
+                  disabled={!isSupported}
                   className="flex-shrink-0"
+                  title={t.voiceLabel}
                 >
-                  <Mic className={`w-5 h-5 ${isRecording ? "animate-pulse" : ""}`} />
+                  <Mic className={`w-5 h-5 ${isListening ? "animate-pulse" : ""}`} />
                 </Button>
                 <Input
                   value={input}

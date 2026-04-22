@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, HelpCircle, MessageCircle, Phone, Mail, Send, FileText } from "lucide-react";
+import { Search, HelpCircle, MessageCircle, Phone, Mail, Send, FileText, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { chatWithAI } from "@/services/ai/gemini";
+import { useVoiceInput } from "@/hooks/use-voice-input";
 
 const translations = {
   en: {
@@ -113,6 +114,10 @@ const HelpCenter = () => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const voiceLang = (language === "rw" || language === "fr" ? language : "en") as "en" | "rw" | "fr";
+  const { isSupported, isListening, toggleListening } = useVoiceInput(voiceLang, (text) => {
+    setQuestion((prev) => `${prev}${prev ? " " : ""}${text}`.trim());
+  });
 
   const visibleFaqs = useMemo(() => {
     const q = normalize(searchQuery);
@@ -218,10 +223,22 @@ const HelpCenter = () => {
             <h2 className="text-xl font-semibold">{t.askTitle}</h2>
             <div className="bg-card rounded-xl border border-border p-4 space-y-3">
               <Textarea value={question} onChange={(e) => setQuestion(e.target.value)} placeholder={t.askPlaceholder} rows={5} />
-              <Button onClick={handleAsk} disabled={isLoading || !question.trim()} className="gap-2">
-                <Send className="w-4 h-4" />
-                {isLoading ? "..." : t.askButton}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant={isListening ? "destructive" : "outline"}
+                  size="icon"
+                  onClick={toggleListening}
+                  disabled={!isSupported || isLoading}
+                  title="Voice input"
+                >
+                  <Mic className={`w-4 h-4 ${isListening ? "animate-pulse" : ""}`} />
+                </Button>
+                <Button onClick={handleAsk} disabled={isLoading || !question.trim()} className="gap-2">
+                  <Send className="w-4 h-4" />
+                  {isLoading ? "..." : t.askButton}
+                </Button>
+              </div>
             </div>
 
             <div className="text-sm text-muted-foreground">{t.quickPrompt}</div>
