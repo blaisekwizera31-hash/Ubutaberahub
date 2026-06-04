@@ -2,8 +2,8 @@
     "version":  "1.0.0",
     "name":  "ubutaberahub-backend",
     "scripts":  {
-                    "start":  "node server/index.js",
-                    "dev":  "node server/index.js"
+                    "start":  "node server.js",
+                    "dev":  "node server.js"
                 },
     "type":  "module",
     "dependencies":  {

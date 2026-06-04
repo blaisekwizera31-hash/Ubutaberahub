@@ -1,3 +1,8 @@
+/**
+ * models/dataStore.js
+ * In-memory fallback data used when Supabase is unavailable
+ */
+
 const nowIso = () => new Date().toISOString();
 
 const store = {
@@ -64,30 +69,6 @@ const store = {
       online: true,
     },
   ],
-  lawyers: [
-    {
-      id: "L-001",
-      name: "Me. Jean Habimana",
-      specialization: ["Family Law", "Property Law"],
-      experience: 12,
-      rating: 4.9,
-      reviews: 127,
-      location: "Kigali, Rwanda",
-      hourlyRate: 50000,
-      available: true,
-    },
-    {
-      id: "L-002",
-      name: "Me. Marie Uwimana",
-      specialization: ["Criminal Law", "Human Rights"],
-      experience: 8,
-      rating: 4.8,
-      reviews: 89,
-      location: "Kigali, Rwanda",
-      hourlyRate: 45000,
-      available: true,
-    },
-  ],
 };
 
 export function getDashboardBundle(role) {
@@ -105,19 +86,6 @@ export function getDashboardBundle(role) {
   };
 }
 
-export function getLawyers() {
-  return store.lawyers;
-}
-
-export function getCasesByRole(role) {
-  return store.cases.filter((c) => c.userRole === role);
-}
-
-export function getAppointmentsByRole(role) {
-  return store.appointments.filter((a) => a.userRole === role);
-}
-
-export function getMessagesByRole(role) {
-  return store.messages.filter((m) => m.userRole === role);
-}
-
+export const getCasesByRole        = (role) => store.cases.filter((c) => c.userRole === role);
+export const getAppointmentsByRole = (role) => store.appointments.filter((a) => a.userRole === role);
+export const getMessagesByRole     = (role) => store.messages.filter((m) => m.userRole === role);
