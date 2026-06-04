@@ -70,11 +70,10 @@ app.get("/api/health", (_req, res) =>
 app.use("/api/auth",          authRoutes);
 app.use("/api/cases",         caseRoutes);
 app.use("/api/conversations", messageRoutes);
-app.use("/api",               aiRoutes);           // /api/chat, /api/classify-case, etc.
-app.use("/api/notifications", notificationRoutes);
 app.use("/api/appointments",  appointmentRoutes);
 app.use("/api/lawyers",       lawyerRoutes);
-app.use("/api/messages",      messageRoutes);      // legacy /api/messages/:role
+app.use("/api/notifications", notificationRoutes);
+app.use("/api",               aiRoutes);  // /api/chat, /api/classify-case, /api/analyze-document, etc.
 
 // ── 404 + error handlers (must be last) ──────────────────────────────────────
 app.use(notFound);

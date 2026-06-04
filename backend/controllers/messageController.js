@@ -192,3 +192,85 @@ export async function sendMessage(req, res) {
     return res.status(500).json({ error: "Failed to send message", message: err.message });
   }
 }
+
+export async function createConversation(req, res) {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured" });
+    const { id: userId } = req.user;
+    const { lawyerId, subject, caseId, initialMessage } = req.body;
+
+    if (!lawyerId) return res.status(400).json({ error: "lawyerId is required" });
+
+    // Check the target user exists
+    const { data: peer } = await supabaseAdmin.from("users").select("id, name, email, role").eq("id", lawyerId).maybeSingle();
+    if (!peer) return res.status(400).json({ error: "Recipient not found" });
+
+    // Check if a conversation already exists between these two users (optionally for same case)
+    const { data: existingParticipants } = await supabaseAdmin
+      .from("conversation_participants").select("conversation_id").eq("user_id", userId);
+    const myConvIds = (existingParticipants || []).map((r) => r.conversation_id);
+
+    let existingConvId = null;
+    if (myConvIds.length) {
+      const { data: peerRows } = await supabaseAdmin
+        .from("conversation_participants").select("conversation_id").eq("user_id", lawyerId)
+        .in("conversation_id", myConvIds);
+      if (peerRows?.length) {
+        // If caseId given, prefer conversation for that case; otherwise take any
+        if (caseId) {
+          const { data: caseConvs } = await supabaseAdmin
+            .from("conversations").select("id").eq("case_id", caseId)
+            .in("id", peerRows.map((r) => r.conversation_id));
+          existingConvId = caseConvs?.[0]?.id || peerRows[0].conversation_id;
+        } else {
+          existingConvId = peerRows[0].conversation_id;
+        }
+      }
+    }
+
+    let conv;
+    if (existingConvId) {
+      const { data } = await supabaseAdmin.from("conversations").select("*").eq("id", existingConvId).single();
+      conv = data;
+    } else {
+      // Create new conversation
+      const convSubject = subject || `Conversation with ${peer.name || peer.email?.split("@")[0] || "Lawyer"}`;
+      const { data: newConv, error: convErr } = await supabaseAdmin
+        .from("conversations").insert([{ subject: convSubject, case_id: caseId || null, created_by: userId }])
+        .select("*").single();
+      if (convErr) return res.status(500).json({ error: "Failed to create conversation", message: convErr.message });
+      conv = newConv;
+
+      await supabaseAdmin.from("conversation_participants").insert([
+        { conversation_id: conv.id, user_id: userId, role: req.profile?.role || "citizen", unread_count: 0 },
+        { conversation_id: conv.id, user_id: lawyerId, role: peer.role || "lawyer", unread_count: initialMessage ? 1 : 0 },
+      ]);
+    }
+
+    // Send initial message if provided
+    if (initialMessage?.trim()) {
+      await supabaseAdmin.from("messages").insert([{
+        conversation_id: conv.id, sender_id: userId, body: initialMessage.trim(),
+      }]);
+      await supabaseAdmin.from("conversation_participants")
+        .update({ unread_count: 1 }).eq("conversation_id", conv.id).eq("user_id", lawyerId);
+      await notify({
+        userId: lawyerId, type: "new_message", title: "New Message",
+        body: initialMessage.trim(),
+        metadata: { conversationId: conv.id, fromUserId: userId },
+      });
+    }
+
+    return res.status(201).json({
+      conversation: {
+        id:      conv.id,
+        subject: conv.subject,
+        caseId:  conv.case_id || null,
+        contact: peer.name || peer.email?.split("@")[0] || "Contact",
+        contactId: peer.id,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to create conversation", message: err.message });
+  }
+}

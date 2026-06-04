@@ -163,3 +163,66 @@ export async function submitCaseToLawyer(req, res) {
     return res.status(500).json({ error: "Failed to submit case", message: err.message });
   }
 }
+
+/**
+ * POST /api/cases/:id/status
+ * Update case status (lawyer/judge/clerk actions).
+ */
+export async function updateCaseStatus(req, res) {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ error: "Supabase not configured" });
+
+    const { id } = req.params;
+    const { status } = req.body;
+    const allowed = ["Pending", "In Progress", "Under Review", "Awaiting Ruling", "Closed", "Resolved", "Rejected"];
+    if (!allowed.includes(status))
+      return res.status(400).json({ error: `Status must be one of: ${allowed.join(", ")}` });
+
+    const userId = req.user.id;
+
+    // Load case to verify user is a participant and determine notification target
+    const { data: caseRow, error: fetchErr } = await supabaseAdmin
+      .from("cases").select("*").eq("id", id).maybeSingle();
+    if (fetchErr || !caseRow) return res.status(404).json({ error: "Case not found" });
+
+    const isParticipant =
+      caseRow.citizen_id === userId ||
+      caseRow.assigned_lawyer_id === userId ||
+      caseRow.assigned_judge_id === userId ||
+      caseRow.assigned_clerk_id === userId;
+
+    // Also allow service-role admin operations
+    if (!isParticipant)
+      return res.status(403).json({ error: "You are not a participant in this case" });
+
+    const { data: updated, error: updateErr } = await supabaseAdmin
+      .from("cases").update({ status }).eq("id", id).select("*").single();
+    if (updateErr) return res.status(500).json({ error: "Failed to update case status", message: updateErr.message });
+
+    // Notify citizen if updated by lawyer/judge/clerk
+    if (caseRow.citizen_id && caseRow.citizen_id !== userId) {
+      await notify({
+        userId:   caseRow.citizen_id,
+        type:     "case_update",
+        title:    "Case Status Updated",
+        body:     `Your case "${caseRow.title}" is now: ${status}`,
+        metadata: { caseId: id, caseNumber: caseRow.case_number, status },
+      });
+    }
+
+    // Notify lawyer if updated by citizen/judge/clerk
+    if (caseRow.assigned_lawyer_id && caseRow.assigned_lawyer_id !== userId) {
+      await notify({
+        userId:   caseRow.assigned_lawyer_id,
+        type:     "case_update",
+        title:    "Case Status Updated",
+        body:     `Case "${caseRow.title}" is now: ${status}`,
+        metadata: { caseId: id, caseNumber: caseRow.case_number, status },
+      });
+    }
+
+    return res.json({ ok: true, case: updated });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to update case status", message: err.message });
+  }
+}
