@@ -97,25 +97,45 @@ export async function fetchLawyersFromDb(db) {
     .filter((l) => l.hasLicense && l.verified);
 }
 
-export async function fetchCasesByRoleFromDb(db, role) {
+export async function fetchCasesByRoleFromDb(db, role, userId = null) {
   if (!db) return null;
   let q = db.from("cases").select("*").order("filed_at", { ascending: false }).limit(100);
-  if (role === "citizen") q = q.not("citizen_id",         "is", null);
-  if (role === "lawyer")  q = q.not("assigned_lawyer_id", "is", null);
-  if (role === "judge")   q = q.not("assigned_judge_id",  "is", null);
-  if (role === "clerk")   q = q.not("assigned_clerk_id",  "is", null);
+
+  // Scope to the specific user when a userId is provided (preferred).
+  // Falls back to "column not null" for generic role-based list pages.
+  if (userId) {
+    if (role === "citizen") q = q.eq("citizen_id",          userId);
+    else if (role === "lawyer")  q = q.eq("assigned_lawyer_id", userId);
+    else if (role === "judge")   q = q.eq("assigned_judge_id",  userId);
+    else if (role === "clerk")   q = q.eq("assigned_clerk_id",  userId);
+  } else {
+    if (role === "citizen") q = q.not("citizen_id",          "is", null);
+    if (role === "lawyer")  q = q.not("assigned_lawyer_id",  "is", null);
+    if (role === "judge")   q = q.not("assigned_judge_id",   "is", null);
+    if (role === "clerk")   q = q.not("assigned_clerk_id",   "is", null);
+  }
+
   const { data, error } = await q;
   if (error) return null;
   return (data || []).map(normalizeCaseRow);
 }
 
-export async function fetchAppointmentsByRoleFromDb(db, role) {
+export async function fetchAppointmentsByRoleFromDb(db, role, userId = null) {
   if (!db) return null;
   let q = db.from("appointments").select("*").order("starts_at", { ascending: true }).limit(100);
-  if (role === "citizen") q = q.not("citizen_id", "is", null);
-  if (role === "lawyer")  q = q.not("lawyer_id",  "is", null);
-  if (role === "judge")   q = q.not("judge_id",   "is", null);
-  if (role === "clerk")   q = q.not("clerk_id",   "is", null);
+
+  if (userId) {
+    if (role === "citizen") q = q.eq("citizen_id", userId);
+    else if (role === "lawyer")  q = q.eq("lawyer_id",  userId);
+    else if (role === "judge")   q = q.eq("judge_id",   userId);
+    else if (role === "clerk")   q = q.eq("clerk_id",   userId);
+  } else {
+    if (role === "citizen") q = q.not("citizen_id", "is", null);
+    if (role === "lawyer")  q = q.not("lawyer_id",  "is", null);
+    if (role === "judge")   q = q.not("judge_id",   "is", null);
+    if (role === "clerk")   q = q.not("clerk_id",   "is", null);
+  }
+
   const { data, error } = await q;
   if (error) return null;
   return (data || []).map(normalizeAppointmentRow);
@@ -140,10 +160,10 @@ export async function fetchMessagesByRoleFromDb(db, role) {
   }));
 }
 
-export async function fetchDashboardBundleFromDb(db, role) {
+export async function fetchDashboardBundleFromDb(db, role, userId = null) {
   const [cases, appointments, messages] = await Promise.all([
-    fetchCasesByRoleFromDb(db, role),
-    fetchAppointmentsByRoleFromDb(db, role),
+    fetchCasesByRoleFromDb(db, role, userId),
+    fetchAppointmentsByRoleFromDb(db, role, userId),
     fetchMessagesByRoleFromDb(db, role),
   ]);
   if (!cases || !appointments || !messages) return null;

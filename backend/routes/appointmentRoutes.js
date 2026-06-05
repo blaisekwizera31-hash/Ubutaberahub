@@ -6,7 +6,7 @@ import {
   updateAppointmentStatus,
 } from "../controllers/appointmentController.js";
 import { requireAuth } from "../middleware/auth.js";
-import { supabaseAdmin } from "../models/supabase.js";
+import { supabaseAdmin } from "../config/supabase.js";
 
 const router = Router();
 

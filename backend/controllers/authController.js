@@ -2,7 +2,7 @@
  * controllers/authController.js
  */
 
-import { supabaseAdmin } from "../models/supabase.js";
+import { supabaseAdmin } from "../config/supabase.js";
 
 const safeRole = (v) =>
   ["citizen", "lawyer", "judge", "clerk"].includes(v) ? v : "citizen";

@@ -4,23 +4,25 @@
  * Structure:
  *   backend/
  *   ├── node_modules/
- *   ├── middleware/      auth, rateLimiter, validate, logger, errorHandler
+ *   ├── middleware/      auth, roleChecker, cors, lang, rateLimiter, validate, logger, errorHandler
  *   ├── controllers/     authController, caseController, messageController,
  *   │                    aiController, notificationController,
  *   │                    appointmentController, lawyerController
  *   ├── routes/          authRoutes, caseRoutes, messageRoutes, aiRoutes,
- *   │                    notificationRoutes, appointmentRoutes, lawyerRoutes
- *   ├── models/          supabase, gemini, dataStore, supabaseStore
+ *   │                    notificationRoutes, appointmentRoutes, lawyerRoutes,
+ *   │                    hearingRoutes, analyticsRoutes, aiLogRoutes
+ *   ├── config/          supabase, gemini, supabaseStore
  *   └── server.js
  */
 
 import "dotenv/config";
 import express from "express";
-import cors    from "cors";
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-import { requestLogger }         from "./middleware/logger.js";
-import { generalLimiter }        from "./middleware/rateLimiter.js";
+import { corsMiddleware }         from "./middleware/cors.js";
+import { detectLang }             from "./middleware/lang.js";
+import { requestLogger }          from "./middleware/logger.js";
+import { generalLimiter }         from "./middleware/rateLimiter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
 // ── Routes ────────────────────────────────────────────────────────────────────
@@ -31,30 +33,25 @@ import aiRoutes           from "./routes/aiRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import appointmentRoutes  from "./routes/appointmentRoutes.js";
 import lawyerRoutes       from "./routes/lawyerRoutes.js";
+import hearingRoutes      from "./routes/hearingRoutes.js";
+import analyticsRoutes    from "./routes/analyticsRoutes.js";
+import aiLogRoutes        from "./routes/aiLogRoutes.js";
 
 // ── Models (for health check) ─────────────────────────────────────────────────
-import { genAI }         from "./models/gemini.js";
-import { supabaseAdmin } from "./models/supabase.js";
+import { genAI }         from "./config/gemini.js";
+import { supabaseAdmin } from "./config/supabase.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:8080")
-  .split(",").map((o) => o.trim()).filter(Boolean);
-
 // ── Global middleware ─────────────────────────────────────────────────────────
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error("CORS blocked"));
-  },
-  credentials: true,
-}));
+app.use(corsMiddleware);                // CORS — must be first
 app.use(express.json({ limit: "2mb" }));
-app.use(requestLogger);   // log every request
-app.use(generalLimiter);  // 120 req/min global rate limit
+app.use(detectLang);                    // resolve req.lang / req.langMeta
+app.use(requestLogger);                 // log every request
+app.use(generalLimiter);                // 120 req/min global rate limit
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (_req, res) =>
@@ -73,6 +70,9 @@ app.use("/api/conversations", messageRoutes);
 app.use("/api/appointments",  appointmentRoutes);
 app.use("/api/lawyers",       lawyerRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/hearings",      hearingRoutes);
+app.use("/api/analytics",     analyticsRoutes);
+app.use("/api/ai-logs",       aiLogRoutes);
 app.use("/api",               aiRoutes);  // /api/chat, /api/classify-case, /api/analyze-document, etc.
 
 // ── 404 + error handlers (must be last) ──────────────────────────────────────

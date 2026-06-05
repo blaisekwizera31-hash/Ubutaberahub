@@ -2,7 +2,7 @@
  * controllers/aiController.js
  */
 
-import { askGemini } from "../models/gemini.js";
+import { askGemini } from "../config/gemini.js";
 
 const mapLang = (l = "en") =>
   l === "rw" ? "Kinyarwanda" : l === "fr" ? "French" : "English";

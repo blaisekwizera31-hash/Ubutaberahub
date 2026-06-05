@@ -3,7 +3,7 @@ import { chat, classifyCase, analyzeDocument, legalGuidance, summarize } from ".
 import { optionalAuth, requireAuth } from "../middleware/auth.js";
 import { aiLimiter } from "../middleware/rateLimiter.js";
 import { validateChatRequest, validateClassifyCase } from "../middleware/validate.js";
-import { supabaseAdmin } from "../models/supabase.js";
+import { supabaseAdmin } from "../config/supabase.js";
 
 const router = Router();
 

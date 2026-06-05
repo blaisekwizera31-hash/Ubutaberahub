@@ -2,12 +2,11 @@
  * controllers/caseController.js
  */
 
-import { supabaseAdmin } from "../models/supabase.js";
-import { getCasesByRole, getDashboardBundle } from "../models/dataStore.js";
+import { supabaseAdmin } from "../config/supabase.js";
 import {
   fetchCasesByRoleFromDb,
   fetchDashboardBundleFromDb,
-} from "../models/supabaseStore.js";
+} from "../config/supabaseStore.js";
 
 const safeRole     = (v) => ["citizen","lawyer","judge","clerk"].includes(v) ? v : "citizen";
 const safePriority = (v) => ["low","medium","high","urgent"].includes(v) ? v : "medium";
@@ -36,14 +35,16 @@ async function notify({ userId, type, title, body, metadata = {} }) {
 
 export async function getDashboard(req, res) {
   const role   = safeRole(req.params.role);
-  const fromDb = await fetchDashboardBundleFromDb(supabaseAdmin, role);
-  return res.json(fromDb || getDashboardBundle(role));
+  const userId = req.user?.id || null;
+  const fromDb = await fetchDashboardBundleFromDb(supabaseAdmin, role, userId);
+  return res.json(fromDb || { stats: {}, cases: [], appointments: [], messages: [] });
 }
 
 export async function getCasesByRoleHandler(req, res) {
   const role   = safeRole(req.params.role);
-  const fromDb = await fetchCasesByRoleFromDb(supabaseAdmin, role);
-  return res.json({ cases: fromDb || getCasesByRole(role) });
+  const userId = req.user?.id || null;
+  const fromDb = await fetchCasesByRoleFromDb(supabaseAdmin, role, userId);
+  return res.json({ cases: fromDb || [] });
 }
 
 export async function getMyCases(req, res) {

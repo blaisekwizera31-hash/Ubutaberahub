@@ -8,7 +8,7 @@ import {
 } from "../controllers/messageController.js";
 import { requireAuth } from "../middleware/auth.js";
 import { validateMessageBody } from "../middleware/validate.js";
-import { supabaseAdmin } from "../models/supabase.js";
+import { supabaseAdmin } from "../config/supabase.js";
 
 const router = Router();
 

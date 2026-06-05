@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { getLawyers } from "../controllers/lawyerController.js";
 import { optionalAuth } from "../middleware/auth.js";
-import { supabaseAdmin } from "../models/supabase.js";
+import { supabaseAdmin } from "../config/supabase.js";
 
 const router = Router();
 

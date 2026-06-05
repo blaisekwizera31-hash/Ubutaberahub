@@ -9,7 +9,7 @@ import {
 import { requireAuth } from "../middleware/auth.js";
 import { validateCaseSubmission } from "../middleware/validate.js";
 import { auditLogger } from "../middleware/logger.js";
-import { supabaseAdmin } from "../models/supabase.js";
+import { supabaseAdmin } from "../config/supabase.js";
 
 const router = Router();
 

@@ -2,7 +2,7 @@
  * controllers/notificationController.js
  */
 
-import { supabaseAdmin } from "../models/supabase.js";
+import { supabaseAdmin } from "../config/supabase.js";
 
 function missingTable(err) {
   const m = String(err?.message || "").toLowerCase();

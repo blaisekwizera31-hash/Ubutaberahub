@@ -2,9 +2,8 @@
  * controllers/appointmentController.js
  */
 
-import { supabaseAdmin } from "../models/supabase.js";
-import { getAppointmentsByRole } from "../models/dataStore.js";
-import { fetchAppointmentsByRoleFromDb } from "../models/supabaseStore.js";
+import { supabaseAdmin } from "../config/supabase.js";
+import { fetchAppointmentsByRoleFromDb } from "../config/supabaseStore.js";
 
 const safeRole = (v) =>
   ["citizen", "lawyer", "judge", "clerk"].includes(v) ? v : "citizen";
@@ -65,9 +64,9 @@ export async function getAppointments(req, res) {
       if (!error) return res.json({ appointments: (data || []).map(normalizeRow) });
     }
 
-    // Fallback to in-memory seed data
+    // Fallback to empty list when Supabase is unavailable
     const fromDb = await fetchAppointmentsByRoleFromDb(supabaseAdmin, role);
-    return res.json({ appointments: fromDb || getAppointmentsByRole(role) });
+    return res.json({ appointments: fromDb || [] });
   } catch (err) {
     return res.status(500).json({ error: "Failed to load appointments", message: err.message });
   }

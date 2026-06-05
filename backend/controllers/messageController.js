@@ -2,9 +2,8 @@
  * controllers/messageController.js
  */
 
-import { supabaseAdmin } from "../models/supabase.js";
-import { getMessagesByRole } from "../models/dataStore.js";
-import { fetchMessagesByRoleFromDb } from "../models/supabaseStore.js";
+import { supabaseAdmin } from "../config/supabase.js";
+import { fetchMessagesByRoleFromDb } from "../config/supabaseStore.js";
 
 async function isParticipant(conversationId, userId) {
   if (!supabaseAdmin) return false;
@@ -35,7 +34,7 @@ async function notify({ userId, type, title, body, metadata = {} }) {
 export async function getMessagesByRoleHandler(req, res) {
   const role   = req.params.role;
   const fromDb = await fetchMessagesByRoleFromDb(supabaseAdmin, role);
-  return res.json({ conversations: fromDb || getMessagesByRole(role) });
+  return res.json({ conversations: fromDb || [] });
 }
 
 export async function getConversations(req, res) {
