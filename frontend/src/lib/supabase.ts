@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Replace these with your actual Supabase credentials
-// Get them from: https://app.supabase.com/project/_/settings/api
+// Supabase credentials are loaded from Vite environment variables.
+// Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in frontend/.env.
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
