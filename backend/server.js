@@ -39,8 +39,7 @@ import aiLogRoutes        from "./routes/aiLogRoutes.js";
 
 // ── Models (for health check) ─────────────────────────────────────────────────
 import { genAI }         from "./config/gemini.js";
-import { supabaseAdmin } from "./config/supabase.js";
-
+import { supabaseAdmin, testSupabaseConnection } from "./config/supabase.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const app  = express();
@@ -80,8 +79,12 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`\n🚀  Backend running on http://localhost:${PORT}`);
-  console.log(`🤖  Gemini:   ${genAI         ? "✅ active"      : "❌ disabled (local AI fallback)"}`);
-  console.log(`🗄️   Supabase: ${supabaseAdmin ? "✅ configured"  : "❌ not configured"}\n`);
+  console.log(`🤖  Gemini:   ${genAI ? "✅ active" : "❌ disabled"}`);
+
+  // Actually test the DB connection
+  if (supabaseAdmin) {
+    await testSupabaseConnection();
+  }
 });
