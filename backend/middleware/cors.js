@@ -39,7 +39,7 @@ const EXPOSED_HEADERS = [
  * @returns {Set<string>}
  */
 function buildAllowedOrigins() {
-  const raw = process.env.CORS_ORIGIN || 'http://localhost:8080';
+  const raw = process.env.CORS_ORIGIN || 'http://localhost:5174';
   return new Set(
     raw.split(',').map((o) => o.trim()).filter(Boolean)
   );

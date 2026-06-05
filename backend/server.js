@@ -43,7 +43,7 @@ import { supabaseAdmin, testSupabaseConnection } from "./config/supabase.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const app  = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5173;
 
 // ── Global middleware ─────────────────────────────────────────────────────────
 app.use(corsMiddleware);                // CORS — must be first
