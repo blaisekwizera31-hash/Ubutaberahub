@@ -26,6 +26,7 @@ import { generalLimiter }         from "./middleware/rateLimiter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
 // ── Routes ────────────────────────────────────────────────────────────────────
+import homeRoutes         from "./routes/homeRoutes.js"
 import authRoutes         from "./routes/authRoutes.js";
 import caseRoutes         from "./routes/caseRoutes.js";
 import messageRoutes      from "./routes/messageRoutes.js";
@@ -62,7 +63,8 @@ app.get("/api/health", (_req, res) =>
   })
 );
 
-// ── Route mounting ────────────────────────────────────────────────────────────
+// ── Route mounting ───────────────────────────────────────────────────────────
+app.use("/",                 homeRoutes);
 app.use("/api/auth",          authRoutes);
 app.use("/api/cases",         caseRoutes);
 app.use("/api/conversations", messageRoutes);

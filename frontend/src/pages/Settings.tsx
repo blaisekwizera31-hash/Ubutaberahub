@@ -11,6 +11,18 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // 1. IMPORT THE LOADING SCREEN
 import LoadingScreen from "@/components/ui/LoadingScreen";
@@ -74,6 +86,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
 
 const Settings = () => {
   const { language, setLanguage } = useLanguage();
+  const { toast } = useToast();
   // 2. STATE MANAGEMENT
   const [isLoading, setIsLoading] = useState(true); // Added Loading State
   
@@ -123,6 +136,14 @@ const Settings = () => {
       reader.onloadend = () => setProfileImage(reader.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleDeleteAccount = () => {
+    toast({
+      title: "Delete account",
+      description: "Account deletion is not connected yet.",
+      variant: "destructive",
+    });
   };
 
   // 5. RETURN LOADING SCREEN IF LOADING
@@ -186,7 +207,7 @@ const Settings = () => {
               <Input defaultValue={userData?.email || "user@example.com"} type="email" className="bg-background border-border" />
             </div>
           </div>
-          <Button className="mt-6 bg-primary hover:bg-primary/90" onClick={() => alert(t.toastSuccess)}>
+          <Button className="mt-6 bg-primary hover:bg-primary/90" onClick={() => toast({ title: t.toastSuccess })}>
             {t.save}
           </Button>
         </motion.div>
@@ -239,7 +260,25 @@ const Settings = () => {
         >
           <h2 className="text-lg font-semibold text-destructive mb-2">{t.danger}</h2>
           <p className="text-sm text-muted-foreground mb-4">{t.dangerDesc}</p>
-          <Button variant="destructive" onClick={() => confirm("Are you sure?")}>{t.delete}</Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">{t.delete}</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete account?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action needs confirmation. Account deletion is not connected yet, so no data will be removed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </motion.div>
       </div>
     </DashboardLayout>

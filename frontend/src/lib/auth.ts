@@ -12,6 +12,12 @@ function persistLoggedInUser(user: any) {
   localStorage.setItem('loggedInUser', JSON.stringify(normalized));
 }
 
+function clearStoredUser() {
+  localStorage.removeItem('loggedInUser');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userId');
+}
+
 // Sign up with email and password
 export async function signUp(email: string, password: string, userInfo: any) {
   try {
@@ -55,7 +61,66 @@ export async function signUp(email: string, password: string, userInfo: any) {
       return { user: null, error: 'Account created in Auth, but profile setup failed. Please contact support.' };
     }
 
+    if (authData.session) {
+      persistLoggedInUser(userData);
+      return { user: userData, session: authData.session, needsEmailVerification: false, error: null };
+    }
+
+    clearStoredUser();
+    return { user: userData, session: null, needsEmailVerification: true, error: null };
+  } catch (error: any) {
+    return { user: null, error: error.message };
+  }
+}
+
+export async function resendSignupVerification(email: string) {
+  try {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) throw error;
+
+    return { error: null };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function verifySignupCode(email: string, code: string) {
+  try {
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'signup',
+    });
+
+    if (verifyError) {
+      throw new Error('Invalid or expired verification code. Please check your email and try again.');
+    }
+
+    if (!data.session?.user) {
+      throw new Error('Could not finish email verification. Please try the verification link instead.');
+    }
+
+    const { data: userData, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', data.session.user.id)
+      .maybeSingle();
+
+    if (profileError || !userData) {
+      throw new Error('Email verified, but your profile could not be loaded.');
+    }
+
     persistLoggedInUser(userData);
+    localStorage.setItem('userRole', userData.role);
+    localStorage.setItem('userId', userData.id);
+
     return { user: userData, error: null };
   } catch (error: any) {
     return { user: null, error: error.message };
@@ -93,7 +158,7 @@ export async function signIn(email: string, password: string) {
 // Sign out
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
-  localStorage.removeItem('loggedInUser');
+  clearStoredUser();
   return { error };
 }
 

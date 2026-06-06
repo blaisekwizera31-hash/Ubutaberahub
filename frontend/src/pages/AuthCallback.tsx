@@ -3,20 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { syncOAuthUser, loadSessionUser } from '@/services/backend';
+import { useToast } from '@/hooks/use-toast';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Handle the OAuth callback
     const handleCallback = async () => {
       try {
-        // Get the session from the URL hash
+        const params = new URLSearchParams(window.location.search);
+        const authCode = params.get('code');
+        const tokenHash = params.get('token_hash');
+        const type = params.get('type');
+
+        if (authCode) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
+          if (exchangeError) throw exchangeError;
+        } else if (tokenHash && type) {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as any,
+          });
+          if (verifyError) throw verifyError;
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
           console.error('OAuth error:', error);
-          alert('Authentication failed. Please try again.');
+          toast({ title: 'Authentication failed', description: 'Please try again.', variant: 'destructive' });
           navigate('/auth');
           return;
         }
@@ -27,6 +44,7 @@ const AuthCallback = () => {
         }
 
         const pendingRole = (localStorage.getItem('pendingRole') || 'citizen') as 'citizen' | 'lawyer' | 'judge' | 'clerk';
+        const pendingOAuthProvider = localStorage.getItem('pendingOAuthProvider');
         const dashboardRoutes: Record<string, string> = {
           citizen: '/dashboard',
           lawyer: '/lawyer-dashboard',
@@ -36,20 +54,29 @@ const AuthCallback = () => {
 
         let finalUser: any = null;
 
-        try {
-          const synced = await syncOAuthUser(
-            pendingRole,
-            session.user.user_metadata?.full_name || session.user.user_metadata?.name
-          );
-          finalUser = synced.user;
-        } catch (syncError) {
-          console.warn('Backend sync failed, falling back to Supabase table', syncError);
-          const { data: fallbackUser } = await supabase
+        if (pendingOAuthProvider) {
+          try {
+            const synced = await syncOAuthUser(
+              pendingRole,
+              session.user.user_metadata?.full_name || session.user.user_metadata?.name
+            );
+            finalUser = synced.user;
+          } catch (syncError) {
+            console.warn('Backend sync failed, falling back to Supabase table', syncError);
+            const { data: fallbackUser } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+            finalUser = fallbackUser;
+          }
+        } else {
+          const { data: signupUser } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle();
-          finalUser = fallbackUser;
+          finalUser = signupUser;
         }
 
         if (!finalUser) {
@@ -80,11 +107,12 @@ const AuthCallback = () => {
         localStorage.setItem('userRole', finalUser.role || pendingRole);
         localStorage.setItem('userId', finalUser.id);
         localStorage.removeItem('pendingRole');
+        localStorage.removeItem('pendingOAuthProvider');
 
         navigate(dashboardRoutes[finalUser.role || pendingRole] || '/dashboard');
       } catch (error) {
         console.error('Error in OAuth callback:', error);
-        alert('Authentication failed. Please try again.');
+        toast({ title: 'Authentication failed', description: 'Please try again.', variant: 'destructive' });
         navigate('/auth');
       }
     };

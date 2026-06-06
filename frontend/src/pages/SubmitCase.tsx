@@ -25,6 +25,7 @@ import {
 import { classifyCase } from "@/services/ai/gemini";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getLawyers, submitCaseToLawyer } from "@/services/backend";
+import { useToast } from "@/hooks/use-toast";
 
 const translations = {
   en: {
@@ -66,6 +67,7 @@ interface SubmitCaseProps {
 const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const t = translations.en;
 
@@ -146,10 +148,14 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
         lawyerId: formData.lawyerId,
         initialMessage: formData.description,
       });
-      alert(t.success);
+      toast({ title: "Case submitted", description: t.success });
       navigate(`/messages?conversationId=${encodeURIComponent(result.conversation.id)}`);
     } catch (error: any) {
-      alert(`Failed to submit case: ${error.message || "Unknown error"}`);
+      toast({
+        title: "Failed to submit case",
+        description: error.message || "Unknown error",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

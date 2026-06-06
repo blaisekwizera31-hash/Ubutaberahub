@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { signUp, signIn, signInWithOAuth, requestPasswordReset, verifyCodeAndResetPassword } from "@/lib/auth";
+import { signUp, signIn, signInWithOAuth, requestPasswordReset, resendSignupVerification, verifyCodeAndResetPassword } from "@/lib/auth";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import { useToast } from "@/hooks/use-toast";
 import {
   validateEmail,
   validatePassword,
@@ -173,7 +174,7 @@ const translations = {
   }
 };
 
-type AuthMode = "login" | "signup";
+type AuthMode = "login" | "signup" | "verify-email";
 
 interface AuthProps {
   lang?: string;
@@ -181,6 +182,7 @@ interface AuthProps {
 
 const Auth = ({ lang = "en" }: AuthProps) => {
   const t = translations[lang as keyof typeof translations] || translations.en;
+  const { toast } = useToast();
   const [mode, setMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState("citizen");
@@ -194,6 +196,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetStep, setResetStep] = useState<'email' | 'code' | 'password'>('email');
   const [verificationCode, setVerificationCode] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   
   // Error states for validation
@@ -285,11 +288,17 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     // If there are errors, show them and stop
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      // Show all errors in a detailed message
-      const errorMessages = Object.entries(newErrors)
-        .map(([field, error]) => `• ${error}`)
-        .join('\n');
-      alert(`Please fix the following errors:\n\n${errorMessages}`);
+      toast({
+        title: "Please fix the highlighted fields",
+        description: (
+          <ul className="mt-2 list-disc space-y-1 pl-4">
+            {Object.values(newErrors).map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        ),
+        variant: "destructive",
+      });
       return;
     }
 
@@ -310,30 +319,59 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       yearsExperience
     };
 
-    const { user, error } = await signUp(email, password, userData);
+    const { user, session, needsEmailVerification, error } = await signUp(email, password, userData);
 
     setIsLoading(false);
 
     if (error) {
       // Better error messages
       if (error.includes('rate limit')) {
-        alert('Too many signup attempts. Please wait a minute and try again.');
+        toast({ title: "Too many signup attempts", description: "Please wait a minute and try again.", variant: "destructive" });
       } else if (error.includes('already registered')) {
-        alert('This email is already registered. Please sign in instead.');
+        toast({ title: "Email already registered", description: "Please sign in instead.", variant: "destructive" });
       } else {
-        alert(`Signup failed: ${error}`);
+        toast({ title: "Signup failed", description: error, variant: "destructive" });
       }
       return;
     }
 
     if (user) {
-      // Store user info for immediate access
-      localStorage.setItem('userRole', user.role);
-      localStorage.setItem('userId', user.id);
-      
-      alert("Account created successfully! You can now sign in.");
-      setMode("login");
+      if (needsEmailVerification) {
+        toast({
+          title: "Verify your email",
+          description: `We sent a verification link to ${email}.`,
+        });
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
+        return;
+      }
+
+      if (session) {
+        localStorage.setItem('userRole', user.role);
+        localStorage.setItem('userId', user.id);
+        navigate(dashboardRoutes[user.role] || "/dashboard", { replace: true });
+      }
     }
+  };
+
+  const handleResendVerification = async () => {
+    const targetEmail = verificationEmail || email;
+    const emailValidation = validateEmail(targetEmail);
+
+    if (!emailValidation.isValid) {
+      toast({ title: "Invalid email", description: emailValidation.error, variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await resendSignupVerification(targetEmail);
+    setIsLoading(false);
+
+    if (error) {
+      toast({ title: "Could not resend verification", description: error, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Verification email sent", description: `Check ${targetEmail} for the new link.` });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -365,13 +403,13 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     if (error) {
       // Better error messages
       if (error.includes('Invalid login')) {
-        alert('Invalid email or password. Please try again.');
+        toast({ title: "Invalid email or password", description: "Please try again.", variant: "destructive" });
       } else if (error.includes('No account profile found')) {
-        alert('No account found for this email. Please create an account first.');
+        toast({ title: "No account found", description: "Please create an account first.", variant: "destructive" });
       } else if (error.includes('Email not confirmed')) {
-        alert('Please verify your email before signing in.');
+        toast({ title: "Email verification needed", description: "Please verify your email before signing in.", variant: "destructive" });
       } else {
-        alert(`Login failed: ${error}`);
+        toast({ title: "Login failed", description: error, variant: "destructive" });
       }
       return;
     }
@@ -390,7 +428,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       navigate(dashboardRoutes[user.role], { replace: true });
     } else {
       console.error('❌ No user returned from signIn');
-      alert('Login failed. Please try again.');
+      toast({ title: "Login failed", description: "Please try again.", variant: "destructive" });
     }
   };
 
@@ -399,7 +437,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     
     const emailValidation = validateEmail(resetEmail);
     if (!emailValidation.isValid) {
-      alert(emailValidation.error);
+      toast({ title: "Invalid email", description: emailValidation.error, variant: "destructive" });
       return;
     }
 
@@ -408,21 +446,21 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     setIsLoading(false);
 
     if (error) {
-      alert(`Failed to send reset email: ${error}`);
+      toast({ title: "Failed to send reset email", description: error, variant: "destructive" });
       return;
     }
 
-    alert(
-      `Password reset code sent.\n\n` +
-      `Check your email (${resetEmail}) and enter the 6-digit code to continue.`
-    );
+    toast({
+      title: "Password reset code sent",
+      description: `Check your email (${resetEmail}) and enter the 6-digit code to continue.`,
+    });
     
     setResetStep('code');
   };
 
   const handleVerifyCode = () => {
     if (verificationCode.length !== 6) {
-      alert('Please enter the 6-digit code');
+      toast({ title: "Verification code needed", description: "Please enter the 6-digit code.", variant: "destructive" });
       return;
     }
 
@@ -432,7 +470,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const handleResetPassword = async () => {
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.isValid) {
-      alert(passwordValidation.error);
+      toast({ title: "Invalid password", description: passwordValidation.error, variant: "destructive" });
       return;
     }
 
@@ -441,15 +479,14 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     setIsLoading(false);
 
     if (result.error) {
-      alert(`Failed to reset password: ${result.error}`);
+      toast({ title: "Failed to reset password", description: result.error, variant: "destructive" });
       return;
     }
 
-    alert(
-      '✅ Password Reset Successful!\n\n' +
-      'Your password has been updated.\n\n' +
-      'You can now sign in with your new password.'
-    );
+    toast({
+      title: "Password reset successful",
+      description: "Your password has been updated. You can now sign in with your new password.",
+    });
     
     setShowForgotPassword(false);
     setResetStep('email');
@@ -472,11 +509,12 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const handleSocialLogin = async (provider: 'google' | 'azure' | 'apple') => {
     // Store the selected role before OAuth redirect
     localStorage.setItem('pendingRole', selectedRole);
+    localStorage.setItem('pendingOAuthProvider', provider);
     
     const { data, error } = await signInWithOAuth(provider);
 
     if (error) {
-      alert(`OAuth login failed: ${error}`);
+      toast({ title: "OAuth login failed", description: error, variant: "destructive" });
     }
     // User will be redirected to OAuth provider
   };
@@ -625,15 +663,38 @@ const Auth = ({ lang = "en" }: AuthProps) => {
             {t.backHome}
           </Link>
 
+          {mode !== "verify-email" && (
           <div className="flex gap-2 p-1 bg-muted rounded-xl mb-8">
-            <button onClick={() => setMode("login")} className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${mode === "login" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <button type="button" onClick={() => setMode("login")} className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${mode === "login" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               {t.signIn}
             </button>
-            <button onClick={() => setMode("signup")} className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${mode === "signup" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <button type="button" onClick={() => setMode("signup")} className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${mode === "signup" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               {t.createAccount}
             </button>
           </div>
+          )}
 
+          {mode === "verify-email" ? (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                <Mail className="h-6 w-6 text-accent" />
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold text-foreground">Verify your email</h1>
+                <p className="text-sm text-muted-foreground">
+                  We sent a verification link to <span className="font-medium text-foreground">{verificationEmail || email}</span>. Open that link to finish signup and go straight to your dashboard.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Button type="button" variant="hero" size="lg" className="w-full" onClick={handleResendVerification} disabled={isLoading}>
+                  {isLoading ? "Sending..." : "Resend verification email"}
+                </Button>
+                <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => setMode("login")}>
+                  Back to sign in
+                </Button>
+              </div>
+            </motion.div>
+          ) : (
           <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
             {mode === "signup" && (
               <>
@@ -767,8 +828,10 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               {isLoading ? "Please wait..." : (mode === "login" ? t.signIn : t.createAccount)}
             </Button>
           </form>
+          )}
 
           {/* Social Login Options */}
+          {mode !== "verify-email" && (
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -806,13 +869,16 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               </Button>
             </div>
           </div>
+          )}
 
+          {mode !== "verify-email" && (
           <p className="text-center text-sm text-muted-foreground mt-6">
             {mode === "login" ? t.noAccount : t.hasAccount}{" "}
-            <button onClick={() => setMode(mode === "login" ? "signup" : "login")} className="text-accent hover:underline font-medium">
+            <button type="button" onClick={() => setMode(mode === "login" ? "signup" : "login")} className="text-accent hover:underline font-medium">
               {mode === "login" ? t.signupLink : t.loginLink}
             </button>
           </p>
+          )}
         </motion.div>
       </div>
     </div>
