@@ -2,10 +2,9 @@
  * controllers/lawyerController.js
  */
 
-import { supabaseAdmin } from "../config/supabase.js";
-import { fetchLawyersFromDb } from "../config/supabaseStore.js";
+import { fetchLawyersFromDb } from "../config/dbStore.js";
 
 export async function getLawyers(req, res) {
-  const lawyers = await fetchLawyersFromDb(supabaseAdmin);
+  const lawyers = await fetchLawyersFromDb();
   return res.json({ lawyers: lawyers || [] });
 }

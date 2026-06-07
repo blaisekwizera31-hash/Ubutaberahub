@@ -1,6 +1,6 @@
 /**
  * utils/dbErrors.js
- * Shared Supabase error detection helpers used across controllers and models.
+ * Shared PostgreSQL error detection helpers.
  */
 
 /**

@@ -1,13 +1,10 @@
 /**
  * models/appointmentModel.js
  * Manages legal professional discovery filters, consultation calendar
- * bookings, and scheduling state transitions.
- *
- * Table: appointments
- * Related: users (lawyer, citizen), cases
+ * bookings, and scheduling state transitions using PostgreSQL.
  */
 
-import { supabaseAdmin } from "../config/supabase.js";
+import pool from "../config/db.js";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -37,6 +34,7 @@ export function safeMode(v) {
 }
 
 function normalize(row) {
+  if (!row) return null;
   const iso = row.starts_at ? new Date(row.starts_at) : new Date();
   return {
     id:             row.id,
@@ -60,93 +58,66 @@ function normalize(row) {
   };
 }
 
-function missingTable(err) {
-  const m = String(err?.message || "").toLowerCase();
-  return m.includes("appointments") && m.includes("does not exist");
-}
-
 // ── Queries ───────────────────────────────────────────────────────────────────
 
 /**
  * findById — Fetch a single appointment by UUID.
  */
-export async function findById(id, db = supabaseAdmin) {
-  if (!db || !id) return null;
-  const { data, error } = await db
-    .from("appointments").select("*").eq("id", id).maybeSingle();
-  if (error) throw new Error(`[appointmentModel.findById] ${error.message}`);
-  return data ? normalize(data) : null;
+export async function findById(id) {
+  const { rows } = await pool.query('SELECT * FROM appointments WHERE id = $1', [id]);
+  return normalize(rows[0]);
 }
 
 /**
  * listForUser — Returns all appointments for a user across any participant role.
- *
- * @param {string} userId
- * @param {{ limit?, offset?, status?, from?, to? }} opts
  */
-export async function listForUser(userId, opts = {}, db = supabaseAdmin) {
-  if (!db || !userId) return [];
+export async function listForUser(userId, opts = {}) {
   const { limit = 100, offset = 0, status, from, to } = opts;
 
-  let q = db
-    .from("appointments")
-    .select("*")
-    .or([
-      `citizen_id.eq.${userId}`,
-      `lawyer_id.eq.${userId}`,
-      `judge_id.eq.${userId}`,
-      `clerk_id.eq.${userId}`,
-    ].join(","))
-    .order("starts_at", { ascending: true })
-    .range(offset, offset + limit - 1);
+  let query = `
+    SELECT * FROM appointments 
+    WHERE (citizen_id = $1 OR lawyer_id = $1 OR judge_id = $1 OR clerk_id = $1)
+  `;
+  const values = [userId];
+  let idx = 2;
 
-  if (status && APPOINTMENT_STATUSES.includes(status)) q = q.eq("status", status);
-  if (from) q = q.gte("starts_at", new Date(from).toISOString());
-  if (to)   q = q.lte("starts_at", new Date(to).toISOString());
-
-  const { data, error } = await q;
-  if (error) {
-    if (missingTable(error)) return [];
-    throw new Error(`[appointmentModel.listForUser] ${error.message}`);
+  if (status && APPOINTMENT_STATUSES.includes(status)) {
+    query += ` AND status = $${idx++}`;
+    values.push(status);
   }
-  return (data || []).map(normalize);
+  if (from) {
+    query += ` AND starts_at >= $${idx++}`;
+    values.push(new Date(from).toISOString());
+  }
+  if (to) {
+    query += ` AND starts_at <= $${idx++}`;
+    values.push(new Date(to).toISOString());
+  }
+
+  query += ` ORDER BY starts_at ASC LIMIT $${idx++} OFFSET $${idx++}`;
+  values.push(limit, offset);
+
+  const { rows } = await pool.query(query, values);
+  return rows.map(normalize);
 }
 
 /**
  * listByRole — Returns appointments scoped to user's role column.
- *
- * @param {'citizen'|'lawyer'|'judge'|'clerk'} role
- * @param {string} userId
- * @param {{ limit?, offset? }} opts
  */
-export async function listByRole(role, userId, opts = {}, db = supabaseAdmin) {
-  if (!db || !userId) return [];
+export async function listByRole(role, userId, opts = {}) {
   const colMap = { citizen: "citizen_id", lawyer: "lawyer_id", judge: "judge_id", clerk: "clerk_id" };
   const col = colMap[role] || "citizen_id";
   const { limit = 100, offset = 0 } = opts;
 
-  const { data, error } = await db
-    .from("appointments")
-    .select("*")
-    .eq(col, userId)
-    .order("starts_at", { ascending: true })
-    .range(offset, offset + limit - 1);
-
-  if (error) {
-    if (missingTable(error)) return [];
-    throw new Error(`[appointmentModel.listByRole] ${error.message}`);
-  }
-  return (data || []).map(normalize);
+  const query = `SELECT * FROM appointments WHERE ${col} = $1 ORDER BY starts_at ASC LIMIT $2 OFFSET $3`;
+  const { rows } = await pool.query(query, [userId, limit, offset]);
+  return rows.map(normalize);
 }
 
 /**
  * create — Book a new appointment.
- *
- * @param {{ citizenId, lawyerId, appointmentType, startsAt, durationMinutes, mode, caseId, notes, lawyerName }} payload
  */
-export async function create(payload, db = supabaseAdmin) {
-  if (!db) throw new Error("[appointmentModel.create] Supabase not configured");
-
+export async function create(payload) {
   if (!payload.lawyerId) throw new Error("lawyerId is required");
   if (!payload.startsAt) throw new Error("startsAt is required");
 
@@ -166,85 +137,76 @@ export async function create(payload, db = supabaseAdmin) {
     },
   };
 
-  const { data, error } = await db.from("appointments").insert([row]).select("*").single();
-  if (error) throw new Error(`[appointmentModel.create] ${error.message}`);
-  return normalize(data);
+  const query = `
+    INSERT INTO appointments (
+      citizen_id, lawyer_id, appointment_type, starts_at, duration_minutes, 
+      mode, status, case_id, notes, metadata, created_at, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+    RETURNING *
+  `;
+  
+  const values = [
+    row.citizen_id, row.lawyer_id, row.appointment_type, row.starts_at, row.duration_minutes,
+    row.mode, row.status, row.case_id, row.notes, row.metadata
+  ];
+
+  const { rows } = await pool.query(query, values);
+  return normalize(rows[0]);
 }
 
 /**
  * updateStatus — Transition appointment to a new status.
  */
-export async function updateStatus(id, status, db = supabaseAdmin) {
-  if (!db) throw new Error("[appointmentModel.updateStatus] Supabase not configured");
+export async function updateStatus(id, status) {
   if (!APPOINTMENT_STATUSES.includes(status))
     throw new Error(`[appointmentModel.updateStatus] Invalid status: ${status}`);
 
-  const { data, error } = await db
-    .from("appointments")
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id)
-    .select("*")
-    .single();
-  if (error) throw new Error(`[appointmentModel.updateStatus] ${error.message}`);
-  return normalize(data);
+  const { rows } = await pool.query(
+    'UPDATE appointments SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+    [status, id]
+  );
+  return normalize(rows[0]);
 }
 
 /**
  * checkAvailability — Returns conflicting appointments for a lawyer in a time window.
- * Used to prevent double-booking before calling create().
- *
- * @param {string} lawyerId
- * @param {string} startsAt   ISO date string
- * @param {number} durationMinutes
  */
-export async function checkAvailability(lawyerId, startsAt, durationMinutes = 30, db = supabaseAdmin) {
-  if (!db) return [];
+export async function checkAvailability(lawyerId, startsAt, durationMinutes = 30) {
   const start = new Date(startsAt).toISOString();
   const end   = new Date(new Date(startsAt).getTime() + durationMinutes * 60_000).toISOString();
 
-  const { data, error } = await db
-    .from("appointments")
-    .select("id, starts_at, duration_minutes, status")
-    .eq("lawyer_id", lawyerId)
-    .not("status", "in", '("cancelled","no_show")')
-    .gte("starts_at", start)
-    .lt("starts_at", end);
-
-  if (error) return [];
-  return data || [];
+  const query = `
+    SELECT id, starts_at, duration_minutes, status 
+    FROM appointments 
+    WHERE lawyer_id = $1 AND status NOT IN ('cancelled', 'no_show')
+    AND starts_at >= $2 AND starts_at < $3
+  `;
+  const { rows } = await pool.query(query, [lawyerId, start, end]);
+  return rows;
 }
 
 /**
  * cancel — Soft-cancel an appointment with an optional reason note.
  */
-export async function cancel(id, reason, db = supabaseAdmin) {
-  if (!db) throw new Error("[appointmentModel.cancel] Supabase not configured");
-  const { data, error } = await db
-    .from("appointments")
-    .update({
-      status:     "cancelled",
-      notes:      reason ? `Cancelled: ${reason}` : "Cancelled",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select("*")
-    .single();
-  if (error) throw new Error(`[appointmentModel.cancel] ${error.message}`);
-  return normalize(data);
+export async function cancel(id, reason) {
+  const { rows } = await pool.query(
+    'UPDATE appointments SET status = $1, notes = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
+    ["cancelled", reason ? `Cancelled: ${reason}` : "Cancelled", id]
+  );
+  return normalize(rows[0]);
 }
 
 /**
  * countUpcoming — Count upcoming confirmed/pending appointments for a user.
  */
-export async function countUpcoming(userId, db = supabaseAdmin) {
-  if (!db) return 0;
-  const now = new Date().toISOString();
-  const { count, error } = await db
-    .from("appointments")
-    .select("id", { count: "exact", head: true })
-    .or(`citizen_id.eq.${userId},lawyer_id.eq.${userId}`)
-    .in("status", ["pending", "confirmed"])
-    .gte("starts_at", now);
-  if (error) return 0;
-  return count ?? 0;
+export async function countUpcoming(userId) {
+  const query = `
+    SELECT COUNT(*) 
+    FROM appointments 
+    WHERE (citizen_id = $1 OR lawyer_id = $1)
+    AND status IN ('pending', 'confirmed')
+    AND starts_at >= NOW()
+  `;
+  const { rows } = await pool.query(query, [userId]);
+  return parseInt(rows[0].count, 10);
 }

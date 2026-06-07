@@ -8,8 +8,8 @@
  *
  *   CORS_ORIGIN=https://ubutaberahub.vercel.app,https://ubutaberahub-git-main.vercel.app
  *
- * In development, http://localhost:* origins are also allowed automatically
- * when NODE_ENV !== 'production'.
+ * In development, localhost and private-network origins are also allowed
+ * automatically when NODE_ENV !== 'production'.
  */
 
 import corsLib from 'cors';
@@ -39,7 +39,7 @@ const EXPOSED_HEADERS = [
  * @returns {Set<string>}
  */
 function buildAllowedOrigins() {
-  const raw = process.env.CORS_ORIGIN || 'http://localhost:5174';
+  const raw = process.env.CORS_ORIGIN || 'http://localhost:8080';
   return new Set(
     raw.split(',').map((o) => o.trim()).filter(Boolean)
   );
@@ -51,7 +51,7 @@ function buildAllowedOrigins() {
  * Rules:
  *  1. No origin (same-origin requests, curl, mobile) → allowed.
  *  2. Explicitly listed in CORS_ORIGIN → allowed.
- *  3. localhost / 127.0.0.1 on any port in non-production → allowed.
+ *  3. localhost / 127.0.0.1 / private LAN IPs on any port in non-production → allowed.
  *  4. Everything else → blocked.
  *
  * @param {Set<string>} allowedOrigins
@@ -65,11 +65,14 @@ function originValidator(allowedOrigins, origin, callback) {
   // Explicitly whitelisted
   if (allowedOrigins.has(origin)) return callback(null, true);
 
-  // Local dev: allow localhost / 127.0.0.1 on any port
+  // Local dev: allow localhost, loopback, and private LAN IPs on any port.
   if (process.env.NODE_ENV !== 'production') {
     const isLocal =
       /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
-      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin);
+      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
+      /^https?:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
+      /^https?:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
+      /^https?:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin);
     if (isLocal) return callback(null, true);
   }
 

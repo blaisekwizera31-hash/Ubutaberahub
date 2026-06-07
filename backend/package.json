@@ -1,17 +1,21 @@
 {
-    "version":  "1.0.0",
-    "name":  "ubutaberahub-backend",
-    "scripts":  {
-                    "start":  "node server.js",
-                    "dev":  "node server.js"
-                },
-    "type":  "module",
-    "dependencies":  {
-                         "@supabase/supabase-js":  "^2.97.0",
-                         "cors":  "^2.8.5",
-                         "express":  "^4.21.2",
-                         "dotenv":  "^16.4.5",
-                         "@google/generative-ai":  "^0.24.1"
-                     },
-    "private":  true
+    "version": "1.0.0",
+    "name": "ubutaberahub-backend",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "type": "module",
+    "dependencies": {
+        "@google/generative-ai": "^0.24.1",
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.21.2",
+        "jsonwebtoken": "^9.0.3",
+        "nodemailer": "^8.0.10",
+        "pg": "^8.21.0",
+        "uuid": "^14.0.0"
+    },
+    "private": true
 }

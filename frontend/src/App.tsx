@@ -10,7 +10,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Page Imports
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
 import CitizenDashboard from "./pages/CitizenDashboard";
@@ -63,7 +62,6 @@ const AppContent = () => {
               element={<Index currentLang={language} onLanguageChange={setLanguage} />} 
             />
             <Route path="/auth" element={<Auth lang={language} />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             

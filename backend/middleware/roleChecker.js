@@ -1,15 +1,15 @@
 /**
  * Role Checker Middleware
- * Inspects the decoded token payload (req.profile.role) to ensure the user's
+ * Inspects the decoded token payload (req.user.role) to ensure the user's
  * role matches the roles permitted on a given portal route.
  *
  * Supported roles: citizen | lawyer | clerk | judge
  *
- * Must be used AFTER requireAuth (from auth.js), which attaches req.profile.
+ * Must be used AFTER verifyToken (from auth.js), which attaches req.user.
  *
  * Usage:
- *   router.get('/lawyer-portal', requireAuth(supabase), checkRole('lawyer'), handler)
- *   router.get('/court-portal',  requireAuth(supabase), checkRole(['clerk','judge']), handler)
+ *   router.get('/lawyer-portal', verifyToken, checkRole('lawyer'), handler)
+ *   router.get('/court-portal',  verifyToken, checkRole(['clerk','judge']), handler)
  */
 
 /** Valid roles in the system */
@@ -36,7 +36,7 @@ export function checkRole(allowedRoles) {
   }
 
   return (req, res, next) => {
-    const role = req.profile?.role;
+    const role = req.user?.role;
 
     if (!role) {
       return res.status(403).json({
@@ -61,7 +61,7 @@ export function checkRole(allowedRoles) {
  * These are direct drop-in middleware — no need to call checkRole() yourself.
  *
  * Example:
- *   router.get('/lawyer-portal', requireAuth(supabase), lawyerOnly, handler)
+ *   router.get('/lawyer-portal', verifyToken, lawyerOnly, handler)
  */
 export const citizenOnly = checkRole(ROLES.CITIZEN);
 export const lawyerOnly  = checkRole(ROLES.LAWYER);

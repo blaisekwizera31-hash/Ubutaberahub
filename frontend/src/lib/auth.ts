@@ -1,6 +1,6 @@
-import { supabase } from './supabase';
+import api from './api';
 
-function persistLoggedInUser(user: any) {
+function persistLoggedInUser(user: any, token?: string) {
   if (!user) return;
   const normalized = {
     id: user.id,
@@ -10,10 +10,14 @@ function persistLoggedInUser(user: any) {
     profilePhoto: user.profile_photo || user.profilePhoto || null,
   };
   localStorage.setItem('loggedInUser', JSON.stringify(normalized));
+  if (token) {
+    localStorage.setItem('authToken', token);
+  }
 }
 
 function clearStoredUser() {
   localStorage.removeItem('loggedInUser');
+  localStorage.removeItem('authToken');
   localStorage.removeItem('userRole');
   localStorage.removeItem('userId');
 }
@@ -21,261 +25,98 @@ function clearStoredUser() {
 // Sign up with email and password
 export async function signUp(email: string, password: string, userInfo: any) {
   try {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const response = await api.post('/auth/signup', {
       email,
       password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('No user returned');
-
-    const insertData: any = {
-      id: authData.user.id,
-      email,
       name: userInfo.name,
-      phone: userInfo.phone || null,
-      profile_photo: userInfo.profilePhoto || null,
       role: userInfo.role,
+      ...userInfo
+    });
+
+    const { user, token, message } = response.data;
+
+    if (token) {
+      persistLoggedInUser(user, token);
+    }
+
+    return { 
+      user, 
+      token, 
+      needsEmailVerification: !user.is_verified, 
+      message,
+      error: null 
     };
-
-    if (userInfo.citizenId) insertData.citizen_id = userInfo.citizenId;
-    if (userInfo.licenseNumber) insertData.license_number = userInfo.licenseNumber;
-    if (userInfo.specialization) insertData.specialization = userInfo.specialization;
-    if (userInfo.lawFirm) insertData.law_firm = userInfo.lawFirm;
-    if (userInfo.employeeId) insertData.employee_id = userInfo.employeeId;
-    if (userInfo.courtAssigned) insertData.court_assigned = userInfo.courtAssigned;
-    if (userInfo.judgeId) insertData.judge_id = userInfo.judgeId;
-    if (userInfo.yearsExperience) insertData.years_experience = parseInt(userInfo.yearsExperience, 10);
-
-    const { data: userData, error: dbError } = await supabase
-      .from('users')
-      .insert([insertData])
-      .select()
-      .single();
-
-    if (dbError) {
-      // Keep auth account but report a profile issue to user.
-      return { user: null, error: 'Account created in Auth, but profile setup failed. Please contact support.' };
-    }
-
-    if (authData.session) {
-      persistLoggedInUser(userData);
-      return { user: userData, session: authData.session, needsEmailVerification: false, error: null };
-    }
-
-    clearStoredUser();
-    return { user: userData, session: null, needsEmailVerification: true, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message };
-  }
-}
-
-export async function resendSignupVerification(email: string) {
-  try {
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) throw error;
-
-    return { error: null };
-  } catch (error: any) {
-    return { error: error.message };
-  }
-}
-
-export async function verifySignupCode(email: string, code: string) {
-  try {
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'signup',
-    });
-
-    if (verifyError) {
-      throw new Error('Invalid or expired verification code. Please check your email and try again.');
-    }
-
-    if (!data.session?.user) {
-      throw new Error('Could not finish email verification. Please try the verification link instead.');
-    }
-
-    const { data: userData, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', data.session.user.id)
-      .maybeSingle();
-
-    if (profileError || !userData) {
-      throw new Error('Email verified, but your profile could not be loaded.');
-    }
-
-    persistLoggedInUser(userData);
-    localStorage.setItem('userRole', userData.role);
-    localStorage.setItem('userId', userData.id);
-
-    return { user: userData, error: null };
-  } catch (error: any) {
-    return { user: null, error: error.message };
+    return { user: null, error: error.response?.data?.error || error.message };
   }
 }
 
 // Sign in with email and password
 export async function signIn(email: string, password: string) {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const response = await api.post('/auth/login', { email, password });
+    const { user, token } = response.data;
 
-    if (error) throw error;
-
-    const { data: userData } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', data.user.id)
-      .maybeSingle();
-
-    if (!userData) {
-      await supabase.auth.signOut();
-      return { user: null, error: 'No account profile found. Please sign up first.' };
-    }
-
-    persistLoggedInUser(userData);
-    return { user: userData, error: null };
+    persistLoggedInUser(user, token);
+    return { user, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message };
+    return { user: null, error: error.response?.data?.error || error.message };
   }
 }
 
 // Sign out
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
   clearStoredUser();
-  return { error };
+  return { error: null };
 }
 
 // Get current user
 export async function getCurrentUser() {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const token = localStorage.getItem('authToken');
+    if (!token) return { user: null, error: null };
 
-    if (!user) return { user: null, error: null };
+    const response = await api.get('/auth/session-user');
+    const { user } = response.data;
 
-    const { data: userData, error: dbError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (dbError) throw dbError;
-
-    persistLoggedInUser(userData);
-    return { user: userData, error: null };
+    persistLoggedInUser(user);
+    return { user, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message };
+    clearStoredUser();
+    return { user: null, error: error.response?.data?.error || error.message };
   }
 }
 
-// Sign in with OAuth (Google, Microsoft, Apple)
-export async function signInWithOAuth(provider: 'google' | 'azure' | 'apple') {
-  try {
-    const isGoogle = provider === 'google';
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: isGoogle ? { prompt: 'select_account' } : undefined,
-      },
-    });
-
-    if (error) throw error;
-
-    return { data, error: null };
-  } catch (error: any) {
-    return { data: null, error: error.message };
-  }
-}
-
-// Request password reset via email OTP code
+// Request password reset
 export async function requestPasswordReset(email: string) {
   try {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-      },
-    });
-
-    if (error) {
-      if (error.message.includes('rate limit')) {
-        throw new Error('Too many requests. Please wait a minute and try again.');
-      }
-      throw error;
-    }
-
-    return { error: null };
+    const response = await api.post('/auth/forgot-password', { email });
+    return { error: null, message: response.data.message };
   } catch (error: any) {
-    return { error: error.message };
+    return { error: error.response?.data?.error || error.message };
   }
 }
 
-// Verify email OTP code and reset password
-export async function verifyCodeAndResetPassword(email: string, code: string, newPassword: string) {
+// Reset password with token
+export async function resetPassword(token: string, password: string) {
   try {
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'email',
-    });
-
-    if (verifyError) {
-      throw new Error('Invalid or expired verification code. Please request a new code.');
-    }
-
-    if (!data.session) {
-      throw new Error('Could not establish reset session. Please try again.');
-    }
-
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (updateError) throw updateError;
-
-    await supabase.auth.signOut();
-
-    return {
-      error: null,
-      success: true,
-      message: 'Password updated successfully!',
+    const response = await api.post('/auth/reset-password', { token, password });
+    return { 
+      error: null, 
+      success: true, 
+      message: response.data.message 
     };
   } catch (error: any) {
-    return { error: error.message };
+    return { error: error.response?.data?.error || error.message };
   }
 }
 
-// Update password with new password
-export async function updatePassword(newPassword: string) {
+// Verify email with token
+export async function verifyEmail(token: string) {
   try {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) throw error;
-
-    return { error: null };
+    const response = await api.get(`/auth/verify-email?token=${token}`);
+    return { error: null, message: response.data.message };
   } catch (error: any) {
-    return { error: error.message };
+    return { error: error.response?.data?.error || error.message };
   }
 }

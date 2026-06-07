@@ -1,58 +1,54 @@
 /**
  * Authentication Middleware
- * Verifies Supabase JWT tokens on protected routes
+ * Verifies JWT tokens on protected routes
  */
+
+import jwt from 'jsonwebtoken';
+import pool from '../config/db.js';
 
 /**
- * requireAuth - Blocks unauthenticated requests
- * Attaches req.user (Supabase auth user) and req.profile (users table row)
+ * verifyToken - Express middleware to verify JWT
  */
-export function requireAuth(supabaseAdmin) {
-  return async (req, res, next) => {
-    try {
-      const authHeader = req.headers.authorization || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+export const verifyToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
 
-      if (!token) {
-        return res.status(401).json({ error: 'Unauthorized', message: 'Missing Bearer token' });
-      }
-
-      if (!supabaseAdmin) {
-        return res.status(500).json({ error: 'Auth service unavailable' });
-      }
-
-      const { data, error } = await supabaseAdmin.auth.getUser(token);
-      if (error || !data?.user) {
-        return res.status(401).json({ error: 'Unauthorized', message: 'Invalid or expired token' });
-      }
-
-      req.user = data.user;
-
-      // Attach profile from users table
-      const { data: profile } = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      req.profile = profile || null;
-      next();
-    } catch (err) {
-      console.error('[auth] requireAuth error:', err.message);
-      return res.status(500).json({ error: 'Authentication error', message: err.message });
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Missing Bearer token' });
     }
-  };
-}
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    
+    const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
+    const user = rows[0];
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'User not found' });
+    }
+
+    req.user = user;
+    req.profile = user; 
+    next();
+  } catch (err) {
+    console.error('[auth] verifyToken error:', err.message);
+    return res.status(401).json({ error: 'Unauthorized', message: 'Invalid or expired token' });
+  }
+};
+
+/**
+ * requireAuth - Legacy wrapper for verifyToken
+ */
+export const requireAuth = () => verifyToken;
 
 /**
  * requireRole - Restricts route to specific roles
- * Must be used AFTER requireAuth
- * Usage: requireRole('lawyer'), requireRole(['lawyer','judge'])
+ * Must be used AFTER verifyToken
  */
 export function requireRole(roles) {
   const allowed = Array.isArray(roles) ? roles : [roles];
   return (req, res, next) => {
-    const role = req.profile?.role;
+    const role = req.user?.role;
     if (!role || !allowed.includes(role)) {
       return res.status(403).json({
         error: 'Forbidden',
@@ -65,39 +61,29 @@ export function requireRole(roles) {
 
 /**
  * optionalAuth - Attaches user if token present, continues without it
- * Useful for routes that behave differently for logged-in vs anonymous users
  */
-export function optionalAuth(supabaseAdmin) {
-  return async (req, res, next) => {
-    try {
-      const authHeader = req.headers.authorization || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+export const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
 
-      if (!token || !supabaseAdmin) {
-        req.user = null;
-        req.profile = null;
-        return next();
-      }
-
-      const { data } = await supabaseAdmin.auth.getUser(token);
-      req.user = data?.user || null;
-
-      if (req.user) {
-        const { data: profile } = await supabaseAdmin
-          .from('users')
-          .select('*')
-          .eq('id', req.user.id)
-          .maybeSingle();
-        req.profile = profile || null;
-      } else {
-        req.profile = null;
-      }
-
-      next();
-    } catch {
+    if (!token) {
       req.user = null;
       req.profile = null;
-      next();
+      return next();
     }
-  };
-}
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
+    const user = rows[0];
+
+    req.user = user || null;
+    req.profile = user || null;
+
+    next();
+  } catch {
+    req.user = null;
+    req.profile = null;
+    next();
+  }
+};

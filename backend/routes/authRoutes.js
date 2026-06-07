@@ -1,12 +1,27 @@
 import { Router } from "express";
-import { getSessionUser, syncProfile } from "../controllers/authController.js";
-import { requireAuth } from "../middleware/auth.js";
+import { 
+  signup, 
+  login, 
+  verifyEmail, 
+  forgotPassword, 
+  resetPassword, 
+  getSessionUser, 
+  syncProfile 
+} from "../controllers/authController.js";
+import { verifyToken } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
-import { supabaseAdmin } from "../config/supabase.js";
 
 const router = Router();
 
-router.get( "/session-user", requireAuth(supabaseAdmin), getSessionUser);
-router.post("/sync-profile",  authLimiter, requireAuth(supabaseAdmin), syncProfile);
+// Public routes
+router.post("/signup",          authLimiter, signup);
+router.post("/login",           authLimiter, login);
+router.get( "/verify-email",    authLimiter, verifyEmail);
+router.post("/forgot-password", authLimiter, forgotPassword);
+router.post("/reset-password",  authLimiter, resetPassword);
+
+// Protected routes
+router.get( "/session-user",    verifyToken, getSessionUser);
+router.post("/sync-profile",     authLimiter, verifyToken, syncProfile);
 
 export default router;

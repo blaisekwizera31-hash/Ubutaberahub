@@ -1,13 +1,10 @@
 /**
  * models/hearingModel.js
  * Coordinates official court calendar dates, trial room assignments,
- * and specific judicial scheduling.
- *
- * Table: hearings
- * Related: cases, users (judge, clerk), notifications
+ * and specific judicial scheduling using PostgreSQL.
  */
 
-import { supabaseAdmin } from "../config/supabase.js";
+import pool from "../config/db.js";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -30,6 +27,7 @@ export function safeType(v) {
 }
 
 function normalize(row) {
+  if (!row) return null;
   return {
     id:           row.id,
     caseId:       row.case_id,
@@ -51,250 +49,229 @@ function normalize(row) {
   };
 }
 
-function missingTable(err) {
-  const m = String(err?.message || "").toLowerCase();
-  return m.includes("hearings") && m.includes("does not exist");
-}
-
 // ── Queries ───────────────────────────────────────────────────────────────────
 
 /**
  * findById — Fetch a single hearing row.
  */
-export async function findById(id, db = supabaseAdmin) {
-  if (!db || !id) return null;
-  const { data, error } = await db.from("hearings").select("*").eq("id", id).maybeSingle();
-  if (error) throw new Error(`[hearingModel.findById] ${error.message}`);
-  return data ? normalize(data) : null;
+export async function findById(id) {
+  const { rows } = await pool.query('SELECT * FROM hearings WHERE id = $1', [id]);
+  return normalize(rows[0]);
 }
 
 /**
  * listForCase — All hearings linked to a specific case UUID.
- *
- * @param {string} caseId
- * @param {{ status?, limit?, offset? }} opts
  */
-export async function listForCase(caseId, opts = {}, db = supabaseAdmin) {
-  if (!db || !caseId) return [];
+export async function listForCase(caseId, opts = {}) {
   const { status, limit = 50, offset = 0 } = opts;
 
-  let q = db
-    .from("hearings")
-    .select("*")
-    .eq("case_id", caseId)
-    .order("scheduled_at", { ascending: true })
-    .range(offset, offset + limit - 1);
+  let query = 'SELECT * FROM hearings WHERE case_id = $1';
+  const values = [caseId];
+  let idx = 2;
 
-  if (status && HEARING_STATUSES.includes(status)) q = q.eq("status", status);
-
-  const { data, error } = await q;
-  if (error) {
-    if (missingTable(error)) return [];
-    throw new Error(`[hearingModel.listForCase] ${error.message}`);
+  if (status && HEARING_STATUSES.includes(status)) {
+    query += ` AND status = $${idx++}`;
+    values.push(status);
   }
-  return (data || []).map(normalize);
+
+  query += ` ORDER BY scheduled_at ASC LIMIT $${idx++} OFFSET $${idx++}`;
+  values.push(limit, offset);
+
+  const { rows } = await pool.query(query, values);
+  return rows.map(normalize);
 }
 
 /**
  * listForJudge — All hearings assigned to a specific judge.
- *
- * @param {string} judgeId
- * @param {{ from?, to?, status?, limit?, offset? }} opts
  */
-export async function listForJudge(judgeId, opts = {}, db = supabaseAdmin) {
-  if (!db || !judgeId) return [];
+export async function listForJudge(judgeId, opts = {}) {
   const { from, to, status, limit = 100, offset = 0 } = opts;
 
-  let q = db
-    .from("hearings")
-    .select("*")
-    .eq("judge_id", judgeId)
-    .order("scheduled_at", { ascending: true })
-    .range(offset, offset + limit - 1);
+  let query = 'SELECT * FROM hearings WHERE judge_id = $1';
+  const values = [judgeId];
+  let idx = 2;
 
-  if (status && HEARING_STATUSES.includes(status)) q = q.eq("status", status);
-  if (from) q = q.gte("scheduled_at", new Date(from).toISOString());
-  if (to)   q = q.lte("scheduled_at", new Date(to).toISOString());
-
-  const { data, error } = await q;
-  if (error) {
-    if (missingTable(error)) return [];
-    throw new Error(`[hearingModel.listForJudge] ${error.message}`);
+  if (status && HEARING_STATUSES.includes(status)) {
+    query += ` AND status = $${idx++}`;
+    values.push(status);
   }
-  return (data || []).map(normalize);
+  if (from) {
+    query += ` AND scheduled_at >= $${idx++}`;
+    values.push(new Date(from).toISOString());
+  }
+  if (to) {
+    query += ` AND scheduled_at <= $${idx++}`;
+    values.push(new Date(to).toISOString());
+  }
+
+  query += ` ORDER BY scheduled_at ASC LIMIT $${idx++} OFFSET $${idx++}`;
+  values.push(limit, offset);
+
+  const { rows } = await pool.query(query, values);
+  return rows.map(normalize);
 }
 
 /**
  * listForClerk — All hearings a clerk is assigned to manage.
  */
-export async function listForClerk(clerkId, opts = {}, db = supabaseAdmin) {
-  if (!db || !clerkId) return [];
+export async function listForClerk(clerkId, opts = {}) {
   const { from, to, status, limit = 100, offset = 0 } = opts;
 
-  let q = db
-    .from("hearings")
-    .select("*")
-    .eq("clerk_id", clerkId)
-    .order("scheduled_at", { ascending: true })
-    .range(offset, offset + limit - 1);
+  let query = 'SELECT * FROM hearings WHERE clerk_id = $1';
+  const values = [clerkId];
+  let idx = 2;
 
-  if (status && HEARING_STATUSES.includes(status)) q = q.eq("status", status);
-  if (from) q = q.gte("scheduled_at", new Date(from).toISOString());
-  if (to)   q = q.lte("scheduled_at", new Date(to).toISOString());
-
-  const { data, error } = await q;
-  if (error) {
-    if (missingTable(error)) return [];
-    throw new Error(`[hearingModel.listForClerk] ${error.message}`);
+  if (status && HEARING_STATUSES.includes(status)) {
+    query += ` AND status = $${idx++}`;
+    values.push(status);
   }
-  return (data || []).map(normalize);
+  if (from) {
+    query += ` AND scheduled_at >= $${idx++}`;
+    values.push(new Date(from).toISOString());
+  }
+  if (to) {
+    query += ` AND scheduled_at <= $${idx++}`;
+    values.push(new Date(to).toISOString());
+  }
+
+  query += ` ORDER BY scheduled_at ASC LIMIT $${idx++} OFFSET $${idx++}`;
+  values.push(limit, offset);
+
+  const { rows } = await pool.query(query, values);
+  return rows.map(normalize);
 }
 
 /**
  * schedule — Insert a new hearing row.
- *
- * @param {{ caseId, hearingType, scheduledAt, durationMinutes, roomId, roomName, judgeId, clerkId, notes, metadata }} payload
  */
-export async function schedule(payload, db = supabaseAdmin) {
-  if (!db) throw new Error("[hearingModel.schedule] Supabase not configured");
+export async function schedule(payload) {
   if (!payload.caseId)      throw new Error("caseId is required");
   if (!payload.scheduledAt) throw new Error("scheduledAt is required");
   if (!payload.judgeId)     throw new Error("judgeId is required");
 
-  const row = {
-    case_id:          payload.caseId,
-    hearing_type:     safeType(payload.hearingType),
-    status:           "scheduled",
-    scheduled_at:     new Date(payload.scheduledAt).toISOString(),
-    duration_minutes: Number(payload.durationMinutes) || 60,
-    room_id:          payload.roomId   || null,
-    room_name:        payload.roomName || null,
-    judge_id:         payload.judgeId,
-    clerk_id:         payload.clerkId  || null,
-    notes:            payload.notes    || null,
-    metadata:         payload.metadata || {},
-  };
+  const query = `
+    INSERT INTO hearings (
+      case_id, hearing_type, status, scheduled_at, duration_minutes, 
+      room_id, room_name, judge_id, clerk_id, notes, metadata, created_at, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+    RETURNING *
+  `;
+  const values = [
+    payload.caseId, safeType(payload.hearingType), "scheduled", 
+    new Date(payload.scheduledAt).toISOString(), Number(payload.durationMinutes) || 60,
+    payload.roomId || null, payload.roomName || null, payload.judgeId, 
+    payload.clerkId || null, payload.notes || null, payload.metadata || {}
+  ];
 
-  const { data, error } = await db.from("hearings").insert([row]).select("*").single();
-  if (error) throw new Error(`[hearingModel.schedule] ${error.message}`);
-  return normalize(data);
+  const { rows } = await pool.query(query, values);
+  return normalize(rows[0]);
 }
 
 /**
  * update — Partial update for rescheduling, room changes, or status updates.
- *
- * @param {string} id
- * @param {{ status?, scheduledAt?, durationMinutes?, roomId?, roomName?, judgeId?, clerkId?, notes? }} updates
  */
-export async function update(id, updates, db = supabaseAdmin) {
-  if (!db) throw new Error("[hearingModel.update] Supabase not configured");
+export async function update(id, updates) {
+  const fields = [];
+  const values = [];
+  let idx = 1;
 
-  const allowed = {};
-  if (updates.status          !== undefined) allowed.status           = safeStatus(updates.status);
-  if (updates.scheduledAt     !== undefined) allowed.scheduled_at     = new Date(updates.scheduledAt).toISOString();
-  if (updates.durationMinutes !== undefined) allowed.duration_minutes = Number(updates.durationMinutes);
-  if (updates.roomId          !== undefined) allowed.room_id          = updates.roomId;
-  if (updates.roomName        !== undefined) allowed.room_name        = updates.roomName;
-  if (updates.judgeId         !== undefined) allowed.judge_id         = updates.judgeId;
-  if (updates.clerkId         !== undefined) allowed.clerk_id         = updates.clerkId;
-  if (updates.notes           !== undefined) allowed.notes            = updates.notes;
-  allowed.updated_at = new Date().toISOString();
+  if (updates.status !== undefined) {
+    fields.push(`status = $${idx++}`);
+    values.push(safeStatus(updates.status));
+  }
+  if (updates.scheduledAt !== undefined) {
+    fields.push(`scheduled_at = $${idx++}`);
+    values.push(new Date(updates.scheduledAt).toISOString());
+  }
+  if (updates.durationMinutes !== undefined) {
+    fields.push(`duration_minutes = $${idx++}`);
+    values.push(Number(updates.durationMinutes));
+  }
+  if (updates.roomId !== undefined) {
+    fields.push(`room_id = $${idx++}`);
+    values.push(updates.roomId);
+  }
+  if (updates.roomName !== undefined) {
+    fields.push(`room_name = $${idx++}`);
+    values.push(updates.roomName);
+  }
+  if (updates.judgeId !== undefined) {
+    fields.push(`judge_id = $${idx++}`);
+    values.push(updates.judgeId);
+  }
+  if (updates.clerkId !== undefined) {
+    fields.push(`clerk_id = $${idx++}`);
+    values.push(updates.clerkId);
+  }
+  if (updates.notes !== undefined) {
+    fields.push(`notes = $${idx++}`);
+    values.push(updates.notes);
+  }
 
-  if (Object.keys(allowed).length === 1) // only updated_at
-    throw new Error("[hearingModel.update] No valid fields to update");
+  if (fields.length === 0) throw new Error("[hearingModel.update] No valid fields to update");
 
-  const { data, error } = await db
-    .from("hearings").update(allowed).eq("id", id).select("*").single();
-  if (error) throw new Error(`[hearingModel.update] ${error.message}`);
-  return normalize(data);
+  fields.push(`updated_at = NOW()`);
+  values.push(id);
+
+  const query = `UPDATE hearings SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`;
+  const { rows } = await pool.query(query, values);
+  return normalize(rows[0]);
 }
 
 /**
  * cancel — Set status to cancelled with an optional reason.
  */
-export async function cancel(id, reason, db = supabaseAdmin) {
-  if (!db) throw new Error("[hearingModel.cancel] Supabase not configured");
-  const { data, error } = await db
-    .from("hearings")
-    .update({
-      status:     "cancelled",
-      notes:      reason ? `Cancelled: ${reason}` : "Cancelled",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select("*")
-    .single();
-  if (error) throw new Error(`[hearingModel.cancel] ${error.message}`);
-  return normalize(data);
+export async function cancel(id, reason) {
+  const { rows } = await pool.query(
+    'UPDATE hearings SET status = $1, notes = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
+    ["cancelled", reason ? `Cancelled: ${reason}` : "Cancelled", id]
+  );
+  return normalize(rows[0]);
 }
 
 /**
  * checkRoomConflict — Returns conflicting hearings in the same room for a time window.
- * Call before schedule() to enforce room availability.
- *
- * @param {string}  roomId
- * @param {string}  scheduledAt    ISO date string
- * @param {number}  durationMinutes
- * @param {string}  [excludeId]    Hearing ID to exclude (for reschedule checks)
  */
-export async function checkRoomConflict(roomId, scheduledAt, durationMinutes = 60, excludeId = null, db = supabaseAdmin) {
-  if (!db || !roomId) return [];
+export async function checkRoomConflict(roomId, scheduledAt, durationMinutes = 60, excludeId = null) {
   const start = new Date(scheduledAt).toISOString();
   const end   = new Date(new Date(scheduledAt).getTime() + durationMinutes * 60_000).toISOString();
 
-  let q = db
-    .from("hearings")
-    .select("id, scheduled_at, duration_minutes, status")
-    .eq("room_id", roomId)
-    .neq("status", "cancelled")
-    .gte("scheduled_at", start)
-    .lt("scheduled_at", end);
+  let query = `
+    SELECT id, scheduled_at, duration_minutes, status 
+    FROM hearings 
+    WHERE room_id = $1 AND status != 'cancelled'
+    AND scheduled_at >= $2 AND scheduled_at < $3
+  `;
+  const values = [roomId, start, end];
 
-  if (excludeId) q = q.neq("id", excludeId);
+  if (excludeId) {
+    query += ' AND id != $4';
+    values.push(excludeId);
+  }
 
-  const { data, error } = await q;
-  if (error) return [];
-  return data || [];
+  const { rows } = await pool.query(query, values);
+  return rows;
 }
 
 /**
  * listRooms — Distinct room list derived from hearing rows.
- * Optionally decorated with booked-slot counts within a date range.
- *
- * @param {{ from?, to? }} opts
  */
-export async function listRooms(opts = {}, db = supabaseAdmin) {
-  if (!db) return [];
+export async function listRooms(opts = {}) {
   const { from, to } = opts;
 
-  const { data, error } = await db
-    .from("hearings")
-    .select("room_id, room_name")
-    .not("room_id", "is", null);
+  const { rows: roomRows } = await pool.query(
+    'SELECT DISTINCT room_id, room_name FROM hearings WHERE room_id IS NOT NULL'
+  );
 
-  if (error) {
-    if (missingTable(error)) return [];
-    throw new Error(`[hearingModel.listRooms] ${error.message}`);
-  }
-
-  // Deduplicate
-  const map = new Map();
-  for (const r of data || []) {
-    if (r.room_id && !map.has(r.room_id))
-      map.set(r.room_id, { id: r.room_id, name: r.room_name, bookedSlots: [] });
-  }
-  const rooms = [...map.values()];
+  const rooms = roomRows.map(r => ({ id: r.room_id, name: r.room_name, bookedSlots: [] }));
 
   if (from && to && rooms.length) {
-    const { data: booked } = await db
-      .from("hearings")
-      .select("room_id, scheduled_at, duration_minutes, status")
-      .not("room_id", "is", null)
-      .neq("status", "cancelled")
-      .gte("scheduled_at", new Date(from).toISOString())
-      .lte("scheduled_at", new Date(to).toISOString());
+    const { rows: booked } = await pool.query(
+      "SELECT room_id, scheduled_at, duration_minutes, status FROM hearings WHERE room_id IS NOT NULL AND status != 'cancelled' AND scheduled_at >= $1 AND scheduled_at <= $2",
+      [new Date(from).toISOString(), new Date(to).toISOString()]
+    );
 
-    const slotsByRoom = (booked || []).reduce((acc, r) => {
+    const slotsByRoom = booked.reduce((acc, r) => {
       if (!acc[r.room_id]) acc[r.room_id] = [];
       acc[r.room_id].push({
         scheduledAt:  r.scheduled_at,

@@ -11,7 +11,7 @@
  *   ├── routes/          authRoutes, caseRoutes, messageRoutes, aiRoutes,
  *   │                    notificationRoutes, appointmentRoutes, lawyerRoutes,
  *   │                    hearingRoutes, analyticsRoutes, aiLogRoutes
- *   ├── config/          supabase, gemini, supabaseStore
+ *   ├── config/          db, gemini, dbStore
  *   └── server.js
  */
 
@@ -40,7 +40,7 @@ import aiLogRoutes        from "./routes/aiLogRoutes.js";
 
 // ── Models (for health check) ─────────────────────────────────────────────────
 import { genAI }         from "./config/gemini.js";
-import { supabaseAdmin, testSupabaseConnection } from "./config/supabase.js";
+import pool            from "./config/db.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const app  = express();
@@ -58,7 +58,7 @@ app.get("/api/health", (_req, res) =>
   res.json({
     status:            "ok",
     geminiAvailable:   !!genAI,
-    supabaseConfigured: !!supabaseAdmin,
+    dbConnected:       true, // We assume true if the pool didn't exit the process
     timestamp:         new Date().toISOString(),
   })
 );
@@ -85,8 +85,12 @@ app.listen(PORT, async () => {
   console.log(`\n🚀  Backend running on http://localhost:${PORT}`);
   console.log(`🤖  Gemini:   ${genAI ? "✅ active" : "❌ disabled"}`);
 
-  // Actually test the DB connection
-  if (supabaseAdmin) {
-    await testSupabaseConnection();
+  // Test DB connection
+  try {
+    await pool.query('SELECT NOW()');
+    console.log('🐘  PostgreSQL: connected and health check passed');
+  } catch (err) {
+    console.error('🐘  PostgreSQL: connection failed at startup', err.message);
   }
 });
+

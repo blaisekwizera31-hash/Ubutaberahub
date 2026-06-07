@@ -5,7 +5,7 @@ import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
+import { resetPassword as callResetPasswordApi } from '@/lib/auth';
 import { validatePassword } from '@/lib/validation';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
@@ -19,24 +19,23 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  
+  const token = searchParams.get('token');
 
   useEffect(() => {
-    // Check if we have a valid reset token
-    const checkToken = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // No valid session from magic link
-        setError('Invalid or expired reset link. Please request a new password reset.');
-      }
-    };
-
-    checkToken();
-  }, []);
+    if (!token) {
+      setError('Invalid or missing reset token. Please request a new password reset.');
+    }
+  }, [token]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!token) {
+      setError('Missing reset token.');
+      return;
+    }
 
     // Validate password
     const passwordValidation = validatePassword(newPassword);
@@ -54,12 +53,9 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      // Update password using Supabase
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+      const result = await callResetPasswordApi(token, newPassword);
 
-      if (updateError) throw updateError;
+      if (result.error) throw new Error(result.error);
 
       console.log('✅ Password updated successfully');
       setSuccess(true);
@@ -177,7 +173,7 @@ export default function ResetPassword() {
               variant="hero"
               size="lg"
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || !!error}
             >
               {isLoading ? 'Updating Password...' : 'Reset Password'}
             </Button>
