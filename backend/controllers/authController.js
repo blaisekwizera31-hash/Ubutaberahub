@@ -124,24 +124,50 @@ export async function verifyEmail(req, res) {
   }
 }
 
+export async function resendSignupVerification(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (rows[0].is_verified) {
+      return res.status(400).json({ error: 'Email already verified' });
+    }
+
+    const newToken = uuidv4();
+    await pool.query('UPDATE users SET verification_token = $1 WHERE email = $2', [newToken, email]);
+    await sendVerificationEmail(email, newToken);
+
+    return res.json({ message: 'Verification email resent' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to resend verification', message: err.message });
+  }
+}
+
 export async function forgotPassword(req, res) {
   try {
     const { email } = req.body;
 
-    const resetToken = uuidv4();
-    const expires = new Date(Date.now() + 3600000); // 1 hour
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 600000); // 10 minutes
 
     const { rows } = await pool.query(
       'UPDATE users SET reset_token = $1, reset_expires = $2 WHERE email = $3 RETURNING *',
-      [resetToken, expires, email]
+      [resetCode, expires, email]
     );
 
     if (rows.length > 0) {
-      await sendPasswordResetEmail(email, resetToken);
+      await sendPasswordResetEmail(email, resetCode);
     }
 
     // Always return success to prevent email enumeration
-    return res.json({ message: 'If that email exists, a reset link has been sent.' });
+    return res.json({ message: 'If that email exists, a reset code has been sent.' });
   } catch (err) {
     return res.status(500).json({ error: 'Request failed', message: err.message });
   }

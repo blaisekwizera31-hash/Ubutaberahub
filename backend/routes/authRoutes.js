@@ -6,7 +6,8 @@ import {
   forgotPassword, 
   resetPassword, 
   getSessionUser, 
-  syncProfile 
+  syncProfile,
+  resendSignupVerification
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
@@ -19,6 +20,7 @@ router.post("/login",           authLimiter, login);
 router.get( "/verify-email",    authLimiter, verifyEmail);
 router.post("/forgot-password", authLimiter, forgotPassword);
 router.post("/reset-password",  authLimiter, resetPassword);
+router.post("/resend-verification", authLimiter, resendSignupVerification);
 
 // Protected routes
 router.get( "/session-user",    verifyToken, getSessionUser);

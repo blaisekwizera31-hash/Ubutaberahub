@@ -42,6 +42,7 @@ export async function signUp(email: string, password: string, userInfo: any) {
     return { 
       user, 
       token, 
+      session: token,
       needsEmailVerification: !user.is_verified, 
       message,
       error: null 
@@ -119,4 +120,29 @@ export async function verifyEmail(token: string) {
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };
   }
+}
+
+// Resend signup verification email
+export async function resendSignupVerification(email: string) {
+  try {
+    const response = await api.post('/auth/resend-verification', { email });
+    return { error: null, message: response.data.message };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+}
+
+// Verify code and reset password (frontend helper)
+export async function verifyCodeAndResetPassword(email: string, code: string, password: string) {
+  // Our backend resetPassword expects { token, password }
+  // In this new flow, the code IS the token.
+  return resetPassword(code, password);
+}
+
+// OAuth Sign in (Stub for now as we transitioned to custom backend)
+export async function signInWithOAuth(provider: 'google' | 'azure' | 'apple') {
+  return { 
+    data: null, 
+    error: "Social login is temporarily unavailable. Please use email and password." 
+  };
 }
