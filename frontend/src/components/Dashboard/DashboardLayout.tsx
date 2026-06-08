@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from "@/services/backend";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 // REMOVED: import Logo from "@/assets/logo.png"; 
 
@@ -142,8 +143,15 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
   
   const t = sidebarTranslations[language] || sidebarTranslations.en;
   const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.citizen;
-  const RoleIcon = config.icon;
   const navItems = config.navItems(t);
+  const storedUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("loggedInUser") || "null");
+    } catch {
+      return null;
+    }
+  })();
+  const userPhoto = storedUser?.profilePhoto || storedUser?.profile_photo || null;
 
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
@@ -380,9 +388,7 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-3 p-1 px-2 rounded-full hover:bg-muted transition-colors outline-none border border-transparent focus:border-border">
-                <div className={`w-8 h-8 rounded-full ${config.color} flex items-center justify-center shadow-md shadow-primary/20`}>
-                  <RoleIcon className="w-4 h-4 text-white" />
-                </div>
+                <UserPhoto src={userPhoto} alt={userName} className="h-8 w-8 shadow-md shadow-primary/20" />
                 <div className="hidden sm:block text-left">
                   <p className="text-xs font-semibold leading-none mb-1">{userName}</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t.roleNames[role] || role}</p>

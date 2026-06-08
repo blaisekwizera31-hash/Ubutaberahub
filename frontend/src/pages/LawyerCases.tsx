@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Clock, AlertCircle } from "lucide-react";
+import { Search, Clock, AlertCircle, Eye, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
-import { getMyCases } from "@/services/backend";
+import { getCaseDetails, getMyCases } from "@/services/backend";
 import { useLocation } from "react-router-dom";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 interface LawyerCasesProps {
   lang?: string;
@@ -18,6 +20,7 @@ const translations = {
     search: "Search active cases...",
     filed: "Filed",
     client: "Citizen",
+    viewDetails: "View Details",
     noCases: "No active participating cases found.",
   },
 };
@@ -30,6 +33,7 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
 
   const [query, setQuery] = useState("");
   const [cases, setCases] = useState<any[]>([]);
+  const [selectedDetails, setSelectedDetails] = useState<any>(null);
 
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("q") || "";
@@ -52,9 +56,14 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
     const q = query.trim().toLowerCase();
     if (!q) return cases;
     return cases.filter((item) =>
-      `${item.id} ${item.title} ${item.type} ${item.status} ${item.citizen || ""}`.toLowerCase().includes(q),
+      `${item.id} ${item.title} ${item.caseType || item.type} ${item.status} ${item.citizen || item.requestedBy || ""}`.toLowerCase().includes(q),
     );
   }, [cases, query]);
+
+  const openDetails = async (caseId: string) => {
+    const details = await getCaseDetails(caseId);
+    setSelectedDetails(details);
+  };
 
   return (
     <DashboardLayout role="lawyer" userName={user?.name || "Advocate"} lang={lang}>
@@ -78,29 +87,33 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
               transition={{ delay: index * 0.08 }}
               className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-mono text-slate-500">{caseItem.id}</span>
                     <Badge className="bg-amber-500 text-white border-none">{caseItem.status}</Badge>
-                    <Badge variant="secondary">{caseItem.type || "Other"}</Badge>
+                    <Badge variant="secondary">{caseItem.caseType || caseItem.type || "Other"}</Badge>
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-3">{caseItem.title}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-600">
                       <Clock className="w-4 h-4" />
                       <span>
-                        {t.filed}: {caseItem.date || "-"}
+                        {t.filed}: {caseItem.date || (caseItem.filedAt ? new Date(caseItem.filedAt).toLocaleDateString() : "-")}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-600">
                       <AlertCircle className="w-4 h-4" />
                       <span>
-                        {t.client}: {caseItem.citizen || "Unknown"}
+                        {t.client}: {caseItem.citizen || caseItem.requestedBy || "Citizen"}
                       </span>
                     </div>
                   </div>
                 </div>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => openDetails(caseItem.id)}>
+                  <Eye className="h-4 w-4" />
+                  {t.viewDetails}
+                </Button>
               </div>
             </motion.div>
           ))}
@@ -108,6 +121,69 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
             <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm text-muted-foreground">{t.noCases}</div>
           )}
         </div>
+        {selectedDetails && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl">
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-mono text-muted-foreground">{selectedDetails.case.caseNumber}</p>
+                  <h2 className="text-xl font-semibold">{selectedDetails.case.title}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedDetails.case.status} - {selectedDetails.case.caseType}
+                  </p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setSelectedDetails(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+                <div className="rounded-xl border border-border p-4">
+                  <UserPhoto
+                    src={selectedDetails.citizen?.profile_photo}
+                    alt={selectedDetails.citizen?.name || "Citizen"}
+                    className="mb-3 h-20 w-20"
+                  />
+                  <h3 className="font-semibold">{selectedDetails.citizen?.name || "Citizen"}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedDetails.citizen?.email}</p>
+                  <p className="text-sm text-muted-foreground">{selectedDetails.citizen?.phone || "No phone"}</p>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="mb-1 font-semibold">Case Description</h3>
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">{selectedDetails.case.description}</p>
+                  </div>
+                  <div>
+                    <h3 className="mb-2 font-semibold">Uploaded Files</h3>
+                    {selectedDetails.evidence?.length ? (
+                      <div className="space-y-2">
+                        {selectedDetails.evidence.map((doc: any) =>
+                          doc.file_url ? (
+                            <a
+                              key={doc.id}
+                              href={doc.file_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block rounded-lg border border-border p-3 text-sm hover:bg-muted"
+                            >
+                              {doc.file_name || "Document"}
+                            </a>
+                          ) : (
+                            <div key={doc.id} className="rounded-lg border border-border p-3 text-sm">
+                              {doc.file_name || "Document"}
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No documents were uploaded yet.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -22,10 +22,27 @@ const codeExpiry = () => new Date(Date.now() + 600000);
 
 export async function signup(req, res) {
   try {
-    const { email, password, name, role } = req.body;
+    const {
+      email,
+      password,
+      name,
+      role,
+      phone,
+      profilePhoto,
+      profile_photo,
+      licenseNumber,
+      specialization,
+      lawFirm,
+      yearsExperience,
+    } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const photo = profile_photo || profilePhoto;
+    if (!photo) {
+      return res.status(400).json({ error: 'Profile photo is required' });
     }
 
     // Check if user exists
@@ -43,8 +60,26 @@ export async function signup(req, res) {
 
     // Insert user
     const newUser = await pool.query(
-      'INSERT INTO users (email, password_hash, name, role, verification_token, verification_expires, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [email, hashedPassword, name || email.split('@')[0], safeRole(role), verificationCode, verificationExpires, false]
+      `INSERT INTO users (
+        email, password_hash, name, role, phone, profile_photo,
+        license_number, specialization, law_firm, years_experience,
+        verification_token, verification_expires, is_verified
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [
+        email,
+        hashedPassword,
+        name || email.split('@')[0],
+        safeRole(role),
+        phone || null,
+        photo,
+        licenseNumber || null,
+        specialization || null,
+        lawFirm || null,
+        Number(yearsExperience || 0),
+        verificationCode,
+        verificationExpires,
+        false,
+      ]
     );
 
     // Send email
@@ -63,6 +98,9 @@ export async function signup(req, res) {
         email: newUser.rows[0].email,
         name: newUser.rows[0].name,
         role: newUser.rows[0].role,
+        phone: newUser.rows[0].phone,
+        profile_photo: newUser.rows[0].profile_photo,
+        is_verified: newUser.rows[0].is_verified,
       },
       token,
       message: 'Registration successful. Please check your email for verification.'
@@ -222,10 +260,38 @@ export async function syncProfile(req, res) {
     const role  = safeRole(req.body?.role || user.role);
     const name  = req.body?.name || user.name;
     const profile_photo = req.body?.profile_photo || user.profile_photo;
+    const phone = req.body?.phone ?? user.phone;
+    const law_firm = req.body?.law_firm ?? req.body?.lawFirm ?? user.law_firm;
+    const specialization = req.body?.specialization ?? user.specialization;
+    const years_experience = req.body?.years_experience ?? req.body?.yearsExperience ?? user.years_experience;
+    const hourly_rate = req.body?.hourly_rate ?? req.body?.hourlyRate ?? user.hourly_rate;
+    const is_available = req.body?.is_available ?? req.body?.isAvailable ?? user.is_available;
 
     const { rows } = await pool.query(
-      'UPDATE users SET name = $1, role = $2, profile_photo = $3 WHERE id = $4 RETURNING *',
-      [name, role, profile_photo, user.id]
+      `UPDATE users SET
+        name = $1,
+        role = $2,
+        profile_photo = $3,
+        phone = $4,
+        law_firm = $5,
+        specialization = $6,
+        years_experience = $7,
+        hourly_rate = $8,
+        is_available = $9,
+        updated_at = NOW()
+      WHERE id = $10 RETURNING *`,
+      [
+        name,
+        role,
+        profile_photo,
+        phone,
+        law_firm,
+        specialization,
+        Number(years_experience || 0),
+        Number(hourly_rate || 0),
+        is_available !== false,
+        user.id,
+      ]
     );
 
     return res.json({ user: rows[0] });

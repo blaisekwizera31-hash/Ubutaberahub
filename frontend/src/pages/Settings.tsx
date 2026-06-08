@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
-  User,
   Globe,
   UserCircle,
   Camera,
@@ -22,9 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-// 1. IMPORT THE LOADING SCREEN
-import LoadingScreen from "@/components/ui/LoadingScreen";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 type LanguageCode = 'en' | 'rw' | 'fr';
 type Role = "citizen" | "lawyer" | "judge" | "clerk" | "client";
@@ -80,8 +77,6 @@ const translations: Record<LanguageCode, Record<string, string>> = {
 const Settings = () => {
   const { language, setLanguage } = useLanguage();
   const { toast } = useToast();
-  // 2. STATE MANAGEMENT
-  const [isLoading, setIsLoading] = useState(true); // Added Loading State
   
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,15 +89,6 @@ const Settings = () => {
 
   const t = translations[language];
 
-  // 3. EFFECT FOR LOADING SIMULATION
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200); // 1.2s for a quick, smooth transition on sub-pages
-    return () => clearTimeout(timer);
-  }, []);
-
-  // 4. HANDLERS
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value as LanguageCode;
     setLanguage(newLang);
@@ -126,11 +112,6 @@ const Settings = () => {
       variant: "destructive",
     });
   };
-
-  // 5. RETURN LOADING SCREEN IF LOADING
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
 
   return (
     <DashboardLayout 
@@ -163,11 +144,11 @@ const Settings = () => {
               className="relative w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-border group cursor-pointer shadow-inner"
               onClick={handlePhotoClick}
             >
-              {profileImage ? (
-                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-10 h-10 text-muted-foreground" />
-              )}
+              <UserPhoto
+                src={profileImage || userData?.profilePhoto || userData?.profile_photo}
+                alt={userName}
+                className="h-full w-full border-0"
+              />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Camera className="w-6 h-6 text-white" />
               </div>

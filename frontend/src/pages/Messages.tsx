@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getConversationMessages, getConversations, sendConversationMessage } from "@/services/backend";
@@ -150,7 +151,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative">
-                      <img src="/avatar/avatar.png" alt={conv.contact} className="w-12 h-12 rounded-full object-cover" />
+                      <UserPhoto src={conv.contactPhoto} alt={conv.contact} className="h-12 w-12" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
@@ -179,10 +180,10 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
           <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 flex flex-col">
             <div className="p-4 border-b flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img
-                  src="/avatar/avatar.png"
+                <UserPhoto
+                  src={selectedConversation?.contactPhoto}
                   alt={selectedConversation?.contact || "Contact"}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="h-10 w-10"
                 />
                 <div>
                   <h3 className="font-semibold text-slate-900">{selectedConversation?.contact || "Contact"}</h3>

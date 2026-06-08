@@ -1,4 +1,4 @@
-import { Search, Bell, User } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from "@/services/backend";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 interface DashboardHeaderProps {
   searchPlaceholder?: string;
@@ -24,6 +25,8 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
   const [query, setQuery] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
   useEffect(() => {
     let mounted = true;
@@ -156,9 +159,7 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
               {notifications.length === 0 && <div className="px-2 py-3 text-sm text-muted-foreground">No notifications yet.</div>}
             </DropdownMenuContent>
           </DropdownMenu>
-          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-            <User className="w-5 h-5 text-accent-foreground" />
-          </div>
+          <UserPhoto src={user?.profilePhoto || user?.profile_photo} alt={user?.name || "User"} className="h-10 w-10" />
         </div>
       </div>
     </header>

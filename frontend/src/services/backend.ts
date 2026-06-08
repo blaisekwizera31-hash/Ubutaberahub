@@ -31,6 +31,19 @@ export async function getLawyers() {
   return response.data;
 }
 
+export async function updateMyLawyerProfile(payload: {
+  phone?: string;
+  profilePhoto?: string;
+  lawFirm?: string;
+  specialization?: string;
+  yearsExperience?: number | string;
+  hourlyRate?: number | string;
+  isAvailable?: boolean;
+}) {
+  const response = await api.patch<{ user: any }>("/lawyers/me", payload);
+  return response.data;
+}
+
 export async function getMessages(role: Role) {
   const response = await api.get<{ conversations: any[] }>(`/conversations/role/${role}`);
   return response.data;
@@ -53,8 +66,20 @@ export async function submitCaseToLawyer(payload: {
   priority: string;
   lawyerId: string;
   initialMessage?: string;
+  documents?: File[];
 }) {
-  const response = await api.post<{ ok: boolean; case: any; conversation: any }>("/cases/submit-to-lawyer", payload);
+  const formData = new FormData();
+  formData.append("title", payload.title);
+  formData.append("description", payload.description);
+  formData.append("caseType", payload.caseType);
+  formData.append("priority", payload.priority);
+  formData.append("lawyerId", payload.lawyerId);
+  if (payload.initialMessage) formData.append("initialMessage", payload.initialMessage);
+  payload.documents?.forEach((file) => formData.append("documents", file));
+
+  const response = await api.post<{ ok: boolean; case: any; conversation: any }>("/cases/submit-to-lawyer", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return response.data;
 }
 
@@ -116,7 +141,27 @@ export async function updateCaseStatus(caseId: string, status: string) {
   return response.data;
 }
 
+export async function approveCase(caseId: string) {
+  const response = await api.post<{ ok: boolean; case: any }>(`/cases/${caseId}/approve`);
+  return response.data;
+}
+
+export async function getCaseDetails(caseId: string) {
+  const response = await api.get<{ case: any; citizen: any; lawyer: any; evidence: any[] }>(`/cases/${caseId}/details`);
+  return response.data;
+}
+
 export async function getMyAppointments() {
   const response = await api.get<{ appointments: any[] }>("/appointments/me");
+  return response.data;
+}
+
+export async function summarizeTextWithAI(text: string, maxLength = 900) {
+  const response = await api.post<{ summary: string }>("/summarize", { text, maxLength });
+  return response.data;
+}
+
+export async function chatWithLegalAI(messages: Array<{ role: "user" | "assistant" | "system"; content: string }>, language = "en") {
+  const response = await api.post<{ response: string }>("/chat", { messages, language });
   return response.data;
 }

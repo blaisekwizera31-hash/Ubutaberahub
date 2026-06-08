@@ -3,7 +3,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Globe } from "lucide-react"; // Removed Scale import
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,38 +52,47 @@ interface HeaderProps {
 
 export function Header({ currentLang, onLanguageChange }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Select the correct language object
   const t = translations[currentLang as keyof typeof translations] || translations.en;
   const currentLanguage = languages.find((l) => l.code === currentLang) || languages[1];
+  const goToAuth = () => {
+    setIsAuthLoading(true);
+    window.setTimeout(() => navigate("/auth"), 650);
+  };
 
   return (
+    <>
+    {isAuthLoading && <LoadingScreen />}
     <header className="fixed top-0 left-0 right-0 z-50">
       <div className="glass border-b border-border/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo Section */}
-            <motion.a
-              href="/"
+            <motion.div
               className="flex items-center gap-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {/* Logo Image from Public Folder */}
-              <div className="w-10 h-10 flex items-center justify-center">
-                <img 
-                  src="/logo.png" 
-                  alt="UBUTABERAhub Logo" 
-                  className="w-full h-full object-contain"
-                  style={{ filter: 'brightness(0)' }}
-                />
-              </div>
-              
-              <span className="font-display text-xl font-semibold text-foreground">
-                UBUTABERA<span className="text-accent">hub</span>
-              </span>
-            </motion.a>
+              <Link to="/" className="flex items-center gap-2">
+                {/* Logo Image from Public Folder */}
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <img 
+                    src="/logo.png" 
+                    alt="UBUTABERAhub Logo" 
+                    className="w-full h-full object-contain"
+                    style={{ filter: 'brightness(0)' }}
+                  />
+                </div>
+                
+                <span className="font-display text-xl font-semibold text-foreground">
+                  UBUTABERA<span className="text-accent">hub</span>
+                </span>
+              </Link>
+            </motion.div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
@@ -123,11 +133,11 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
-                <Link to="/auth">{t.signIn}</Link>
+              <Button variant="ghost" size="sm" className="hidden md:inline-flex" onClick={goToAuth}>
+                {t.signIn}
               </Button>
-              <Button variant="hero" size="sm" className="hidden md:inline-flex" asChild>
-                <Link to="/auth">{t.getStarted}</Link>
+              <Button variant="hero" size="sm" className="hidden md:inline-flex" onClick={goToAuth}>
+                {t.getStarted}
               </Button>
 
               {/* Mobile Menu Toggle */}
@@ -159,11 +169,11 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
               <a href="#roles" className="text-sm font-medium py-2">{t.roles}</a>
               <a href="#ai-assistant" className="text-sm font-medium py-2">{t.aiAssistant}</a>
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" className="flex-1" asChild>
-                  <Link to="/auth">{t.signIn}</Link>
+                <Button variant="outline" className="flex-1" onClick={goToAuth}>
+                  {t.signIn}
                 </Button>
-                <Button variant="hero" className="flex-1" asChild>
-                  <Link to="/auth">{t.getStarted}</Link>
+                <Button variant="hero" className="flex-1" onClick={goToAuth}>
+                  {t.getStarted}
                 </Button>
               </div>
             </nav>
@@ -171,5 +181,6 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
         )}
       </AnimatePresence>
     </header>
+    </>
   );
 }

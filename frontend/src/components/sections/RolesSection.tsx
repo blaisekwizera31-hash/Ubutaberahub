@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   User, 
@@ -8,7 +9,8 @@ import {
   ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 const translations = {
   en: {
@@ -67,8 +69,16 @@ interface RolesSectionProps {
 
 export function RolesSection({ lang }: RolesSectionProps) {
   const t = translations[lang as keyof typeof translations] || translations.en;
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const navigate = useNavigate();
+  const goToAuth = (roleId: string) => {
+    setIsAuthLoading(true);
+    window.setTimeout(() => navigate(`/auth?role=${roleId}`), 650);
+  };
 
   return (
+    <>
+    {isAuthLoading && <LoadingScreen />}
     <section id="roles" className="py-24">
       <div className="container mx-auto px-4">
         <motion.div
@@ -118,12 +128,10 @@ export function RolesSection({ lang }: RolesSectionProps) {
                   <Button 
                     variant="ghost" 
                     className="group/btn p-0 h-auto text-black hover:bg-transparent hover:text-gray-700 font-semibold"
-                    asChild
+                    onClick={() => goToAuth(role.id)}
                   >
-                    <Link to={`/auth?role=${role.id}`}>
                       {t.getStarted} 
                       <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
-                    </Link>
                   </Button>
                 </div>
               </motion.div>
@@ -132,5 +140,6 @@ export function RolesSection({ lang }: RolesSectionProps) {
         </div>
       </div>
     </section>
+    </>
   );
 }

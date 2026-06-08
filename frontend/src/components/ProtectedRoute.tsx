@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { getCurrentUser } from '@/lib/auth';
-import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -53,7 +52,13 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     }
   };
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 rounded-full border-2 border-muted border-t-foreground animate-spin" />
+      </div>
+    );
+  }
 
   // Email not confirmed → bounce to verify-email
   if (!emailConfirmed) {

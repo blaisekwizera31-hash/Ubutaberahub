@@ -7,6 +7,7 @@ function persistLoggedInUser(user: any, token?: string) {
     email: user.email,
     name: user.name || user.email?.split('@')[0] || 'User',
     role: user.role || 'citizen',
+    phone: user.phone || null,
     profilePhoto: user.profile_photo || user.profilePhoto || null,
   };
   localStorage.setItem('loggedInUser', JSON.stringify(normalized));

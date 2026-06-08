@@ -1,5 +1,6 @@
 
 import "dotenv/config";
+import path from "node:path";
 import express from "express";
 
 // ── Middleware ────────────────────────────────────────────────────────────────
@@ -32,7 +33,8 @@ const PORT = process.env.PORT || 8080;
 
 // ── Global middleware ─────────────────────────────────────────────────────────
 app.use(corsMiddleware);                // CORS — must be first
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "8mb" }));
+app.use("/uploads", express.static(path.resolve("uploads")));
 app.use(detectLang);                    // resolve req.lang / req.langMeta
 app.use(requestLogger);                 // log every request
 app.use(generalLimiter);                // 120 req/min global rate limit
@@ -70,7 +72,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT, async () => {
+app.listen(PORT,"0.0.0.0", async () => {
   console.log(`\n🚀  Backend running on http://localhost:${PORT}`);
   console.log(`🤖  Gemini:   ${genAI ? "✅ active" : "❌ disabled"}`);
 

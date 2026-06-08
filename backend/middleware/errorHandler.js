@@ -57,6 +57,28 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
+  // Multer upload errors
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
+      error: 'File too large',
+      message: 'Each supporting document must be 10MB or smaller',
+    });
+  }
+
+  if (err.code === 'LIMIT_FILE_COUNT') {
+    return res.status(413).json({
+      error: 'Too many files',
+      message: 'You can upload up to 10 supporting documents',
+    });
+  }
+
+  if (err.message?.includes('Unsupported file type')) {
+    return res.status(400).json({
+      error: 'Unsupported file type',
+      message: err.message,
+    });
+  }
+
   // CORS errors
   if (err.message === 'CORS blocked') {
     return res.status(403).json({

@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 const translations = {
   en: {
@@ -40,8 +42,16 @@ interface CTASectionProps {
 export function CTASection({ lang }: CTASectionProps) {
   // Select the correct language object
   const t = translations[lang as keyof typeof translations] || translations.en;
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const navigate = useNavigate();
+  const goToAuth = () => {
+    setIsAuthLoading(true);
+    window.setTimeout(() => navigate("/auth"), 650);
+  };
 
   return (
+    <>
+    {isAuthLoading && <LoadingScreen />}
     <section className="py-24 relative overflow-hidden">
       {/* Background - Lighter Gray RGB(230,230,230) */}
       <div
@@ -76,10 +86,8 @@ export function CTASection({ lang }: CTASectionProps) {
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="xl" className="group" asChild>
-              <Link to="/auth">
+            <Button variant="hero" size="xl" className="group" onClick={goToAuth}>
                 {t.ctaPrimary}
-              </Link>
             </Button>
             <Button variant="outline" size="xl" className="border-black/30" asChild>
               <Link to="/help-center">{t.ctaSecondary}</Link>
@@ -88,5 +96,6 @@ export function CTASection({ lang }: CTASectionProps) {
         </motion.div>
       </div>
     </section>
+    </>
   );
 }

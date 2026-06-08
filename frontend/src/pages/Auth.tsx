@@ -192,6 +192,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [phone, setPhone] = useState("");
   const [citizenId, setCitizenId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<null | 'signup' | 'login' | 'resend' | 'forgot' | 'reset'>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetStep, setResetStep] = useState<'email' | 'code' | 'password'>('email');
@@ -215,14 +216,54 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
   const navigate = useNavigate();
 
+  const resizeProfilePhoto = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        image.src = String(reader.result);
+      };
+
+      reader.onerror = () => reject(new Error("Could not read profile photo."));
+
+      image.onload = () => {
+        const maxSize = 320;
+        const scale = Math.min(maxSize / image.width, maxSize / image.height, 1);
+        const width = Math.max(1, Math.round(image.width * scale));
+        const height = Math.max(1, Math.round(image.height * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("Could not process profile photo."));
+          return;
+        }
+
+        context.drawImage(image, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+
+      image.onerror = () => reject(new Error("Could not load profile photo."));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (!file.type.startsWith("image/")) {
+        toast({ title: "Invalid photo", description: "Please choose an image file.", variant: "destructive" });
+        return;
+      }
+
+      resizeProfilePhoto(file)
+        .then(setProfilePhoto)
+        .catch((error) => {
+          toast({ title: "Photo error", description: error.message, variant: "destructive" });
+        });
     }
   };
 
@@ -257,6 +298,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
     const phoneValidation = validatePhone(phone);
     if (!phoneValidation.isValid) newErrors.phone = phoneValidation.error!;
+    if (!profilePhoto) newErrors.profilePhoto = "Profile photo is required.";
 
     // Role-specific validation
     if (selectedRole === 'citizen') {
@@ -303,6 +345,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     }
 
     setIsLoading(true);
+    setLoadingAction('signup');
 
     const userData = { 
       name,
@@ -363,8 +406,10 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     }
 
     setIsLoading(true);
+    setLoadingAction('resend');
     const { error } = await resendSignupVerification(targetEmail);
     setIsLoading(false);
+    setLoadingAction(null);
 
     if (error) {
       toast({ title: "Could not resend verification", description: error, variant: "destructive" });
@@ -395,10 +440,12 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     }
 
     setIsLoading(true);
+    setLoadingAction('login');
 
     const { user, error } = await signIn(email, password);
 
     setIsLoading(false);
+    setLoadingAction(null);
 
     if (error) {
       // Better error messages
@@ -442,8 +489,10 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     }
 
     setIsLoading(true);
+    setLoadingAction('forgot');
     const { error } = await requestPasswordReset(resetEmail);
     setIsLoading(false);
+    setLoadingAction(null);
 
     if (error) {
       toast({ title: "Failed to send reset email", description: error, variant: "destructive" });
@@ -475,8 +524,10 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     }
 
     setIsLoading(true);
+    setLoadingAction('reset');
     const result = await verifyCodeAndResetPassword(resetEmail, verificationCode, newPassword);
     setIsLoading(false);
+    setLoadingAction(null);
 
     if (result.error) {
       toast({ title: "Failed to reset password", description: result.error, variant: "destructive" });
@@ -522,7 +573,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   return (
     <>
       {/* Loading Screen Overlay */}
-      {isLoading && <LoadingScreen />}
+      {(loadingAction === 'signup' || loadingAction === 'login') && <LoadingScreen />}
       
       <div className="min-h-screen flex items-start">
       {/* Left Side: Hero Branding with Lady Justice */}
@@ -687,7 +738,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               </div>
               <div className="space-y-3">
                 <Button type="button" variant="hero" size="lg" className="w-full" onClick={handleResendVerification} disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Resend verification code"}
+                  {loadingAction === 'resend' ? "..." : "Resend verification code"}
                 </Button>
                 <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => setMode("login")}>
                   Back to sign in
@@ -825,7 +876,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               onClick={mode === "signup" ? handleSignup : handleLogin}
               disabled={isLoading}
             >
-              {isLoading ? "Please wait..." : (mode === "login" ? t.signIn : t.createAccount)}
+              {isLoading ? "..." : (mode === "login" ? t.signIn : t.createAccount)}
             </Button>
           </form>
           )}
@@ -930,7 +981,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                     onClick={handleForgotPassword}
                     disabled={isLoading}
                   >
-                    {isLoading ? "Sending..." : "Send Code"}
+                    {loadingAction === 'forgot' ? "..." : "Send Code"}
                   </Button>
                 </div>
               </div>
@@ -1021,7 +1072,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                     onClick={handleResetPassword}
                     disabled={isLoading}
                   >
-                    {isLoading ? "Resetting..." : "Reset Password"}
+                    {loadingAction === 'reset' ? "..." : "Reset Password"}
                   </Button>
                 </div>
               </div>

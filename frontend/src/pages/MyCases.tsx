@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Plus, Search } from "lucide-react";
+import { Eye, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
-import { getMyCases } from "@/services/backend";
+import { getCaseDetails, getMyCases } from "@/services/backend";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 const MyCases = () => {
   const { language } = useLanguage();
   const location = useLocation();
-  const navigate = useNavigate();
   const t =
     language === "rw"
       ? {
@@ -21,7 +21,9 @@ const MyCases = () => {
           unassigned: "Nta munyamategeko",
           searchPlaceholder: "Shakisha imanza...",
           filed: "Byatanzwe",
+          filedBy: "Byatanzwe na",
           lawyer: "Umunyamategeko",
+          viewDetails: "Reba amakuru",
           empty: "Nta manza ufitemo uruhare ziraboneka.",
           newCase: "Urubanza rushya",
         }
@@ -32,7 +34,9 @@ const MyCases = () => {
             unassigned: "Non attribue",
             searchPlaceholder: "Rechercher des dossiers...",
             filed: "Depose",
+            filedBy: "Depose par",
             lawyer: "Avocat",
+            viewDetails: "Voir details",
             empty: "Aucun dossier de participation trouve.",
             newCase: "Nouveau dossier",
           }
@@ -42,13 +46,16 @@ const MyCases = () => {
             unassigned: "Unassigned",
             searchPlaceholder: "Search cases...",
             filed: "Filed",
+            filedBy: "Filed by",
             lawyer: "Lawyer",
+            viewDetails: "View Details",
             empty: "No participating cases found yet.",
             newCase: "New Case",
           };
 
   const [cases, setCases] = useState<any[]>([]);
   const [query, setQuery] = useState("");
+  const [selectedDetails, setSelectedDetails] = useState<any>(null);
 
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("q") || "";
@@ -69,18 +76,28 @@ const MyCases = () => {
     const q = query.trim().toLowerCase();
     const normalized = cases.map((c) => ({
       id: c.id,
+      caseNumber: c.caseNumber || c.id,
       title: c.title,
       status: c.status || "Pending",
       statusColor: /completed|resolved|closed/i.test(c.status) ? "bg-secondary" : /pending|awaiting|review/i.test(c.status) ? "bg-muted-foreground" : "bg-amber-500",
-      date: c.date || "",
-      type: c.type || "Other",
+      date: c.date || (c.filedAt ? new Date(c.filedAt).toLocaleDateString() : ""),
+      type: c.caseType || c.type || "Other",
       lawyer: c.lawyer || t.unassigned,
+      citizen: c.citizen || c.requestedBy || "Citizen",
+      citizenPhoto: c.citizenPhoto || null,
+      citizenEmail: c.citizenEmail || null,
+      citizenPhone: c.citizenPhone || null,
     }));
     if (!q) return normalized;
     return normalized.filter((item) =>
       `${item.id} ${item.title} ${item.type} ${item.lawyer} ${item.status}`.toLowerCase().includes(q),
     );
   }, [cases, query, t.unassigned]);
+
+  const openDetails = async (caseId: string) => {
+    const details = await getCaseDetails(caseId);
+    setSelectedDetails(details);
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -125,32 +142,95 @@ const MyCases = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.06 }}
                   className="p-5 hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/messages?q=${encodeURIComponent(caseItem.id)}`)}
+                  onClick={() => openDetails(caseItem.id)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-mono text-muted-foreground">{caseItem.id}</span>
+                        <span className="text-sm font-mono text-muted-foreground">{caseItem.caseNumber}</span>
                         <span className={`px-2 py-0.5 rounded-full text-xs text-white ${caseItem.statusColor}`}>{caseItem.status}</span>
                         <span className="px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground">{caseItem.type}</span>
                       </div>
                       <h3 className="font-medium text-lg">{caseItem.title}</h3>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-muted-foreground">
                         <span>
                           {t.filed}: {caseItem.date}
+                        </span>
+                        <span>
+                          {t.filedBy}: {caseItem.citizen}
                         </span>
                         <span>
                           {t.lawyer}: {caseItem.lawyer}
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2 sm:w-auto"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openDetails(caseItem.id);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                      {t.viewDetails}
+                    </Button>
                   </div>
                 </motion.div>
               ))}
               {displayedCases.length === 0 && <div className="p-5 text-sm text-muted-foreground">{t.empty}</div>}
             </div>
           </motion.div>
+          {selectedDetails && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl">
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-mono text-muted-foreground">{selectedDetails.case.caseNumber}</p>
+                    <h2 className="text-xl font-semibold">{selectedDetails.case.title}</h2>
+                    <p className="text-sm text-muted-foreground">{selectedDetails.case.status} · {selectedDetails.case.caseType}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setSelectedDetails(null)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+                  <div className="rounded-xl border border-border p-4">
+                    <UserPhoto
+                      src={selectedDetails.citizen?.profile_photo}
+                      alt={selectedDetails.citizen?.name || "Citizen"}
+                      className="mb-3 h-20 w-20"
+                    />
+                    <h3 className="font-semibold">{selectedDetails.citizen?.name || "Citizen"}</h3>
+                    <p className="text-sm text-muted-foreground">{selectedDetails.citizen?.email}</p>
+                    <p className="text-sm text-muted-foreground">{selectedDetails.citizen?.phone || "No phone"}</p>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="mb-1 font-semibold">Case Description</h3>
+                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">{selectedDetails.case.description}</p>
+                    </div>
+                    <div>
+                      <h3 className="mb-2 font-semibold">Submitted Documents</h3>
+                      {selectedDetails.evidence?.length ? (
+                        <div className="space-y-2">
+                          {selectedDetails.evidence.map((doc: any) => (
+                            <a key={doc.id} href={doc.file_url} target="_blank" rel="noreferrer" className="block rounded-lg border border-border p-3 text-sm hover:bg-muted">
+                              {doc.file_name || "Document"}
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No documents were uploaded yet.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 const translations = {
   en: {
@@ -51,8 +53,16 @@ interface HeroSectionProps {
 
 export function HeroSection({ lang }: HeroSectionProps) {
   const t = translations[lang as keyof typeof translations] || translations.en;
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const navigate = useNavigate();
+  const goToAuth = () => {
+    setIsAuthLoading(true);
+    window.setTimeout(() => navigate("/auth"), 650);
+  };
 
   return (
+    <>
+    {isAuthLoading && <LoadingScreen />}
     <section className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
       {/* Clean White Background */}
       <div className="absolute inset-0 bg-white" />
@@ -91,11 +101,9 @@ export function HeroSection({ lang }: HeroSectionProps) {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-4"
             >
-              <Button variant="hero" size="xl" className="group" asChild>
-                <Link to="/auth">
+              <Button variant="hero" size="xl" className="group" onClick={goToAuth}>
                   {t.cta}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
               </Button>
               <Button variant="outline" size="xl" asChild>
                 <a href="#features">
@@ -167,5 +175,6 @@ export function HeroSection({ lang }: HeroSectionProps) {
         </div>
       </div>
     </section>
+    </>
   );
 }

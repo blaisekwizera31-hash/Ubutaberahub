@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getCurrentUser, verifyEmail } from '@/lib/auth';
-import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'pending'>('loading');
+  const [status, setStatus] = useState<'success' | 'error' | 'pending'>('pending');
   const [message, setMessage] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
   
   const email = searchParams.get('email');
   const dashboardRoutes: Record<string, string> = {
@@ -61,7 +61,7 @@ export default function VerifyEmail() {
       return;
     }
 
-    setStatus('loading');
+    setIsVerifying(true);
     try {
       const result = await verifyEmail(email, verificationCode);
       if (result.error) {
@@ -75,10 +75,10 @@ export default function VerifyEmail() {
     } catch (err: any) {
       setStatus('error');
       setMessage(err.message || 'An unexpected error occurred.');
+    } finally {
+      setIsVerifying(false);
     }
   };
-
-  if (status === 'loading') return <LoadingScreen />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-8">
@@ -144,8 +144,8 @@ export default function VerifyEmail() {
               </p>
             </div>
             <div className="space-y-3">
-              <Button onClick={handleVerification} variant="hero" className="w-full">
-                Verify Email
+              <Button onClick={handleVerification} variant="hero" className="w-full" disabled={isVerifying}>
+                {isVerifying ? "..." : "Verify Email"}
               </Button>
               <Button onClick={() => navigate('/auth')} variant="outline" className="w-full">
                 Back to Login

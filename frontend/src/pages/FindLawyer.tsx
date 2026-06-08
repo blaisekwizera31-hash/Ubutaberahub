@@ -11,11 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useEffect, useMemo, useState } from "react";
-import { getLawyers } from "@/services/backend";
+import { createConversation, getLawyers } from "@/services/backend";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 // 1. Full Translation Object for 3 Languages
 const translations = {
@@ -34,6 +37,11 @@ const translations = {
     exp: "yrs",
     rate: "RWF/hour",
     book: "Book Now",
+    consultationTitle: "Request Consultation",
+    consultationName: "Your Name",
+    consultationPhone: "Phone Number",
+    consultationPurpose: "Purpose",
+    consultationSend: "Send Request",
     empty: "No registered lawyer accounts found yet.",
     status: { available: "Available", busy: "Busy" },
     specs: ["All", "Family Law", "Criminal Law", "Property Law", "Corporate Law", "Immigration Law", "Human Rights"],
@@ -97,6 +105,9 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   const [showFilters, setShowFilters] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sortMode, setSortMode] = useState<"recommended" | "rating" | "priceLow" | "priceHigh">("recommended");
+  const [selectedLawyer, setSelectedLawyer] = useState<any>(null);
+  const [consultation, setConsultation] = useState({ name: user?.name || "", phone: user?.phone || "", purpose: "" });
+  const [isBooking, setIsBooking] = useState(false);
 
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("q") || "";
@@ -137,6 +148,25 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
     }
     return filtered;
   }, [apiLawyers, availableOnly, searchQuery, selectedSpec, sortMode, t.specs]);
+
+  const sendConsultationRequest = async () => {
+    if (!selectedLawyer || !consultation.name || !consultation.phone || !consultation.purpose) return;
+    setIsBooking(true);
+    try {
+      const message = `Consultation request\nName: ${consultation.name}\nPhone: ${consultation.phone}\nPurpose: ${consultation.purpose}`;
+      const result = await createConversation({
+        lawyerId: selectedLawyer.id,
+        subject: `Consultation request from ${consultation.name}`,
+        initialMessage: message,
+      });
+      toast({ title: "Request sent", description: selectedLawyer.name });
+      navigate(`/messages?conversationId=${encodeURIComponent(result.conversation.id)}`);
+    } catch (error: any) {
+      toast({ title: "Failed to send request", description: error.message || "Unknown error", variant: "destructive" });
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   return (
     <DashboardLayout 
@@ -244,9 +274,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
               className="bg-card rounded-2xl border border-border shadow-soft p-5 hover:shadow-elevated transition-all cursor-pointer group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <span className="text-xl font-semibold text-primary">{lawyer.name.charAt(4)}</span>
-                </div>
+                <UserPhoto src={lawyer.avatarUrl} alt={lawyer.name} className="h-16 w-16 flex-shrink-0" />
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -302,12 +330,10 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
                     size="sm"
                     className="gap-1"
                     onClick={() => {
-                      navigate(`/submit-case?lawyerId=${encodeURIComponent(lawyer.id)}&lawyerName=${encodeURIComponent(lawyer.name)}`);
-                      toast({
-                        title: t.book,
-                        description: `${lawyer.name}`,
-                      });
+                      setSelectedLawyer(lawyer);
+                      setConsultation((prev) => ({ ...prev, name: user?.name || prev.name, phone: user?.phone || prev.phone }));
                     }}
+                    disabled={!lawyer.available}
                   >
                     {t.book} <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -321,6 +347,39 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
             </div>
           )}
         </div>
+        {selectedLawyer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+              <div className="mb-5 flex items-center gap-3">
+                <UserPhoto src={selectedLawyer.avatarUrl} alt={selectedLawyer.name} className="h-12 w-12" />
+                <div>
+                  <h2 className="text-lg font-semibold">{t.consultationTitle}</h2>
+                  <p className="text-sm text-muted-foreground">{selectedLawyer.name}</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t.consultationName}</Label>
+                  <Input value={consultation.name} onChange={(e) => setConsultation({ ...consultation, name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t.consultationPhone}</Label>
+                  <Input value={consultation.phone} onChange={(e) => setConsultation({ ...consultation, phone: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t.consultationPurpose}</Label>
+                  <Textarea value={consultation.purpose} onChange={(e) => setConsultation({ ...consultation, purpose: e.target.value })} rows={4} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setSelectedLawyer(null)}>Cancel</Button>
+                  <Button onClick={sendConsultationRequest} disabled={isBooking || !consultation.name || !consultation.phone || !consultation.purpose}>
+                    {isBooking ? "..." : t.consultationSend}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

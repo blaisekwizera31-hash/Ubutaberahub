@@ -85,6 +85,10 @@ export async function updateProfile(id, updates) {
     fields.push(`profile_photo = $${idx++}`);
     values.push(updates.profile_photo);
   }
+  if (updates.phone !== undefined) {
+    fields.push(`phone = $${idx++}`);
+    values.push(String(updates.phone || "").trim().slice(0, 50));
+  }
   if (updates.role !== undefined) {
     fields.push(`role = $${idx++}`);
     values.push(safeRole(updates.role));
@@ -100,6 +104,14 @@ export async function updateProfile(id, updates) {
   if (updates.years_experience !== undefined) {
     fields.push(`years_experience = $${idx++}`);
     values.push(Number(updates.years_experience) || 0);
+  }
+  if (updates.hourly_rate !== undefined) {
+    fields.push(`hourly_rate = $${idx++}`);
+    values.push(Number(updates.hourly_rate) || 0);
+  }
+  if (updates.is_available !== undefined) {
+    fields.push(`is_available = $${idx++}`);
+    values.push(updates.is_available !== false);
   }
 
   if (fields.length === 0) return findById(id);

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import StatCard from "@/components/Dashboard/StatCard";
 import { getMyCases } from "@/services/backend";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 const JudgeDashboard = () => {
   const navigate = useNavigate();
@@ -67,10 +68,10 @@ const JudgeDashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <img 
-                src={user?.profilePhoto || "/avatar/avatar.png"} 
-                alt="Profile" 
-                className="w-16 h-16 rounded-full border-2 border-primary object-cover shadow-sm" 
+              <UserPhoto
+                src={user?.profilePhoto || user?.profile_photo}
+                alt={user?.name || "Profile"}
+                className="h-16 w-16 border-2 border-primary shadow-sm"
               />
               <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full"></div>
             </div>

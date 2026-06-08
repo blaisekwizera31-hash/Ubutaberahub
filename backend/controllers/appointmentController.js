@@ -9,6 +9,29 @@ import { notify } from "../utils/notify.js";
 const safeRole = (v) =>
   ["citizen", "lawyer", "judge", "clerk"].includes(v) ? v : "citizen";
 
+async function enrichWithPeerProfile(appointments, userId) {
+  const peerIds = [...new Set([
+    ...appointments.map((r) => r.lawyerId),
+    ...appointments.map((r) => r.citizenId),
+  ].filter(Boolean).filter((id) => id !== userId))];
+
+  const profiles = peerIds.length
+    ? await Promise.all(peerIds.map((id) => UserModel.findById(id)))
+    : [];
+  const byId = new Map(profiles.filter(Boolean).map((u) => [u.id, u]));
+
+  return appointments.map((row) => {
+    const peerId = row.lawyerId === userId ? row.citizenId : row.lawyerId;
+    const peer = byId.get(peerId);
+    return {
+      ...row,
+      lawyer: peer?.name || peer?.email?.split("@")[0] || row.lawyerName || "Contact",
+      contact: peer?.name || peer?.email?.split("@")[0] || row.lawyerName || "Contact",
+      contactPhoto: peer?.profile_photo || peer?.profilePhoto || null,
+    };
+  });
+}
+
 /**
  * GET /api/appointments/:role
  * Returns appointments for the authenticated user filtered by their role.
@@ -19,7 +42,8 @@ export async function getAppointments(req, res) {
     const userId = req.user.id;
     
     const appointments = await AppointmentModel.listByRole(role, userId);
-    return res.json({ appointments });
+    const enriched = await enrichWithPeerProfile(appointments, userId);
+    return res.json({ appointments: enriched });
   } catch (err) {
     return res.status(500).json({ error: "Failed to load appointments", message: err.message });
   }
@@ -34,25 +58,7 @@ export async function getMyAppointments(req, res) {
     const userId = req.user.id;
     const appointments = await AppointmentModel.listForUser(userId);
 
-    // Enrich with peer profile name
-    const peerIds = [...new Set([
-      ...appointments.map((r) => r.lawyerId),
-      ...appointments.map((r) => r.citizenId),
-    ].filter(Boolean).filter((id) => id !== userId))];
-
-    const profiles = peerIds.length
-      ? await Promise.all(peerIds.map(id => UserModel.findById(id)))
-      : [];
-    const byId = new Map(profiles.filter(Boolean).map((u) => [u.id, u]));
-
-    const enriched = appointments.map((row) => {
-      const peerId = row.lawyerId === userId ? row.citizenId : row.lawyerId;
-      const peer = byId.get(peerId);
-      return {
-        ...row,
-        lawyer: peer?.name || peer?.email?.split("@")[0] || row.lawyerName || "Lawyer",
-      };
-    });
+    const enriched = await enrichWithPeerProfile(appointments, userId);
 
     return res.json({ appointments: enriched });
   } catch (err) {

@@ -26,6 +26,7 @@ import { classifyCase } from "@/services/ai/gemini";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getLawyers, submitCaseToLawyer } from "@/services/backend";
 import { useToast } from "@/hooks/use-toast";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 const translations = {
   en: {
@@ -59,6 +60,17 @@ const translations = {
     types: ["Family Law", "Property Dispute", "Criminal Defense", "Employment Law", "Contract Dispute", "Other"],
   },
 };
+
+const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
+const ACCEPTED_DOCUMENT_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+const DOCUMENT_ACCEPT = ".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp";
 
 interface SubmitCaseProps {
   lang?: string;
@@ -95,7 +107,7 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
   useEffect(() => {
     getLawyers()
       .then((data) => {
-        setLawyers(Array.isArray(data.lawyers) ? data.lawyers : []);
+        setLawyers(Array.isArray(data.lawyers) ? data.lawyers.filter((lawyer) => lawyer.available) : []);
       })
       .catch(() => setLawyers([]));
   }, []);
@@ -109,7 +121,51 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
   }, [location.search]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setFiles([...files, ...Array.from(e.target.files)]);
+    const selected = Array.from(e.target.files || []);
+    if (!selected.length) return;
+
+    const accepted: File[] = [];
+    const rejected: string[] = [];
+
+    for (const file of selected) {
+      if (!ACCEPTED_DOCUMENT_TYPES.has(file.type)) {
+        rejected.push(`${file.name}: unsupported file type`);
+        continue;
+      }
+      if (file.size > MAX_DOCUMENT_SIZE) {
+        rejected.push(`${file.name}: larger than 10MB`);
+        continue;
+      }
+      accepted.push(file);
+    }
+
+    if (files.length + accepted.length > 10) {
+      toast({
+        title: "Too many files",
+        description: "You can upload up to 10 supporting documents.",
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    if (accepted.length) {
+      setFiles((prev) => [...prev, ...accepted]);
+      toast({
+        title: "Documents added",
+        description: `${accepted.length} file${accepted.length === 1 ? "" : "s"} ready to submit.`,
+      });
+    }
+
+    if (rejected.length) {
+      toast({
+        title: "Some files were not added",
+        description: rejected.slice(0, 2).join(". "),
+        variant: "destructive",
+      });
+    }
+
+    e.target.value = "";
   };
 
   const removeFile = (index: number) => {
@@ -135,7 +191,19 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.lawyerId || !formData.title || !formData.caseType || !formData.priority || !formData.description) {
+    const missing = [];
+    if (!formData.title.trim()) missing.push("case title");
+    if (!formData.lawyerId) missing.push("lawyer");
+    if (!formData.caseType) missing.push("case type");
+    if (!formData.priority) missing.push("priority");
+    if (!formData.description.trim()) missing.push("description");
+
+    if (missing.length) {
+      toast({
+        title: "Complete the case form",
+        description: `Missing: ${missing.join(", ")}`,
+        variant: "destructive",
+      });
       return;
     }
     setIsSubmitting(true);
@@ -147,6 +215,7 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
         description: formData.description,
         lawyerId: formData.lawyerId,
         initialMessage: formData.description,
+        documents: files,
       });
       toast({ title: "Case submitted", description: t.success });
       navigate(`/messages?conversationId=${encodeURIComponent(result.conversation.id)}`);
@@ -205,12 +274,31 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
                 <SelectContent>
                   {lawyers.map((lawyer) => (
                     <SelectItem key={lawyer.id} value={lawyer.id}>
-                      {lawyer.name}
+                      {lawyer.name} - {Number(lawyer.hourlyRate || 0).toLocaleString()} RWF/hr
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {lawyers.length === 0 && <p className="text-xs text-muted-foreground">{t.noLawyers}</p>}
+              {formData.lawyerId && (
+                <div className="mt-3 flex items-center gap-3 rounded-lg border border-border p-3">
+                  {(() => {
+                    const selected = lawyers.find((lawyer) => lawyer.id === formData.lawyerId);
+                    if (!selected) return null;
+                    return (
+                      <>
+                        <UserPhoto src={selected.avatarUrl} alt={selected.name} className="h-10 w-10 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{selected.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {selected.phone || "No phone"} · {Number(selected.hourlyRate || 0).toLocaleString()} RWF/hr
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -310,7 +398,14 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
               <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-sm font-medium">{t.uploadText}</p>
               <p className="text-xs text-muted-foreground">{t.uploadSubtext}</p>
-              <input type="file" multiple ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+              <input
+                type="file"
+                multiple
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+                accept={DOCUMENT_ACCEPT}
+              />
             </div>
 
             {files.length > 0 && (
@@ -335,7 +430,15 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
               {t.cancel}
             </Button>
             <Button type="submit" className="gap-2" disabled={isSubmitting || lawyers.length === 0}>
-              <CheckCircle className="w-4 h-4" /> {t.submit}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" /> {t.submit}
+                </>
+              )}
             </Button>
           </div>
         </motion.form>

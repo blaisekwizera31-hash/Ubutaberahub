@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Clock, Search, Video, UserRound, MapPin } from "lucide-react";
+import { Calendar, Clock, Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useEffect, useMemo, useState } from "react";
 import { getAppointments, getLawyers } from "@/services/backend";
 import { useToast } from "@/hooks/use-toast";
+import { UserPhoto } from "@/components/ui/UserPhoto";
 
 type Role = "citizen" | "lawyer" | "judge" | "clerk";
 
@@ -81,6 +82,7 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
               : t.status.completed,
         caseId: apt.caseId || "",
         isVideo: !!apt.isVideo,
+        contactPhoto: apt.contactPhoto || apt.profilePhoto || apt.profile_photo || null,
       })),
     [apiAppointments, t.status.completed, t.status.confirmed, t.status.pending],
   );
@@ -156,9 +158,7 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
               >
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                   <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {apt.isVideo ? <Video className="w-6 h-6 text-primary" /> : <UserRound className="w-6 h-6 text-primary" />}
-                    </div>
+                    <UserPhoto src={apt.contactPhoto} alt={apt.lawyer} className="h-12 w-12 flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold">{apt.lawyer}</h3>
                       <p className="text-sm text-muted-foreground">{apt.type}</p>

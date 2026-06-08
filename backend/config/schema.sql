@@ -9,8 +9,10 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255),
     name VARCHAR(255),
     role VARCHAR(50) DEFAULT 'citizen',
-    profile_photo VARCHAR(255),
+    profile_photo TEXT,
     phone VARCHAR(50),
+    is_available BOOLEAN DEFAULT TRUE,
+    hourly_rate INTEGER DEFAULT 50000,
     is_verified BOOLEAN DEFAULT FALSE,
     verification_token VARCHAR(10),
     verification_expires TIMESTAMP,
@@ -42,6 +44,19 @@ CREATE TABLE IF NOT EXISTS cases (
     metadata JSONB DEFAULT '{}',
     filed_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Case Evidence / Supporting Documents
+CREATE TABLE IF NOT EXISTS case_evidence (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    case_id UUID REFERENCES cases(id) ON DELETE CASCADE,
+    uploaded_by UUID REFERENCES users(id),
+    file_name VARCHAR(255) NOT NULL,
+    file_url TEXT NOT NULL,
+    file_type VARCHAR(100),
+    file_size_bytes INTEGER DEFAULT 0,
+    notes TEXT,
+    uploaded_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Conversations Table

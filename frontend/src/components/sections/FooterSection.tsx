@@ -1,4 +1,5 @@
 import { Github, Twitter, Linkedin, Mail, Instagram } from "lucide-react"; // Removed Scale import
+import { Link } from "react-router-dom";
 
 const translations = {
   en: {
@@ -52,7 +53,7 @@ export function FooterSection({ lang }: FooterSectionProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="md:col-span-1">
-            <a href="/" className="flex items-center gap-2 mb-4">
+            <Link to="/" className="flex items-center gap-2 mb-4">
               {/* FIXED: Replaced Scale icon with your logo from public folder */}
               <div className="w-10 h-10 flex items-center justify-center">
                 <img 
@@ -65,7 +66,7 @@ export function FooterSection({ lang }: FooterSectionProps) {
               <span className="font-display text-xl font-semibold text-black">
                 <span className="text-black">UBUTABERA</span><span className="text-black">hub</span>
               </span>
-            </a>
+            </Link>
             <p className="text-black text-sm mb-4">
               {t.tagline}
             </p>
@@ -94,7 +95,7 @@ export function FooterSection({ lang }: FooterSectionProps) {
               <li><a href="#features" className="hover:text-gray-700 transition-colors">{t.col1Links[0]}</a></li>
               <li><a href="#how-it-works" className="hover:text-gray-700 transition-colors">{t.col1Links[1]}</a></li>
               <li><a href="#features" className="hover:text-gray-700 transition-colors">{t.col1Links[2]}</a></li>
-              <li><a href="/find-lawyer" className="hover:text-gray-700 transition-colors">{t.col1Links[3]}</a></li>
+              <li><Link to="/find-lawyer" className="hover:text-gray-700 transition-colors">{t.col1Links[3]}</Link></li>
             </ul>
           </div>
 
@@ -102,10 +103,10 @@ export function FooterSection({ lang }: FooterSectionProps) {
           <div>
             <h4 className="font-semibold mb-4 text-black">{t.col2Title}</h4>
             <ul className="space-y-2 text-sm text-black">
-              <li><a href="/auth?role=citizen" className="hover:text-gray-700 transition-colors">{t.col2Links[0]}</a></li>
-              <li><a href="/auth?role=lawyer" className="hover:text-gray-700 transition-colors">{t.col2Links[1]}</a></li>
-              <li><a href="/auth?role=judge" className="hover:text-gray-700 transition-colors">{t.col2Links[2]}</a></li>
-              <li><a href="/auth?role=clerk" className="hover:text-gray-700 transition-colors">{t.col2Links[3]}</a></li>
+              <li><Link to="/auth?role=citizen" className="hover:text-gray-700 transition-colors">{t.col2Links[0]}</Link></li>
+              <li><Link to="/auth?role=lawyer" className="hover:text-gray-700 transition-colors">{t.col2Links[1]}</Link></li>
+              <li><Link to="/auth?role=judge" className="hover:text-gray-700 transition-colors">{t.col2Links[2]}</Link></li>
+              <li><Link to="/auth?role=clerk" className="hover:text-gray-700 transition-colors">{t.col2Links[3]}</Link></li>
             </ul>
           </div>
 
@@ -113,10 +114,10 @@ export function FooterSection({ lang }: FooterSectionProps) {
           <div>
             <h4 className="font-semibold mb-4 text-black">{t.col3Title}</h4>
             <ul className="space-y-2 text-sm text-black">
-              <li><a href="/legal/privacy" className="hover:text-gray-700 transition-colors">{t.col3Links[0]}</a></li>
-              <li><a href="/legal/terms" className="hover:text-gray-700 transition-colors">{t.col3Links[1]}</a></li>
-              <li><a href="/legal/data-protection" className="hover:text-gray-700 transition-colors">{t.col3Links[2]}</a></li>
-              <li><a href="/legal/accessibility" className="hover:text-gray-700 transition-colors">{t.col3Links[3]}</a></li>
+              <li><Link to="/legal/privacy" className="hover:text-gray-700 transition-colors">{t.col3Links[0]}</Link></li>
+              <li><Link to="/legal/terms" className="hover:text-gray-700 transition-colors">{t.col3Links[1]}</Link></li>
+              <li><Link to="/legal/data-protection" className="hover:text-gray-700 transition-colors">{t.col3Links[2]}</Link></li>
+              <li><Link to="/legal/accessibility" className="hover:text-gray-700 transition-colors">{t.col3Links[3]}</Link></li>
             </ul>
           </div>
         </div>

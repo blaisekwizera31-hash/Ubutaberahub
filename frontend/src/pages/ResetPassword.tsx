@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { resetPassword as callResetPasswordApi } from '@/lib/auth';
 import { validatePassword } from '@/lib/validation';
-import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -97,8 +96,6 @@ export default function ResetPassword() {
 
   return (
     <>
-      {isLoading && <LoadingScreen />}
-      
       <div className="min-h-screen flex items-center justify-center bg-background p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -175,7 +172,7 @@ export default function ResetPassword() {
               className="w-full"
               disabled={isLoading || !!error}
             >
-              {isLoading ? 'Updating Password...' : 'Reset Password'}
+              {isLoading ? '...' : 'Reset Password'}
             </Button>
 
             <div className="text-center">

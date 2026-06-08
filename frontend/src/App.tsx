@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
-import { useLocation, Routes, Route } from "react-router-dom"; // Added useLocation
+import { Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 
-// Import your refined Loading Screen
-import LoadingScreen from "./components/ui/LoadingScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Page Imports
@@ -33,29 +30,10 @@ import Messages from "./pages/Messages";
 import AIAssistant from "./pages/AIAssistant";
 
 const AppContent = () => {
-  const location = useLocation(); // Hook to listen for URL changes
   const { language, setLanguage } = useLanguage();
-  const [isLoading, setIsLoading] = useState(true);
-
-  // 1. Initial Load & Route Change Trigger
-  useEffect(() => {
-    setIsLoading(true);
-    
-    // Set a duration that allows your breathing animation to complete at least once
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200); 
-
-    return () => clearTimeout(timer);
-  }, [location.pathname]); // This triggers the loader EVERY time the URL changes
 
   return (
-    <>
-      {/* 3. Render Loading Screen Overlay */}
-      {isLoading && <LoadingScreen />}
-
-      {/* 4. Main App Wrapper */}
-      <div className={`${isLoading ? "hidden" : "block animate-fade-in"}`}>
+      <div>
           <Routes>
             <Route 
               path="/" 
@@ -158,7 +136,6 @@ const AppContent = () => {
     
           </Routes>
       </div>
-    </>
   );
 };
 

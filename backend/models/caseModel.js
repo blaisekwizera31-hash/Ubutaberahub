@@ -9,7 +9,7 @@ import pool from "../config/db.js";
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 export const CASE_STATUSES = Object.freeze([
-  "Pending", "In Progress", "Under Review",
+  "Pending", "Accepted", "In Progress", "Under Review",
   "Awaiting Ruling", "Closed", "Resolved", "Rejected",
 ]);
 
@@ -37,6 +37,8 @@ export function generateCaseNumber() {
 
 function normalize(row) {
   if (!row) return null;
+  const citizenName = row.citizen_name || row.metadata?.citizen_name || null;
+  const lawyerName = row.lawyer_name || row.metadata?.lawyer || null;
   return {
     id:              row.id,
     caseNumber:      row.case_number  || row.id,
@@ -50,6 +52,15 @@ function normalize(row) {
     lawyerId:        row.assigned_lawyer_id || null,
     judgeId:         row.assigned_judge_id  || null,
     clerkId:         row.assigned_clerk_id  || null,
+    citizen:         citizenName,
+    requestedBy:     citizenName,
+    citizenPhoto:    row.citizen_photo || null,
+    citizenEmail:    row.citizen_email || null,
+    citizenPhone:    row.citizen_phone || null,
+    lawyer:          lawyerName,
+    lawyerPhoto:     row.lawyer_photo || null,
+    lawyerEmail:     row.lawyer_email || null,
+    lawyerPhone:     row.lawyer_phone || null,
     evidenceCount:   row.metadata?.evidence_count || 0,
     metadata:        row.metadata     || {},
     createdAt:       row.created_at,
@@ -82,7 +93,19 @@ export async function listForUser(userId, opts = {}) {
   const { limit = 100, offset = 0, status } = opts;
 
   let query = `
-    SELECT * FROM cases 
+    SELECT
+      cases.*,
+      citizen.name as citizen_name,
+      citizen.email as citizen_email,
+      citizen.phone as citizen_phone,
+      citizen.profile_photo as citizen_photo,
+      lawyer.name as lawyer_name,
+      lawyer.email as lawyer_email,
+      lawyer.phone as lawyer_phone,
+      lawyer.profile_photo as lawyer_photo
+    FROM cases
+    LEFT JOIN users citizen ON citizen.id = cases.citizen_id
+    LEFT JOIN users lawyer ON lawyer.id = cases.assigned_lawyer_id
     WHERE (citizen_id = $1 OR assigned_lawyer_id = $1 OR assigned_judge_id = $1 OR assigned_clerk_id = $1)
   `;
   const values = [userId];

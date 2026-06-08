@@ -19,6 +19,9 @@ function normalizeConversation(row, extras = {}) {
     updatedAt:   row.updated_at  || row.created_at,
     contact:     extras.contact     || null,
     contactId:   extras.contactId   || null,
+    contactPhoto: extras.contactPhoto || null,
+    contactEmail: extras.contactEmail || null,
+    contactPhone: extras.contactPhone || null,
     contactRole: extras.contactRole || null,
     unread:      extras.unread      ?? 0,
     lastMessage: extras.lastMessage || null,
@@ -130,6 +133,8 @@ export async function listConversationsForUser(userId) {
       peer.user_id as contact_id,
       u.name as contact_name,
       u.email as contact_email,
+      u.phone as contact_phone,
+      u.profile_photo as contact_photo,
       u.role as contact_role,
       m.body as last_message_body,
       m.created_at as last_message_at
@@ -152,6 +157,9 @@ export async function listConversationsForUser(userId) {
   return rows.map(r => normalizeConversation(r, {
     contact:       r.contact_name || r.contact_email?.split("@")[0] || "Contact",
     contactId:     r.contact_id,
+    contactPhoto:   r.contact_photo || null,
+    contactEmail:   r.contact_email || null,
+    contactPhone:   r.contact_phone || null,
     contactRole:   r.contact_role,
     unread:        r.unread || 0,
     lastMessage:   r.last_message_body || "",

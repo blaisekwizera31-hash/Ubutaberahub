@@ -69,8 +69,25 @@ export async function submitCaseToLawyer(req, res) {
       priority,
       citizenId: req.user.id,
       lawyerId: lawyerId,
-      metadata: { submitted_to_lawyer: true, submitted_at: new Date().toISOString() }
+      metadata: {
+        submitted_to_lawyer: true,
+        submitted_at: new Date().toISOString(),
+        supporting_documents: [],
+      }
     });
+
+    const uploadedFiles = Array.isArray(req.files) ? req.files : [];
+    const fileBaseUrl = `${req.protocol}://${req.get("host")}`;
+    for (const file of uploadedFiles) {
+      await CaseModel.addEvidence({
+        caseId: newCase.id,
+        uploadedBy: req.user.id,
+        fileName: file.originalname,
+        fileUrl: `${fileBaseUrl}/uploads/case-evidence/${file.filename}`,
+        fileType: file.mimetype,
+        fileSizeBytes: file.size,
+      });
+    }
 
     // Create conversation
     const { rows: convRows } = await pool.query(
@@ -114,11 +131,96 @@ export async function submitCaseToLawyer(req, res) {
   }
 }
 
+export async function getCaseDetails(req, res) {
+  try {
+    const { id } = req.params;
+    const caseRow = await CaseModel.findById(id);
+    if (!caseRow) return res.status(404).json({ error: "Case not found" });
+
+    const userId = req.user.id;
+    const isParticipant =
+      caseRow.citizenId === userId ||
+      caseRow.lawyerId === userId ||
+      caseRow.judgeId === userId ||
+      caseRow.clerkId === userId;
+
+    if (!isParticipant) {
+      return res.status(403).json({ error: "You are not a participant in this case" });
+    }
+
+    const [citizen, lawyer, evidence] = await Promise.all([
+      caseRow.citizenId ? UserModel.findById(caseRow.citizenId) : null,
+      caseRow.lawyerId ? UserModel.findById(caseRow.lawyerId) : null,
+      CaseModel.listEvidence(caseRow.id).catch(() => []),
+    ]);
+
+    return res.json({
+      case: caseRow,
+      citizen: citizen
+        ? {
+            id: citizen.id,
+            name: citizen.name,
+            email: citizen.email,
+            phone: citizen.phone,
+            profile_photo: citizen.profile_photo,
+            role: citizen.role,
+          }
+        : null,
+      lawyer: lawyer
+        ? {
+            id: lawyer.id,
+            name: lawyer.name,
+            email: lawyer.email,
+            phone: lawyer.phone,
+            profile_photo: lawyer.profile_photo,
+            role: lawyer.role,
+          }
+        : null,
+      evidence: evidence.length ? evidence : (caseRow.metadata?.supporting_documents || []).map((doc, index) => ({
+        id: `metadata-${index}`,
+        file_name: doc.name,
+        file_url: null,
+        file_type: doc.type,
+        file_size_bytes: doc.size,
+        notes: "File metadata captured during case submission. File storage is not connected yet.",
+      })),
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to load case details", message: err.message });
+  }
+}
+
+export async function approveCase(req, res) {
+  try {
+    const { id } = req.params;
+    const caseRow = await CaseModel.findById(id);
+    if (!caseRow) return res.status(404).json({ error: "Case not found" });
+
+    if (req.user.role !== "lawyer" || caseRow.lawyerId !== req.user.id) {
+      return res.status(403).json({ error: "Only the assigned lawyer can approve this case" });
+    }
+
+    const updated = await CaseModel.updateStatus(id, "Accepted");
+
+    await notify({
+      userId: caseRow.citizenId,
+      type: "case_accepted",
+      title: "Case Accepted",
+      body: `${req.user.name || "Your lawyer"} accepted your case "${caseRow.title}"`,
+      metadata: { caseId: id, caseNumber: caseRow.caseNumber, status: "Accepted" },
+    });
+
+    return res.json({ ok: true, case: updated });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to approve case", message: err.message });
+  }
+}
+
 export async function updateCaseStatus(req, res) {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const allowed = ["Pending", "In Progress", "Under Review", "Awaiting Ruling", "Closed", "Resolved", "Rejected"];
+    const allowed = ["Pending", "Accepted", "In Progress", "Under Review", "Awaiting Ruling", "Closed", "Resolved", "Rejected"];
     if (!allowed.includes(status))
       return res.status(400).json({ error: `Status must be one of: ${allowed.join(", ")}` });
 

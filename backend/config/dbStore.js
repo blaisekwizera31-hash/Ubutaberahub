@@ -5,14 +5,25 @@ import pool from "./db.js";
 
 function normalizeCaseRow(row) {
   if (!row) return null;
+  const citizenName = row.citizen_name || row.metadata?.citizen_name || null;
+  const lawyerName = row.lawyer_name || row.metadata?.lawyer || "";
   return {
     id:       row.case_number || row.id,
+    dbId:     row.id,
     title:    row.title,
     type:     row.case_type || "Other",
     status:   row.status    || "Pending",
     priority: row.priority  || "medium",
     date:     row.filed_at ? new Date(row.filed_at).toISOString().slice(0, 10) : "",
-    lawyer:   row.metadata?.lawyer || "",
+    lawyer:   lawyerName,
+    lawyerId: row.assigned_lawyer_id || null,
+    lawyerPhoto: row.lawyer_photo || null,
+    citizen:  citizenName,
+    requestedBy: citizenName,
+    citizenId: row.citizen_id || null,
+    citizenPhoto: row.citizen_photo || null,
+    citizenEmail: row.citizen_email || null,
+    citizenPhone: row.citizen_phone || null,
     ownerId:  row.citizen_id || null,
     parties:  row.metadata?.parties || "",
   };
@@ -128,7 +139,11 @@ export async function fetchLawyersFromDb() {
     id:             u.id,
     name:           u.name || u.email?.split("@")[0] || "Lawyer",
     email:          u.email         || null,
-    specialization: u.specialization || [],
+    phone:          u.phone         || null,
+    avatarUrl:      u.profile_photo || null,
+    specialization: Array.isArray(u.specialization)
+      ? u.specialization
+      : String(u.specialization || "").split(",").map((s) => s.trim()).filter(Boolean),
     experience:     Number(u.years_experience ?? 0),
     rating:         Number(u.rating ?? 0), // ?? means to use 0 when u.rating is not defined or is null
     reviews:        Number(u.reviews_count ?? 0),
@@ -137,28 +152,43 @@ export async function fetchLawyersFromDb() {
     available:      u.is_available !== false,
     verified:       u.is_verified === true,
     hasLicense:     String(u.license_number || "").trim().length >= 4,
+    profileComplete: Boolean(u.profile_photo && u.phone && u.license_number),
   })).filter(l => l.verified);
 }
 
 // ── Cases ─────────────────────────────────────────────────────────────────────
 
 export async function fetchCasesByRoleFromDb(role, userId = null) {
-  let query = 'SELECT * FROM cases';
+  let query = `
+    SELECT
+      cases.*,
+      citizen.name as citizen_name,
+      citizen.email as citizen_email,
+      citizen.phone as citizen_phone,
+      citizen.profile_photo as citizen_photo,
+      lawyer.name as lawyer_name,
+      lawyer.email as lawyer_email,
+      lawyer.phone as lawyer_phone,
+      lawyer.profile_photo as lawyer_photo
+    FROM cases
+    LEFT JOIN users citizen ON citizen.id = cases.citizen_id
+    LEFT JOIN users lawyer ON lawyer.id = cases.assigned_lawyer_id
+  `;
   const values = [];
 
   if (userId) {
-    if (role === "citizen") { query += ' WHERE citizen_id = $1'; values.push(userId); }
-    else if (role === "lawyer")  { query += ' WHERE assigned_lawyer_id = $1'; values.push(userId); }
-    else if (role === "judge")   { query += ' WHERE assigned_judge_id = $1'; values.push(userId); }
-    else if (role === "clerk")   { query += ' WHERE assigned_clerk_id = $1'; values.push(userId); }
+    if (role === "citizen") { query += ' WHERE cases.citizen_id = $1'; values.push(userId); }
+    else if (role === "lawyer")  { query += ' WHERE cases.assigned_lawyer_id = $1'; values.push(userId); }
+    else if (role === "judge")   { query += ' WHERE cases.assigned_judge_id = $1'; values.push(userId); }
+    else if (role === "clerk")   { query += ' WHERE cases.assigned_clerk_id = $1'; values.push(userId); }
   } else {
-    if (role === "citizen") query += ' WHERE citizen_id IS NOT NULL';
-    else if (role === "lawyer")  query += ' WHERE assigned_lawyer_id IS NOT NULL';
-    else if (role === "judge")   query += ' WHERE assigned_judge_id IS NOT NULL';
-    else if (role === "clerk")   query += ' WHERE assigned_clerk_id IS NOT NULL';
+    if (role === "citizen") query += ' WHERE cases.citizen_id IS NOT NULL';
+    else if (role === "lawyer")  query += ' WHERE cases.assigned_lawyer_id IS NOT NULL';
+    else if (role === "judge")   query += ' WHERE cases.assigned_judge_id IS NOT NULL';
+    else if (role === "clerk")   query += ' WHERE cases.assigned_clerk_id IS NOT NULL';
   }
 
-  query += ' ORDER BY filed_at DESC LIMIT 100';
+  query += ' ORDER BY cases.filed_at DESC LIMIT 100';
   const { rows } = await pool.query(query, values);
   return rows.map(normalizeCaseRow);
 }

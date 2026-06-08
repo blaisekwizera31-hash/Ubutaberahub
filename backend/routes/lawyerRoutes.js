@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { getLawyers } from "../controllers/lawyerController.js";
-import { optionalAuth } from "../middleware/auth.js";
+import { getLawyers, updateMyLawyerProfile } from "../controllers/lawyerController.js";
+import { optionalAuth, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
 
+router.patch("/me", verifyToken, updateMyLawyerProfile);
 router.get("/", optionalAuth, getLawyers);
 
 export default router;
