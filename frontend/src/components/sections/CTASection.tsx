@@ -64,7 +64,7 @@ export function CTASection({ lang }: CTASectionProps) {
           </div>
 
           {/* Title */}
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-black mb-6">
+          <h2 className="text-3xl md:text-5xl font-display font-semibold text-black mb-6">
             {t.title}
           </h2>
 

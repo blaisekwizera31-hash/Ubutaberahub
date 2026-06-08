@@ -4,10 +4,10 @@
  */
 
 /**
- * isTableMissing — Returns true when the Supabase error indicates a table
+ * isTableMissing — Returns true when the database error indicates a table
  * does not exist yet (graceful degradation before migrations run).
  *
- * @param {object} err    Supabase error object
+ * @param {object} err    Error object
  * @param {string} table  Table name to check for (e.g. "notifications")
  */
 export function isTableMissing(err, table = "") {

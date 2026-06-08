@@ -84,7 +84,7 @@ export function AIAssistantSection({ lang }: AIAssistantSectionProps) {
           className="text-center mb-12"
         >
           <span className="text-accent font-semibold text-sm uppercase tracking-wider">AI-Powered</span>
-          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4">
+          <h2 className="text-3xl md:text-4xl font-display font-semibold mt-2 mb-4">
             {t.title}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">

@@ -121,7 +121,7 @@ export default function AIAssistant() {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-display font-bold">{t.title}</h1>
+                <h1 className="text-2xl font-display font-semibold">{t.title}</h1>
                 <p className="text-sm text-muted-foreground">{t.subtitle}</p>
               </div>
             </div>

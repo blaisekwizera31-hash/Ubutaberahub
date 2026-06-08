@@ -33,8 +33,8 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
-  // Supabase errors
-  if (err.message?.includes('supabase') || err.message?.includes('JWT')) {
+  // JWT errors
+  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError' || err.message?.includes('JWT')) {
     return res.status(401).json({
       error: 'Authentication error',
       message: 'Invalid or expired session',

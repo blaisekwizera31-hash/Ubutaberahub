@@ -95,7 +95,7 @@ const MyCases = () => {
             className="flex items-center justify-between"
           >
             <div>
-              <h1 className="text-2xl font-display font-bold mb-1">{t.title}</h1>
+              <h1 className="text-2xl font-display font-semibold mb-1">{t.title}</h1>
               <p className="text-muted-foreground">{t.subtitle}</p>
             </div>
             <Link to="/submit-case">

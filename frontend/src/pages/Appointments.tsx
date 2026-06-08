@@ -97,7 +97,7 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
     <DashboardLayout role={role} userName={user?.name || "User"} lang={lang}>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold">{t.title}</h1>
+          <h1 className="text-2xl font-semibold">{t.title}</h1>
           <p className="text-muted-foreground">{role === "citizen" ? t.subtitleCitizen : t.subtitleRole}</p>
         </motion.div>
 

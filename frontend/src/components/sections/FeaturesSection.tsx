@@ -93,7 +93,7 @@ export function FeaturesSection({ lang }: FeaturesSectionProps) {
           <span className="text-black font-semibold text-sm uppercase tracking-wider">
             {t.sectionBadge}
           </span>
-          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4 text-black">
+          <h2 className="text-3xl md:text-4xl font-display font-semibold mt-2 mb-4 text-black">
             {t.sectionTitle}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">

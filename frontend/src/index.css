@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -57,49 +57,6 @@
     --sidebar-border: 203 87% 42%;
     --sidebar-ring: 0 0% 100%;
   }
-
-  .dark {
-    /* Rwanda Flag Color System - 60-30-10 Rule - Dark Mode */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 100%;
-
-    /* Primary: White for dark mode */
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-
-    /* Secondary: Light Gray */
-    --secondary: 0 0% 80%;
-    --secondary-foreground: 0 0% 0%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 75%;
-
-    /* Accent: White */
-    --accent: 0 0% 100%;
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 0 0% 100%;
-
-    --sidebar-background: 203 87% 12%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 203 87% 55%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 48 98% 55%;
-    --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 203 50% 20%;
-    --sidebar-ring: 203 87% 55%;
-  }
 }
 
 @layer base {
@@ -132,32 +89,5 @@
 
   .shadow-elevated {
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  }
-
-  /* Dark-mode readability overrides for hardcoded light utility classes used across pages */
-  .dark .bg-white {
-    @apply bg-card !important;
-  }
-
-  .dark .bg-slate-50,
-  .dark .bg-slate-100 {
-    @apply bg-muted !important;
-  }
-
-  .dark .text-black,
-  .dark .text-slate-900,
-  .dark .text-slate-800 {
-    @apply text-foreground !important;
-  }
-
-  .dark .text-slate-700,
-  .dark .text-slate-600,
-  .dark .text-slate-500 {
-    @apply text-muted-foreground !important;
-  }
-
-  .dark .border-slate-200,
-  .dark .border-slate-300 {
-    @apply border-border !important;
   }
 }

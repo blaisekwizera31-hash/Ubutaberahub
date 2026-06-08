@@ -75,7 +75,7 @@ const JudgeDashboard = () => {
               <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full"></div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Welcome, {user?.name || "Hon. Judge"}</h1>
+              <h1 className="text-2xl font-semibold">Welcome, {user?.name || "Hon. Judge"}</h1>
               <p className="text-muted-foreground font-medium">All cases filed in your assigned court appear below.</p>
             </div>
           </div>
@@ -113,7 +113,7 @@ const JudgeDashboard = () => {
                     {c.type}
                   </Badge>
                 </div>
-                <h3 className="font-bold text-lg">{c.title}</h3>
+                <h3 className="font-semibold text-lg">{c.title}</h3>
                 <p className="text-sm text-muted-foreground">{c.parties}</p>
                 <div className="flex gap-4 text-xs text-muted-foreground pt-1">
                   <span className="flex items-center gap-1">

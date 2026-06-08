@@ -44,7 +44,7 @@ import pool            from "./config/db.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const app  = express();
-const PORT = process.env.PORT || 5173;
+const PORT = process.env.PORT || 8080;
 
 // ── Global middleware ─────────────────────────────────────────────────────────
 app.use(corsMiddleware);                // CORS — must be first
@@ -62,6 +62,11 @@ app.get("/api/health", (_req, res) =>
     timestamp:         new Date().toISOString(),
   })
 );
+
+app.get(["/verify-email", "/reset-password"], (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+  res.redirect(`${frontendUrl}${req.originalUrl}`);
+});
 
 // ── Route mounting ───────────────────────────────────────────────────────────
 app.use("/",                 homeRoutes);

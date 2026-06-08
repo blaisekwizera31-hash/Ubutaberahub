@@ -18,6 +18,7 @@ const router = Router();
 router.post("/signup",          authLimiter, signup);
 router.post("/login",           authLimiter, login);
 router.get( "/verify-email",    authLimiter, verifyEmail);
+router.post("/verify-email",    authLimiter, verifyEmail);
 router.post("/forgot-password", authLimiter, forgotPassword);
 router.post("/reset-password",  authLimiter, resetPassword);
 router.post("/resend-verification", authLimiter, resendSignupVerification);

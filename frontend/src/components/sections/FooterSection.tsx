@@ -62,7 +62,7 @@ export function FooterSection({ lang }: FooterSectionProps) {
                   style={{ filter: 'brightness(0)' }}
                 />
               </div>
-              <span className="font-display text-xl font-bold text-black">
+              <span className="font-display text-xl font-semibold text-black">
                 <span className="text-black">UBUTABERA</span><span className="text-black">hub</span>
               </span>
             </a>

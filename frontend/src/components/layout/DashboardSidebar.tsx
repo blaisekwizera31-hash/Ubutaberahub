@@ -78,8 +78,8 @@ export function DashboardSidebar({ activePage }: DashboardSidebarProps) {
           <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
             <Scale className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-display text-lg font-bold">
-            <span className="text-black dark:text-white">UBUTABERA</span><span className="text-[#1292E2]">hub</span>
+          <span className="font-display text-lg font-semibold">
+            <span className="text-black">UBUTABERA</span><span className="text-[#1292E2]">hub</span>
           </span>
         </Link>
       </div>

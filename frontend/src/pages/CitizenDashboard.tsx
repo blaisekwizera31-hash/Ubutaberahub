@@ -92,7 +92,7 @@ const CitizenDashboard = () => {
     <DashboardLayout role="citizen" userName={user?.name || "User"}>
       <div className="space-y-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <h1 className="text-3xl font-display font-bold text-foreground">
+          <h1 className="text-3xl font-display font-semibold text-foreground">
             {t.welcome}, {user?.name?.split(" ")[0] || "User"}!
           </h1>
           <p className="text-muted-foreground mt-1">{t.welcomeSub}</p>
@@ -124,11 +124,11 @@ const CitizenDashboard = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="font-bold text-foreground">{t.recentCases.title}</h2>
+              <h2 className="font-semibold text-foreground">{t.recentCases.title}</h2>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground font-bold text-xs uppercase tracking-wider"
+                className="text-muted-foreground font-semibold text-xs uppercase tracking-wider"
                 onClick={() => navigate("/my-cases")}
               >
                 {t.recentCases.viewAll} <ChevronRight className="w-4 h-4 ml-1" />
@@ -136,7 +136,7 @@ const CitizenDashboard = () => {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-muted/50 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                <thead className="bg-muted/50 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">Case ID</th>
                     <th className="px-6 py-4">Description</th>
@@ -153,11 +153,11 @@ const CitizenDashboard = () => {
                     >
                       <td className="px-6 py-4 text-xs font-mono text-muted-foreground">{caseItem.id}</td>
                       <td className="px-6 py-4">
-                        <p className="text-sm font-bold text-foreground">{caseItem.title}</p>
+                        <p className="text-sm font-semibold text-foreground">{caseItem.title}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{caseItem.date}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white ${caseItem.statusColor}`}>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white ${caseItem.statusColor}`}>
                           {caseItem.status}
                         </span>
                       </td>

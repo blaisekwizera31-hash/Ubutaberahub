@@ -81,7 +81,7 @@ const ClerkRegistry = ({ lang = "en" }: ClerkRegistryProps) => {
     <DashboardLayout role="clerk" userName={user?.name || "Court Clerk"} lang={lang}>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold">{t.title}</h1>
+          <h1 className="text-3xl font-semibold">{t.title}</h1>
           <p className="text-muted-foreground mt-1">{t.subtitle}</p>
         </motion.div>
 
@@ -99,7 +99,7 @@ const ClerkRegistry = ({ lang = "en" }: ClerkRegistryProps) => {
                   <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
+                  <p className="text-2xl font-semibold">{stat.value}</p>
                   <p className="text-sm text-muted-foreground">{stat.label}</p>
                 </div>
               </div>

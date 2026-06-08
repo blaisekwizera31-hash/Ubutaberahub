@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -41,8 +40,6 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     prefs: "Preferences",
     lang: "Language",
     langDesc: "Select your preferred language",
-    dark: "Dark Mode",
-    darkDesc: "Toggle dark theme",
     danger: "Danger Zone",
     dangerDesc: "Once you delete your account, there is no going back.",
     delete: "Delete Account",
@@ -58,8 +55,6 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     prefs: "Ibyo nkurikiza",
     lang: "Ururimi",
     langDesc: "Hitamo ururimi ukoresha",
-    dark: "Uburyo bw'ijoro",
-    darkDesc: "Guhindura amabara y'isura",
     danger: "Ahaboneka ibibazo",
     dangerDesc: "Iyo usibye konti yawe, ntubasha kuyigarura.",
     delete: "Siba Konti",
@@ -75,8 +70,6 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     prefs: "Préférences",
     lang: "Langue",
     langDesc: "Choisissez votre langue préférée",
-    dark: "Mode sombre",
-    darkDesc: "Basculer le thème sombre",
     danger: "Zone de danger",
     dangerDesc: "Une fois supprimé, vous ne pouvez plus revenir en arrière.",
     delete: "Supprimer le compte",
@@ -90,9 +83,6 @@ const Settings = () => {
   // 2. STATE MANAGEMENT
   const [isLoading, setIsLoading] = useState(true); // Added Loading State
   
-  const [isDarkMode, setIsDarkMode] = useState(
-    document.documentElement.classList.contains("dark")
-  );
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -116,15 +106,6 @@ const Settings = () => {
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value as LanguageCode;
     setLanguage(newLang);
-  };
-
-  const handleDarkModeToggle = (checked: boolean) => {
-    setIsDarkMode(checked);
-    if (checked) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
   };
 
   const handlePhotoClick = () => fileInputRef.current?.click();
@@ -161,7 +142,7 @@ const Settings = () => {
         <motion.h1 
           initial={{ opacity: 0, x: -20 }} 
           animate={{ opacity: 1, x: 0 }} 
-          className="text-2xl font-bold text-foreground"
+          className="text-2xl font-semibold text-foreground"
         >
           {t.title}
         </motion.h1>
@@ -239,14 +220,6 @@ const Settings = () => {
                 <option value="rw">Kinyarwanda</option>
                 <option value="fr">Français</option>
               </select>
-            </div>
-
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <p className="font-medium text-sm">{t.dark}</p>
-                <p className="text-xs text-muted-foreground">{t.darkDesc}</p>
-              </div>
-              <Switch checked={isDarkMode} onCheckedChange={handleDarkModeToggle} />
             </div>
           </div>
         </motion.div>

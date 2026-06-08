@@ -22,7 +22,7 @@ const StatCard = ({ title, value, icon: Icon, trend, color }: StatCardProps) => 
           <Icon className="w-5 h-5" />
         </div>
       </div>
-      <p className="text-2xl font-bold mb-1">{value}</p>
+      <p className="text-2xl font-semibold mb-1">{value}</p>
       <p className="text-sm text-muted-foreground">{title}</p>
       <p className="text-xs text-muted-foreground mt-2">{trend}</p>
     </div>

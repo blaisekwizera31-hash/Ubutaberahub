@@ -94,7 +94,7 @@ const LawyerDashboard = () => {
     <DashboardLayout role="lawyer" userName={user?.name || "Advocate"} lang={language}>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-semibold">
             {t.greeting}, {user?.name || "Advocate"}!
           </h1>
           <p className="text-muted-foreground mt-1">{t.subtitle}</p>
@@ -107,7 +107,7 @@ const LawyerDashboard = () => {
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <stat.icon className="w-4 h-4 text-muted-foreground" />
               </div>
-              <p className="text-2xl font-bold mt-2">{stat.value}</p>
+              <p className="text-2xl font-semibold mt-2">{stat.value}</p>
             </div>
           ))}
         </div>

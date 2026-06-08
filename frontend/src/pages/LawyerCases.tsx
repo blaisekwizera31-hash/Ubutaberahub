@@ -60,7 +60,7 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
     <DashboardLayout role="lawyer" userName={user?.name || "Advocate"} lang={lang}>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold text-slate-900">{t.title}</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">{t.title}</h1>
           <p className="text-muted-foreground mt-1">{t.subtitle}</p>
         </motion.div>
 
@@ -85,7 +85,7 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
                     <Badge className="bg-amber-500 text-white border-none">{caseItem.status}</Badge>
                     <Badge variant="secondary">{caseItem.type || "Other"}</Badge>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-3">{caseItem.title}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">{caseItem.title}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-600">
                       <Clock className="w-4 h-4" />

@@ -102,7 +102,7 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
     <DashboardLayout role="lawyer" userName={user?.name || "Advocate"} lang={lang}>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold text-slate-900">{t.title}</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">{t.title}</h1>
           <p className="text-muted-foreground mt-1">{t.subtitle}</p>
         </motion.div>
 
@@ -125,7 +125,7 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
                   {String(client.name || "C").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-lg text-slate-900">{client.name}</h3>
+                  <h3 className="font-semibold text-lg text-slate-900">{client.name}</h3>
                   <Badge variant="secondary" className="mt-1 gap-1">
                     <Briefcase className="w-3 h-3" />
                     {client.activeCases} {t.activeCases}

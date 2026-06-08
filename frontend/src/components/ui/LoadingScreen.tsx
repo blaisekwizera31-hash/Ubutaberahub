@@ -46,7 +46,7 @@ const LoadingScreen = () => {
         transition={{ delay: 0.3 }}
         className="mt-4 flex flex-col items-center gap-1"
       >
-        <h1 className="text-2xl font-extrabold tracking-tight text-black">
+        <h1 className="text-2xl font-semibold tracking-tight text-black">
           UBUTABERA<span className="text-black">hub</span>
         </h1>
       </motion.div>
@@ -72,7 +72,7 @@ const LoadingScreen = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="mt-6 text-gray-600 text-[10px] font-bold uppercase tracking-[0.3em]"
+          className="mt-6 text-gray-600 text-[10px] font-semibold uppercase tracking-[0.3em]"
         >
           {loaderText[language] || loaderText.en}
         </motion.p>

@@ -15,17 +15,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendVerificationEmail(email, token) {
-  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
-  
+export async function sendVerificationEmail(email, code) {
   const mailOptions = {
     from: `"UbutaberaHub" <${process.env.EMAIL_USER || 'no-reply@example.com'}>`,
     to: email,
-    subject: 'Verify your email - UbutaberaHub',
+    subject: 'Your UbutaberaHub verification code',
     html: `
       <h1>Email Verification</h1>
-      <p>Please click the link below to verify your email address:</p>
-      <a href="${verificationUrl}">${verificationUrl}</a>
+      <p>Enter this 6-digit code to verify your email address:</p>
+      <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px; margin: 24px 0;">${code}</p>
+      <p>This code expires in 10 minutes.</p>
       <p>If you did not request this, please ignore this email.</p>
     `,
   };
@@ -40,18 +39,16 @@ export async function sendVerificationEmail(email, token) {
   }
 }
 
-export async function sendPasswordResetEmail(email, token) {
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
-  
+export async function sendPasswordResetEmail(email, code) {
   const mailOptions = {
     from: `"UbutaberaHub" <${process.env.EMAIL_USER || 'no-reply@example.com'}>`,
     to: email,
-    subject: 'Password Reset Request - UbutaberaHub',
+    subject: 'Your UbutaberaHub password reset code',
     html: `
       <h1>Password Reset</h1>
-      <p>You requested a password reset. Click the link below to reset your password:</p>
-      <a href="${resetUrl}">${resetUrl}</a>
-      <p>This link will expire in 1 hour.</p>
+      <p>Enter this 6-digit code to reset your password:</p>
+      <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px; margin: 24px 0;">${code}</p>
+      <p>This code expires in 10 minutes.</p>
       <p>If you did not request this, please ignore this email.</p>
     `,
   };

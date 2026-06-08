@@ -150,7 +150,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-2xl font-bold mb-1">{t.title}</h1>
+          <h1 className="text-2xl font-semibold mb-1">{t.title}</h1>
           <p className="text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
@@ -245,7 +245,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
             >
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <span className="text-xl font-bold text-primary">{lawyer.name.charAt(4)}</span>
+                  <span className="text-xl font-semibold text-primary">{lawyer.name.charAt(4)}</span>
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -282,7 +282,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
 
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                 <div>
-                  <span className="text-lg font-bold text-foreground">
+                  <span className="text-lg font-semibold text-foreground">
                     {Number(lawyer.hourlyRate || 0).toLocaleString()}
                   </span>
                   <span className="text-xs text-muted-foreground ml-1">{t.rate}</span>

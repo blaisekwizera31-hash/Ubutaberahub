@@ -150,7 +150,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
       <div className="space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold mb-1">{t.title}</h1>
+          <h1 className="text-2xl font-semibold mb-1">{t.title}</h1>
           <p className="text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
@@ -199,7 +199,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                   onClick={() => navigate(`/help-center?q=${encodeURIComponent(guide.title)}`)}
                 >
                   <div className="flex justify-between items-start">
-                    <span className="px-2 py-1 rounded-full text-[10px] uppercase font-bold bg-primary/10 text-primary">
+                    <span className="px-2 py-1 rounded-full text-[10px] uppercase font-semibold bg-primary/10 text-primary">
                       {guide.type}
                     </span>
                     <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
@@ -249,11 +249,11 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
               <GraduationCap className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="font-bold text-xl">{t.handbookTitle}</h3>
+              <h3 className="font-semibold text-xl">{t.handbookTitle}</h3>
               <p className="text-primary-foreground/80">{t.handbookSub}</p>
             </div>
           </div>
-          <Button variant="secondary" size="lg" className="font-bold gap-2" onClick={handleDownload}>
+          <Button variant="secondary" size="lg" className="font-semibold gap-2" onClick={handleDownload}>
             <Download className="w-5 h-5" />
             {t.downloadBtn}
           </Button>

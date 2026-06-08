@@ -165,7 +165,7 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
     <DashboardLayout role="citizen" userName={user?.name} lang={lang}>
       <div className="p-6 max-w-3xl mx-auto space-y-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold mb-1">{t.title}</h1>
+          <h1 className="text-2xl font-semibold mb-1">{t.title}</h1>
           <p className="text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 

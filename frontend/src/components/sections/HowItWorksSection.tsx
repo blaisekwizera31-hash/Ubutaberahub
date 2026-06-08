@@ -101,7 +101,7 @@ export function HowItWorksSection({ lang }: HowItWorksSectionProps) {
           <span className="text-black font-semibold text-sm uppercase tracking-wider">
             {t.badge}
           </span>
-          <h2 className="text-3xl md:text-4xl font-display font-bold mt-2 mb-4 text-black">
+          <h2 className="text-3xl md:text-4xl font-display font-semibold mt-2 mb-4 text-black">
             {t.title}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
@@ -128,7 +128,7 @@ export function HowItWorksSection({ lang }: HowItWorksSectionProps) {
                     <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft">
                       <IconComp className="w-8 h-8 text-white" />
                     </div>
-                    <div className="text-black font-bold text-sm mb-2">
+                    <div className="text-black font-semibold text-sm mb-2">
                       {stepIcons[index].nr}
                     </div>
                     <h3 className="font-semibold text-lg mb-2 text-black">{step.title}</h3>

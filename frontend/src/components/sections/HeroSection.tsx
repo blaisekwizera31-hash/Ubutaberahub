@@ -68,7 +68,7 @@ export function HeroSection({ lang }: HeroSectionProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight text-black"
+              className="text-4xl md:text-5xl lg:text-6xl font-display font-semibold leading-tight text-black"
             >
               {t.title}{" "}
               <span className="text-black">{t.titleHighlight}</span>
@@ -113,7 +113,7 @@ export function HeroSection({ lang }: HeroSectionProps) {
             >
               {t.stats.map((stat, index) => (
                 <div key={index}>
-                  <div className="text-2xl md:text-3xl font-bold text-black">{stat.value}</div>
+                  <div className="text-2xl md:text-3xl font-semibold text-black">{stat.value}</div>
                   <div className="text-sm text-gray-600">{stat.label}</div>
                 </div>
               ))}

@@ -119,7 +119,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
     <DashboardLayout role={currentRole} userName={user?.name || "User"} lang={lang}>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold text-slate-900">{t.title}</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">{t.title}</h1>
           <p className="text-muted-foreground mt-1">{t.subtitle}</p>
         </motion.div>
 
@@ -164,7 +164,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
                     </div>
                     {Number(conv.unread || 0) > 0 && (
                       <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white font-bold">{conv.unread}</span>
+                        <span className="text-xs text-white font-semibold">{conv.unread}</span>
                       </div>
                     )}
                   </div>

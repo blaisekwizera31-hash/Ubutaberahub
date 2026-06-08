@@ -339,7 +339,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       if (needsEmailVerification) {
         toast({
           title: "Verify your email",
-          description: `We sent a verification link to ${email}.`,
+          description: `We sent a 6-digit verification code to ${email}.`,
         });
         navigate(`/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
         return;
@@ -371,7 +371,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       return;
     }
 
-    toast({ title: "Verification email sent", description: `Check ${targetEmail} for the new link.` });
+    toast({ title: "Verification code sent", description: `Check ${targetEmail} for the new code.` });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -524,9 +524,9 @@ const Auth = ({ lang = "en" }: AuthProps) => {
       {/* Loading Screen Overlay */}
       {isLoading && <LoadingScreen />}
       
-      <div className="min-h-screen flex">
+      <div className="min-h-screen flex items-start">
       {/* Left Side: Hero Branding with Lady Justice */}
-      <div className="hidden lg:flex lg:w-1/2 bg-white relative overflow-hidden">
+      <div className="hidden lg:flex lg:sticky lg:top-0 lg:h-screen lg:w-1/2 lg:shrink-0 bg-white relative overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-[400px] h-[400px] rounded-full bg-gray-100 blur-3xl" />
@@ -643,7 +643,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
         </div>
         
         <div className="relative z-10 flex flex-col justify-center px-12 text-black">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+          <div>
             <div className="flex items-center gap-3 mb-8">
               {/* Black Logo Container */}
             
@@ -651,12 +651,12 @@ const Auth = ({ lang = "en" }: AuthProps) => {
               
             </div>
            
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* Right Side: Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+      <div className="flex-1 min-h-screen flex items-center justify-center p-8 bg-background">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" />
@@ -680,14 +680,14 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                 <Mail className="h-6 w-6 text-accent" />
               </div>
               <div className="space-y-2">
-                <h1 className="text-2xl font-bold text-foreground">Verify your email</h1>
+                <h1 className="text-2xl font-semibold text-foreground">Verify your email</h1>
                 <p className="text-sm text-muted-foreground">
-                  We sent a verification link to <span className="font-medium text-foreground">{verificationEmail || email}</span>. Open that link to finish signup and go straight to your dashboard.
+                  We sent a 6-digit verification code to <span className="font-medium text-foreground">{verificationEmail || email}</span>. Enter it on the verification page to finish signup.
                 </p>
               </div>
               <div className="space-y-3">
                 <Button type="button" variant="hero" size="lg" className="w-full" onClick={handleResendVerification} disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Resend verification email"}
+                  {isLoading ? "Sending..." : "Resend verification code"}
                 </Button>
                 <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => setMode("login")}>
                   Back to sign in
@@ -891,7 +891,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
         >
-          <h2 className="text-2xl font-bold mb-2">Reset Password</h2>
+          <h2 className="text-2xl font-semibold mb-2">Reset Password</h2>
           
           {/* Step 1: Enter Email */}
           {resetStep === 'email' && (

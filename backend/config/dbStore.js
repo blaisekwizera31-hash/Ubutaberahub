@@ -1,5 +1,5 @@
 /**
- * config/dbStore.js (formerly supabaseStore.js)
+ * config/dbStore.js
  * Database query helpers using PostgreSQL pool.
  */
 

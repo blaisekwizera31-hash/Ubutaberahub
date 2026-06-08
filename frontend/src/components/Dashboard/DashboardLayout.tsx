@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   Home, FileText, MessageSquare, Users, Settings, 
   Search, Menu, X, LogOut, User, Briefcase, Gavel, Bell,
-  Bot, Calendar, HelpCircle, Moon, Sun, Globe
+  Bot, Calendar, HelpCircle, Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from "@/services/backend";
 
@@ -139,7 +138,6 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   
   const t = sidebarTranslations[language] || sidebarTranslations.en;
@@ -251,7 +249,7 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
                   style={{ filter: 'brightness(0)' }}
                 />
               </div>
-              <span className="text-lg font-bold tracking-tight uppercase">
+              <span className="text-lg font-semibold tracking-tight uppercase">
                 UBUTABERA<span className="text-primary">hub</span>
               </span>
             </Link>
@@ -379,11 +377,6 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Theme Toggle */}
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
-              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            </Button>
-
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-3 p-1 px-2 rounded-full hover:bg-muted transition-colors outline-none border border-transparent focus:border-border">
@@ -396,7 +389,7 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-2 bg-card border-border shadow-xl">
-                <div className="px-2 py-2 font-bold text-[10px] uppercase tracking-[0.15em] text-muted-foreground opacity-70">
+                <div className="px-2 py-2 font-semibold text-[10px] uppercase tracking-[0.15em] text-muted-foreground opacity-70">
                   Account Management
                 </div>
                 <DropdownMenuSeparator />

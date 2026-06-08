@@ -89,7 +89,7 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
     <DashboardLayout role="clerk" userName={user?.name || "Court Clerk"} lang={lang}>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-semibold">
             {t.greeting}, {user?.name || "Court Clerk"}!
           </h1>
           <p className="text-muted-foreground">{t.subtitle}</p>
@@ -102,7 +102,7 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
                 <p className="text-sm">{stat.title}</p>
                 <stat.icon className="w-4 h-4" />
               </div>
-              <p className="text-2xl font-bold mt-2">{stat.value}</p>
+              <p className="text-2xl font-semibold mt-2">{stat.value}</p>
             </div>
           ))}
         </div>

@@ -112,10 +112,10 @@ export async function resetPassword(token: string, password: string) {
   }
 }
 
-// Verify email with token
-export async function verifyEmail(token: string) {
+// Verify email with 6-digit code
+export async function verifyEmail(email: string, code: string) {
   try {
-    const response = await api.get(`/auth/verify-email?token=${token}`);
+    const response = await api.post('/auth/verify-email', { email, code });
     return { error: null, message: response.data.message };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };

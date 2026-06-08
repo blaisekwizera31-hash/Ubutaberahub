@@ -79,7 +79,7 @@ export function Header({ currentLang, onLanguageChange }: HeaderProps) {
                 />
               </div>
               
-              <span className="font-display text-xl font-bold text-foreground">
+              <span className="font-display text-xl font-semibold text-foreground">
                 UBUTABERA<span className="text-accent">hub</span>
               </span>
             </motion.a>

@@ -4,7 +4,6 @@
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
 import pool from '../config/db.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/emailService.js';
 
@@ -16,6 +15,10 @@ const generateToken = (id) => {
     expiresIn: '30d',
   });
 };
+
+const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+const codeExpiry = () => new Date(Date.now() + 600000);
 
 export async function signup(req, res) {
   try {
@@ -35,18 +38,18 @@ export async function signup(req, res) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Verification token
-    const verificationToken = uuidv4();
+    const verificationCode = generateCode();
+    const verificationExpires = codeExpiry();
 
     // Insert user
     const newUser = await pool.query(
-      'INSERT INTO users (email, password_hash, name, role, verification_token, is_verified) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [email, hashedPassword, name || email.split('@')[0], safeRole(role), verificationToken, false]
+      'INSERT INTO users (email, password_hash, name, role, verification_token, verification_expires, is_verified) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [email, hashedPassword, name || email.split('@')[0], safeRole(role), verificationCode, verificationExpires, false]
     );
 
     // Send email
     try {
-      await sendVerificationEmail(email, verificationToken);
+      await sendVerificationEmail(email, verificationCode);
     } catch (emailErr) {
       console.error('Failed to send verification email:', emailErr);
       // We still created the user, they might need to request a resend later
@@ -103,19 +106,20 @@ export async function login(req, res) {
 
 export async function verifyEmail(req, res) {
   try {
-    const { token } = req.query;
+    const email = req.body?.email || req.query?.email;
+    const code = req.body?.code || req.query?.code;
 
-    if (!token) {
-      return res.status(400).json({ error: 'Token is required' });
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Email and verification code are required' });
     }
 
     const { rows } = await pool.query(
-      'UPDATE users SET is_verified = true, verification_token = NULL WHERE verification_token = $1 RETURNING *',
-      [token]
+      'UPDATE users SET is_verified = true, verification_token = NULL, verification_expires = NULL WHERE LOWER(email) = LOWER($1) AND verification_token = $2 AND verification_expires > NOW() RETURNING *',
+      [email, code]
     );
 
     if (rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid or expired verification token' });
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
     }
 
     return res.json({ message: 'Email verified successfully' });
@@ -140,11 +144,15 @@ export async function resendSignupVerification(req, res) {
       return res.status(400).json({ error: 'Email already verified' });
     }
 
-    const newToken = uuidv4();
-    await pool.query('UPDATE users SET verification_token = $1 WHERE email = $2', [newToken, email]);
-    await sendVerificationEmail(email, newToken);
+    const newCode = generateCode();
+    const expires = codeExpiry();
+    await pool.query(
+      'UPDATE users SET verification_token = $1, verification_expires = $2 WHERE email = $3',
+      [newCode, expires, email]
+    );
+    await sendVerificationEmail(email, newCode);
 
-    return res.json({ message: 'Verification email resent' });
+    return res.json({ message: 'Verification code resent' });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to resend verification', message: err.message });
   }
@@ -154,8 +162,8 @@ export async function forgotPassword(req, res) {
   try {
     const { email } = req.body;
 
-    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires = new Date(Date.now() + 600000); // 10 minutes
+    const resetCode = generateCode();
+    const expires = codeExpiry();
 
     const { rows } = await pool.query(
       'UPDATE users SET reset_token = $1, reset_expires = $2 WHERE email = $3 RETURNING *',
