@@ -12,10 +12,10 @@ import {
   cancelHearing,
   getRooms,
 } from "../controllers/hearingController.js";
-import { verifyToken } from "../controllers/middleware/auth.js";
-import { checkRole }   from "../controllers/middleware/roleChecker.js";
-import { auditLogger } from "../controllers/middleware/logger.js";
-import { validateBody } from "../controllers/middleware/validate.js";
+import { verifyToken } from "../middleware/auth.js";
+import { checkRole }   from "../middleware/roleChecker.js";
+import { auditLogger } from "../middleware/logger.js";
+import { validateBody } from "../middleware/validate.js";
 
 const router = Router();
 

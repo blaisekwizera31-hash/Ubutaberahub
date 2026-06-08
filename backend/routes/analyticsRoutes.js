@@ -11,9 +11,9 @@ import {
   getHearingAnalytics,
   getAiAnalytics,
 } from "../controllers/analyticsController.js";
-import { verifyToken } from "../controllers/middleware/auth.js";
-import { checkRole }   from "../controllers/middleware/roleChecker.js";
-import { createRateLimiter } from "../controllers/middleware/rateLimiter.js";
+import { verifyToken } from "../middleware/auth.js";
+import { checkRole }   from "../middleware/roleChecker.js";
+import { createRateLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getLawyers } from "../controllers/lawyerController.js";
-import { optionalAuth } from "../controllers/middleware/auth.js";
+import { optionalAuth } from "../middleware/auth.js";
 
 const router = Router();
 

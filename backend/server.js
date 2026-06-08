@@ -3,11 +3,11 @@ import "dotenv/config";
 import express from "express";
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-import { corsMiddleware }         from "./controllers/middleware/cors.js";
-import { detectLang }             from "./controllers/middleware/lang.js";
-import { requestLogger }          from "./controllers/middleware/logger.js";
-import { generalLimiter }         from "./controllers/middleware/rateLimiter.js";
-import { notFound, errorHandler } from "./controllers/middleware/errorHandler.js";
+import { corsMiddleware }         from "./middleware/cors.js";
+import { detectLang }             from "./middleware/lang.js";
+import { requestLogger }          from "./middleware/logger.js";
+import { generalLimiter }         from "./middleware/rateLimiter.js";
+import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 import homeRoutes         from "./routes/homeRoutes.js"

@@ -6,9 +6,9 @@ import {
   submitCaseToLawyer,
   updateCaseStatus,
 } from "../controllers/caseController.js";
-import { verifyToken } from "../controllers/middleware/auth.js";
-import { validateCaseSubmission } from "../controllers/middleware/validate.js";
-import { auditLogger } from "../controllers/middleware/logger.js";
+import { verifyToken } from "../middleware/auth.js";
+import { validateCaseSubmission } from "../middleware/validate.js";
+import { auditLogger } from "../middleware/logger.js";
 
 const router = Router();
 
