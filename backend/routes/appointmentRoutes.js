@@ -5,7 +5,7 @@ import {
   bookAppointment,
   updateAppointmentStatus,
 } from "../controllers/appointmentController.js";
-import { verifyToken } from "../middleware/auth.js";
+import { verifyToken } from "../controllers/middleware/auth.js";
 
 const router = Router();
 

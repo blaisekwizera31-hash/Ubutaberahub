@@ -9,8 +9,8 @@ import {
   syncProfile,
   resendSignupVerification
 } from "../controllers/authController.js";
-import { verifyToken } from "../middleware/auth.js";
-import { authLimiter } from "../middleware/rateLimiter.js";
+import { verifyToken } from "../controllers/middleware/auth.js";
+import { authLimiter } from "../controllers/middleware/rateLimiter.js";
 
 const router = Router();
 

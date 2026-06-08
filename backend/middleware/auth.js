@@ -4,7 +4,7 @@
  */
 
 import jwt from 'jsonwebtoken';
-import pool from '../config/db.js';
+import pool from '../../config/db.js';
 
 /**
  * verifyToken - Express middleware to verify JWT

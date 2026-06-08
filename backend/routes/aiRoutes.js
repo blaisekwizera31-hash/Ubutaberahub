@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { chat, classifyCase, analyzeDocument, legalGuidance, summarize } from "../controllers/aiController.js";
-import { optionalAuth, verifyToken } from "../middleware/auth.js";
-import { aiLimiter } from "../middleware/rateLimiter.js";
-import { validateChatRequest, validateClassifyCase } from "../middleware/validate.js";
+import { optionalAuth, verifyToken } from "../controllers/middleware/auth.js";
+import { aiLimiter } from "../controllers/middleware/rateLimiter.js";
+import { validateChatRequest, validateClassifyCase } from "../controllers/middleware/validate.js";
 
 const router = Router();
 

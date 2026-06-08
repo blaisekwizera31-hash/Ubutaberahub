@@ -1,29 +1,13 @@
-/**
- * server.js — Entry point
- *
- * Structure:
- *   backend/
- *   ├── node_modules/
- *   ├── middleware/      auth, roleChecker, cors, lang, rateLimiter, validate, logger, errorHandler
- *   ├── controllers/     authController, caseController, messageController,
- *   │                    aiController, notificationController,
- *   │                    appointmentController, lawyerController
- *   ├── routes/          authRoutes, caseRoutes, messageRoutes, aiRoutes,
- *   │                    notificationRoutes, appointmentRoutes, lawyerRoutes,
- *   │                    hearingRoutes, analyticsRoutes, aiLogRoutes
- *   ├── config/          db, gemini, dbStore
- *   └── server.js
- */
 
 import "dotenv/config";
 import express from "express";
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-import { corsMiddleware }         from "./middleware/cors.js";
-import { detectLang }             from "./middleware/lang.js";
-import { requestLogger }          from "./middleware/logger.js";
-import { generalLimiter }         from "./middleware/rateLimiter.js";
-import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import { corsMiddleware }         from "./controllers/middleware/cors.js";
+import { detectLang }             from "./controllers/middleware/lang.js";
+import { requestLogger }          from "./controllers/middleware/logger.js";
+import { generalLimiter }         from "./controllers/middleware/rateLimiter.js";
+import { notFound, errorHandler } from "./controllers/middleware/errorHandler.js";
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 import homeRoutes         from "./routes/homeRoutes.js"
@@ -54,10 +38,10 @@ app.use(requestLogger);                 // log every request
 app.use(generalLimiter);                // 120 req/min global rate limit
 
 // ── Health check ──────────────────────────────────────────────────────────────
-app.get("/api/health", (_req, res) =>
+app.get("/api/health", (req, res) =>
   res.json({
     status:            "ok",
-    geminiAvailable:   !!genAI,
+    geminiAvailable:   !!genAI, //to check if something exist
     dbConnected:       true, // We assume true if the pool didn't exit the process
     timestamp:         new Date().toISOString(),
   })
@@ -69,7 +53,7 @@ app.get(["/verify-email", "/reset-password"], (req, res) => {
 });
 
 // ── Route mounting ───────────────────────────────────────────────────────────
-app.use("/",                 homeRoutes);
+app.use("/",                  homeRoutes);
 app.use("/api/auth",          authRoutes);
 app.use("/api/cases",         caseRoutes);
 app.use("/api/conversations", messageRoutes);

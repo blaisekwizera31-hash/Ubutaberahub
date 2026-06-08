@@ -5,8 +5,8 @@ import {
   sendMessage,
   createConversation,
 } from "../controllers/messageController.js";
-import { verifyToken } from "../middleware/auth.js";
-import { validateMessageBody } from "../middleware/validate.js";
+import { verifyToken } from "../controllers/middleware/auth.js";
+import { validateMessageBody } from "../controllers/middleware/validate.js";
 
 const router = Router();
 
