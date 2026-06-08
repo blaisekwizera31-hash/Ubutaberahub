@@ -52,6 +52,7 @@ function normalize(row) {
     durationMins:   row.duration_minutes || 30,
     notes:          row.notes           || "",
     lawyerName:     row.metadata?.lawyer || null,
+    lawyerAvailableTime: row.metadata?.available_time || "",
     bookedAt:       row.metadata?.booked_at || row.created_at,
     createdAt:      row.created_at,
     updatedAt:      row.updated_at,
@@ -133,6 +134,7 @@ export async function create(payload) {
     notes:            payload.notes  || null,
     metadata: {
       lawyer:    payload.lawyerName || null,
+      available_time: payload.lawyerAvailableTime || null,
       booked_at: new Date().toISOString(),
     },
   };

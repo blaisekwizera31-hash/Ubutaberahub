@@ -31,6 +31,18 @@ export async function getLawyers() {
   return response.data;
 }
 
+export async function getMessageUsers(role?: "citizen" | "lawyer" | "all") {
+  const query = `?role=${encodeURIComponent(role || "all")}`;
+  try {
+    const response = await api.get<{ users: any[] }>(`/users/message-users${query}`);
+    return response.data;
+  } catch (error: any) {
+    if (error?.response?.status !== 404) throw error;
+    const response = await api.get<{ users: any[] }>(`/auth/message-users${query}`);
+    return response.data;
+  }
+}
+
 export async function updateMyLawyerProfile(payload: {
   phone?: string;
   profilePhoto?: string;
@@ -39,6 +51,7 @@ export async function updateMyLawyerProfile(payload: {
   yearsExperience?: number | string;
   hourlyRate?: number | string;
   isAvailable?: boolean;
+  availableTime?: string;
 }) {
   const response = await api.patch<{ user: any }>("/lawyers/me", payload);
   return response.data;
@@ -114,7 +127,8 @@ export async function markAllNotificationsRead() {
 }
 
 export async function createConversation(payload: {
-  lawyerId: string;
+  lawyerId?: string;
+  peerId?: string;
   subject?: string;
   caseId?: string;
   initialMessage?: string;
@@ -128,11 +142,19 @@ export async function bookAppointment(payload: {
   appointmentType?: string;
   startsAt: string;
   durationMinutes?: number;
-  mode?: "video" | "in-person";
+  mode?: "video" | "phone" | "in_person";
   caseId?: string;
   notes?: string;
 }) {
   const response = await api.post<{ appointment: any }>("/appointments", payload);
+  return response.data;
+}
+
+export async function updateAppointmentStatus(
+  appointmentId: string,
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show",
+) {
+  const response = await api.patch<{ ok: boolean; appointment: any; conversation?: any }>(`/appointments/${appointmentId}/status`, { status });
   return response.data;
 }
 

@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Briefcase, Clock, UserRound, MessageSquare, ChevronRight, BadgeCheck, X, Bot, Sparkles, Loader2, Send } from "lucide-react";
+import { Briefcase, Clock, UserRound, MessageSquare, ChevronRight, BadgeCheck, X, Sparkles, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LEGAL_SPECIALIZATIONS } from "@/lib/legalSpecializations";
 import {
   approveCase,
-  chatWithLegalAI,
   getCaseDetails,
   getConversations,
   getMyCases,
@@ -36,15 +36,12 @@ const translations = {
     saveProfile: "Save Profile",
     available: "Available for new clients",
     hourlyRate: "Hourly Rate",
+    availableTime: "Available Time",
     phone: "Working Phone Number",
     firm: "Law Firm / Location",
     specialization: "Specialization",
-    aiTitle: "Lawyer AI Assistant",
-    aiSubtitle: "Summarize active files and ask case-prep questions.",
-    summarizeAll: "Summarize All Cases",
-    summarizePending: "Summarize Pending",
-    askPlaceholder: "Ask about deadlines, risks, documents needed, or next steps...",
-    ask: "Ask AI",
+    summarizeAi: "Summarize with AI",
+    aiSummaryTitle: "AI Case Summary",
     stats: {
       total: "Total Cases",
       pending: "Pending Requests",
@@ -68,13 +65,13 @@ const LawyerDashboard = () => {
     lawFirm: user?.lawFirm || user?.law_firm || "",
     specialization: user?.specialization || "",
     hourlyRate: user?.hourlyRate || user?.hourly_rate || 50000,
+    availableTime: user?.availableTime || user?.available_time || "",
     isAvailable: user?.isAvailable ?? user?.is_available ?? true,
   });
   const [selectedDetails, setSelectedDetails] = useState<any>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [aiQuestion, setAiQuestion] = useState("");
-  const [aiAnswer, setAiAnswer] = useState("");
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState<{ title: string; content: string } | null>(null);
+  const [summarizingCaseId, setSummarizingCaseId] = useState<string | null>(null);
 
   useEffect(() => {
     getMyCases()
@@ -129,12 +126,15 @@ const LawyerDashboard = () => {
     }
   };
 
-  const buildCaseContext = (items: any[]) =>
-    items
-      .map((caseItem, index) => {
-        const filed = caseItem.date || (caseItem.filedAt ? new Date(caseItem.filedAt).toLocaleDateString() : "-");
-        return [
-          `Case ${index + 1}: ${caseItem.title || "Untitled"}`,
+  const summarizeCase = async (caseItem: any) => {
+    if (summarizingCaseId) return;
+    setSummarizingCaseId(caseItem.id);
+    try {
+      const filed = caseItem.date || (caseItem.filedAt ? new Date(caseItem.filedAt).toLocaleDateString() : "-");
+      const prompt =
+        "For a lawyer in Rwanda, summarize this case. Include key facts, urgency, missing information, recommended next steps, documents to request, and client follow-up points.\n\n" +
+        [
+          `Title: ${caseItem.title || "Untitled"}`,
           `Number: ${caseItem.caseNumber || caseItem.id}`,
           `Citizen: ${caseItem.citizen || caseItem.requestedBy || "Citizen"}`,
           `Status: ${caseItem.status || "Pending"}`,
@@ -143,50 +143,12 @@ const LawyerDashboard = () => {
           `Filed: ${filed}`,
           `Description: ${caseItem.description || "No description provided"}`,
         ].join("\n");
-      })
-      .join("\n\n");
-
-  const summarizeCases = async (scope: "all" | "pending") => {
-    const source = scope === "pending" ? pendingCases : cases;
-    if (!source.length || isAiLoading) return;
-    setIsAiLoading(true);
-    setAiAnswer("");
-    try {
-      const prompt =
-        "For a lawyer in Rwanda, summarize these cases. Include urgent priorities, missing information, recommended next steps, and client follow-up points.\n\n" +
-        buildCaseContext(source);
       const result = await summarizeTextWithAI(prompt, 1200);
-      setAiAnswer(result.summary);
+      setAiSummary({ title: caseItem.title || "Case Summary", content: result.summary });
     } catch (error: any) {
-      toast({ title: "AI failed", description: error.message || "Could not summarize cases", variant: "destructive" });
+      toast({ title: "AI failed", description: error.message || "Could not summarize case", variant: "destructive" });
     } finally {
-      setIsAiLoading(false);
-    }
-  };
-
-  const askCaseAI = async () => {
-    const question = aiQuestion.trim();
-    if (!question || isAiLoading) return;
-    setIsAiLoading(true);
-    setAiAnswer("");
-    try {
-      const context = buildCaseContext(cases);
-      const result = await chatWithLegalAI(
-        [
-          {
-            role: "user",
-            content:
-              "You are assisting a licensed lawyer in Rwanda. Use only the case context below. Give practical case-prep support, not final legal advice.\n\n" +
-              `Case context:\n${context}\n\nLawyer question: ${question}`,
-          },
-        ],
-        language,
-      );
-      setAiAnswer(result.response);
-    } catch (error: any) {
-      toast({ title: "AI failed", description: error.message || "Could not answer", variant: "destructive" });
-    } finally {
-      setIsAiLoading(false);
+      setSummarizingCaseId(null);
     }
   };
 
@@ -229,7 +191,11 @@ const LawyerDashboard = () => {
           <Button variant="outline" size="sm" onClick={() => openDetails(caseItem.id)}>
             {t.details}
           </Button>
-          <Link to="/messages" className="text-muted-foreground hover:text-foreground">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => summarizeCase(caseItem)} disabled={summarizingCaseId === caseItem.id}>
+            {summarizingCaseId === caseItem.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {t.summarizeAi}
+          </Button>
+          <Link to="/lawyer-dashboard/messages" className="text-muted-foreground hover:text-foreground">
             <ChevronRight className="w-5 h-5" />
           </Link>
         </div>
@@ -287,12 +253,30 @@ const LawyerDashboard = () => {
               <Input type="number" value={profile.hourlyRate} onChange={(e) => setProfile({ ...profile, hourlyRate: e.target.value })} />
             </div>
             <div className="space-y-2">
+              <Label>{t.availableTime}</Label>
+              <Input value={profile.availableTime} onChange={(e) => setProfile({ ...profile, availableTime: e.target.value })} placeholder="Mon-Fri, 09:00-17:00" />
+            </div>
+            <div className="space-y-2">
               <Label>{t.firm}</Label>
               <Input value={profile.lawFirm} onChange={(e) => setProfile({ ...profile, lawFirm: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label>{t.specialization}</Label>
-              <Input value={profile.specialization} onChange={(e) => setProfile({ ...profile, specialization: e.target.value })} />
+              <Select
+                value={String(profile.specialization || "")}
+                onValueChange={(value) => setProfile({ ...profile, specialization: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose specialization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEGAL_SPECIALIZATIONS.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <Button className="mt-4" onClick={saveProfile} disabled={isSavingProfile || !profile.phone}>
@@ -300,61 +284,10 @@ const LawyerDashboard = () => {
           </Button>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Bot className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">{t.aiTitle}</h2>
-                <p className="text-sm text-muted-foreground">{t.aiSubtitle}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => summarizeCases("all")} disabled={isAiLoading || cases.length === 0}>
-                <Sparkles className="h-4 w-4" />
-                {t.summarizeAll}
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => summarizeCases("pending")} disabled={isAiLoading || pendingCases.length === 0}>
-                <Sparkles className="h-4 w-4" />
-                {t.summarizePending}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Textarea
-              value={aiQuestion}
-              onChange={(event) => setAiQuestion(event.target.value)}
-              placeholder={t.askPlaceholder}
-              rows={3}
-            />
-            <div className="flex justify-end">
-              <Button className="gap-2" onClick={askCaseAI} disabled={isAiLoading || !aiQuestion.trim() || cases.length === 0}>
-                {isAiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                {t.ask}
-              </Button>
-            </div>
-            {(isAiLoading || aiAnswer) && (
-              <div className="rounded-xl border border-border bg-muted/40 p-4">
-                {isAiLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Thinking...
-                  </div>
-                ) : (
-                  <p className="whitespace-pre-wrap text-sm text-foreground">{aiAnswer}</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">{t.pendingTitle}</h2>
-            <Link to="/messages" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link to="/lawyer-dashboard/messages" className="text-sm text-muted-foreground hover:text-foreground">
               {t.viewMessages}
             </Link>
           </div>
@@ -423,9 +356,26 @@ const LawyerDashboard = () => {
             </div>
           </div>
         )}
+        {aiSummary && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl">
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t.aiSummaryTitle}</p>
+                  <h2 className="text-xl font-semibold">{aiSummary.title}</h2>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setAiSummary(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="whitespace-pre-wrap text-sm text-foreground">{aiSummary.content}</p>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
 };
 
 export default LawyerDashboard;
+

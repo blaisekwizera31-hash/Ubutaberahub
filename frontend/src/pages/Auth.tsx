@@ -4,10 +4,12 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { signUp, signIn, signInWithOAuth, requestPasswordReset, resendSignupVerification, verifyCodeAndResetPassword } from "@/lib/auth";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useToast } from "@/hooks/use-toast";
+import { LEGAL_SPECIALIZATIONS } from "@/lib/legalSpecializations";
 import {
   validateEmail,
   validatePassword,
@@ -806,7 +808,18 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                     </div>
                     <div className="space-y-2">
                       <Label>{t.fields.specialization}</Label>
-                      <Input value={specialization} onChange={(e) => setSpecialization(e.target.value)} placeholder="Criminal Law..." />
+                      <Select value={specialization} onValueChange={setSpecialization}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose specialization" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LEGAL_SPECIALIZATIONS.map((item) => (
+                            <SelectItem key={item} value={item}>
+                              {item}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 )}

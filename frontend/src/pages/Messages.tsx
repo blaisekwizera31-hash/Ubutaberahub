@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
-import { Search, Send, MoreVertical } from "lucide-react";
+import { Search, Send, MoreVertical, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { UserPhoto } from "@/components/ui/UserPhoto";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getConversationMessages, getConversations, sendConversationMessage } from "@/services/backend";
+import { createConversation, getConversationMessages, getConversations, getMessageUsers, sendConversationMessage } from "@/services/backend";
+import { useToast } from "@/hooks/use-toast";
 
 interface MessagesProps {
   lang?: string;
@@ -23,16 +24,60 @@ const translations = {
     online: "Online",
     offline: "Offline",
     noConversations: "No conversations yet. Submit a case to start chatting.",
+    newMessage: "New Message",
+    chooseUser: "Choose User",
+    noUsers: "No users found.",
+    loadingUsers: "Loading users...",
   },
+};
+
+const groupConversationsByContact = (items: any[]) => {
+  const grouped = new Map<string, any>();
+  for (const conv of items) {
+    const key = conv.contactId || conv.contact || conv.id;
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, { ...conv, conversationIds: conv.conversationIds || [conv.id] });
+      continue;
+    }
+
+    const currentTime = new Date(conv.lastMessageAt || conv.updatedAt || conv.createdAt || 0).getTime();
+    const existingTime = new Date(existing.lastMessageAt || existing.updatedAt || existing.createdAt || 0).getTime();
+    existing.conversationIds = [...new Set([...(existing.conversationIds || [existing.id]), conv.id])];
+    existing.unread = Number(existing.unread || 0) + Number(conv.unread || 0);
+    if (currentTime > existingTime) {
+      grouped.set(key, {
+        ...existing,
+        id: conv.id,
+        subject: conv.subject,
+        lastMessage: conv.lastMessage,
+        lastMessageAt: conv.lastMessageAt,
+      });
+    }
+  }
+
+  return [...grouped.values()].sort(
+    (a, b) => new Date(b.lastMessageAt || b.updatedAt || b.createdAt || 0).getTime() - new Date(a.lastMessageAt || a.updatedAt || a.createdAt || 0).getTime(),
+  );
+};
+
+const matchesConversationTarget = (conv: any, conversationId?: string | null, peerId?: string | null) => {
+  const ids = Array.isArray(conv.conversationIds) ? conv.conversationIds : [conv.id];
+  return Boolean(
+    (conversationId && (conv.id === conversationId || ids.includes(conversationId))) ||
+      (peerId && conv.contactId === peerId),
+  );
 };
 
 const Messages = ({ lang = "en" }: MessagesProps) => {
   const t = translations.en;
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
   const currentRole = user?.role === "lawyer" ? "lawyer" : "citizen";
+  const portalBase = currentRole === "lawyer" ? "/lawyer-dashboard" : "/dashboard";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [newMessage, setNewMessage] = useState("");
@@ -40,25 +85,68 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messagesByConversation, setMessagesByConversation] = useState<Record<string, any[]>>({});
+  const [messageUsers, setMessageUsers] = useState<any[]>([]);
+  const [showUserPicker, setShowUserPicker] = useState(false);
+  const [userQuery, setUserQuery] = useState("");
+  const [isStartingConversation, setIsStartingConversation] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [usersError, setUsersError] = useState("");
+
+  const appendMessage = useCallback((conversationId: string, message: any) => {
+    setMessagesByConversation((prev) => {
+      const existing = prev[conversationId] || [];
+      if (existing.some((item) => item.id === message.id)) return prev;
+      return { ...prev, [conversationId]: [...existing, message] };
+    });
+  }, []);
+
+  const refreshConversations = useCallback(async () => {
+    try {
+      const data = await getConversations();
+      const convs = groupConversationsByContact(Array.isArray(data.conversations) ? data.conversations : []);
+      setConversations(convs);
+
+      const params = new URLSearchParams(location.search);
+      const byQuery = params.get("conversationId");
+      const byPeer = params.get("peerId");
+      setSelectedConversationId((current) => {
+        const targeted = convs.find((c) => matchesConversationTarget(c, byQuery, byPeer));
+        if (targeted) return targeted.id;
+        const currentTarget = current ? convs.find((c) => matchesConversationTarget(c, current, null)) : null;
+        if (currentTarget) return currentTarget.id;
+        return convs[0]?.id || null;
+      });
+    } catch {
+      setConversations([]);
+    }
+  }, [location.search]);
 
   useEffect(() => {
-    getConversations()
-      .then((data) => {
-        const convs = Array.isArray(data.conversations) ? data.conversations : [];
-        setConversations(convs);
+    refreshConversations();
+  }, [refreshConversations]);
 
-        const params = new URLSearchParams(location.search);
-        const byQuery = params.get("conversationId");
-        if (byQuery && convs.some((c) => c.id === byQuery)) {
-          setSelectedConversationId(byQuery);
-        } else if (convs.length > 0) {
-          setSelectedConversationId(convs[0].id);
-        }
-      })
-      .catch(() => {
-        setConversations([]);
-      });
-  }, [location.search]);
+  const loadMessageUsers = useCallback(async () => {
+    setIsLoadingUsers(true);
+    setUsersError("");
+    try {
+      const data = await getMessageUsers("all");
+      setMessageUsers(Array.isArray(data.users) ? data.users : []);
+    } catch (error: any) {
+      setMessageUsers([]);
+      const status = error?.response?.status;
+      setUsersError(
+        status === 404
+          ? "User list route is not active. Restart the backend, then try again."
+          : error?.response?.data?.message || error?.response?.data?.error || error?.message || "Failed to load users",
+      );
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMessageUsers();
+  }, [loadMessageUsers]);
 
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("q") || "";
@@ -67,17 +155,49 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
 
   useEffect(() => {
     if (!selectedConversationId) return;
-    getConversationMessages(selectedConversationId)
-      .then((data) => {
+    const loadMessages = () => {
+      getConversationMessages(selectedConversationId)
+        .then((data) => {
+          setMessagesByConversation((prev) => ({
+            ...prev,
+            [selectedConversationId]: Array.isArray(data.messages) ? data.messages : [],
+          }));
+        })
+        .catch(() => {
+          setMessagesByConversation((prev) => ({ ...prev, [selectedConversationId]: [] }));
+        });
+    };
+    loadMessages();
+    const timer = window.setInterval(loadMessages, 5000);
+    return () => window.clearInterval(timer);
+  }, [selectedConversationId]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5173/api";
+    const wsBase = apiBase.replace(/^http/i, "ws").replace(/\/api\/?$/, "");
+    const socket = new WebSocket(`${wsBase}/ws?token=${encodeURIComponent(token)}`);
+
+    socket.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type !== "new_message" || !payload.conversationId || !payload.message) return;
+        appendMessage(payload.conversationId, payload.message);
         setMessagesByConversation((prev) => ({
           ...prev,
-          [selectedConversationId]: Array.isArray(data.messages) ? data.messages : [],
+          [payload.conversationId]: [
+            ...(prev[payload.conversationId] || []).filter((item) => item.id !== payload.message.id),
+            payload.message,
+          ],
         }));
-      })
-      .catch(() => {
-        setMessagesByConversation((prev) => ({ ...prev, [selectedConversationId]: [] }));
-      });
-  }, [selectedConversationId]);
+        refreshConversations();
+      } catch {}
+    };
+
+    return () => socket.close();
+  }, [appendMessage, refreshConversations]);
 
   const displayedConversations = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -92,6 +212,37 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
   const selectedConversation =
     conversations.find((conv) => conv.id === selectedConversationId) || displayedConversations[0] || null;
 
+  const filteredMessageUsers = useMemo(() => {
+    const q = userQuery.trim().toLowerCase();
+    if (!q) return messageUsers;
+    return messageUsers.filter((messageUser) =>
+      `${messageUser.name || ""} ${messageUser.email || ""} ${messageUser.subtitle || ""}`.toLowerCase().includes(q),
+    );
+  }, [messageUsers, userQuery]);
+
+  const startConversation = async (messageUser: any) => {
+    if (!messageUser?.id || isStartingConversation) return;
+    setIsStartingConversation(true);
+    try {
+      const result = await createConversation({
+        peerId: messageUser.id,
+        subject: `Conversation with ${messageUser.name || "User"}`,
+      });
+      await refreshConversations();
+      setSelectedConversationId(result.conversation.id);
+      setShowUserPicker(false);
+      setUserQuery("");
+      const params = new URLSearchParams();
+      params.set("conversationId", result.conversation.id);
+      params.set("peerId", messageUser.id);
+      navigate(`${portalBase}/messages?${params.toString()}`);
+    } catch (error: any) {
+      toast({ title: "Could not start conversation", description: error.message || "Unknown error", variant: "destructive" });
+    } finally {
+      setIsStartingConversation(false);
+    }
+  };
+
   const handleSend = async () => {
     const body = newMessage.trim();
     if (!body || !selectedConversationId || isSending) return;
@@ -99,10 +250,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
     try {
       const sent = await sendConversationMessage(selectedConversationId, body);
       const item = sent.message;
-      setMessagesByConversation((prev) => ({
-        ...prev,
-        [selectedConversationId]: [...(prev[selectedConversationId] || []), item],
-      }));
+      appendMessage(selectedConversationId, item);
       setConversations((prev) =>
         prev.map((c) =>
           c.id === selectedConversationId
@@ -127,6 +275,16 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
         <div className="grid lg:grid-cols-3 gap-6 h-[calc(100vh-250px)]">
           <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col">
             <div className="p-4 border-b">
+              <Button
+                className="mb-3 w-full gap-2"
+                onClick={() => {
+                  setShowUserPicker(true);
+                  loadMessageUsers();
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                {t.newMessage}
+              </Button>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
@@ -190,7 +348,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
                   <p className="text-xs text-slate-500">{selectedConversation?.online ? t.online : t.offline}</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
+              <Button variant="ghost" size="icon" onClick={() => navigate(`${portalBase}/settings`)}>
                 <MoreVertical className="w-5 h-5" />
               </Button>
             </div>
@@ -233,6 +391,55 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
               </div>
             </div>
           </div>
+          {showUserPicker && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="max-h-[85vh] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+                <div className="flex items-center justify-between border-b border-border p-4">
+                  <h2 className="font-semibold">{t.chooseUser}</h2>
+                  <Button variant="ghost" size="icon" onClick={() => setShowUserPicker(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="p-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      className="pl-10"
+                      placeholder={t.search}
+                      value={userQuery}
+                      onChange={(event) => setUserQuery(event.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="max-h-[55vh] overflow-y-auto border-t border-border">
+                  {isLoadingUsers && (
+                    <div className="p-4 text-sm text-muted-foreground">{t.loadingUsers}</div>
+                  )}
+                  {!isLoadingUsers && usersError && (
+                    <div className="p-4 text-sm text-destructive">{usersError}</div>
+                  )}
+                  {!isLoadingUsers && !usersError && filteredMessageUsers.map((messageUser) => (
+                    <button
+                      key={messageUser.id}
+                      type="button"
+                      className="flex w-full items-center gap-3 border-b border-border p-4 text-left hover:bg-muted/50"
+                      onClick={() => startConversation(messageUser)}
+                      disabled={isStartingConversation}
+                    >
+                      <UserPhoto src={messageUser.profilePhoto} alt={messageUser.name || "User"} className="h-11 w-11 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground">{messageUser.name || "User"}</p>
+                        <p className="truncate text-sm text-muted-foreground">{messageUser.subtitle || messageUser.email || messageUser.role}</p>
+                      </div>
+                    </button>
+                  ))}
+                  {!isLoadingUsers && !usersError && filteredMessageUsers.length === 0 && (
+                    <div className="p-4 text-sm text-muted-foreground">{t.noUsers}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

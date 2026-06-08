@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
-import { getCaseDetails, getConversations, getMyCases } from "@/services/backend";
+import { createConversation, getAppointments, getCaseDetails, getConversations, getMyCases } from "@/services/backend";
 import { UserPhoto } from "@/components/ui/UserPhoto";
 
 interface LawyerClientsProps {
@@ -36,6 +36,7 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
 
   const [query, setQuery] = useState("");
   const [conversations, setConversations] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [cases, setCases] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [selectedCaseDetails, setSelectedCaseDetails] = useState<any>(null);
@@ -54,6 +55,13 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
         setCases(active);
       })
       .catch(() => setCases([]));
+
+    getAppointments("lawyer")
+      .then((data) => {
+        const all = Array.isArray(data.appointments) ? data.appointments : [];
+        setAppointments(all.filter((apt) => String(apt.status || "").toLowerCase() === "confirmed"));
+      })
+      .catch(() => setAppointments([]));
   }, []);
 
   const clients = useMemo(() => {
@@ -106,8 +114,34 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
       }
     }
 
+    for (const apt of appointments) {
+      const clientName = apt.contact || apt.lawyer || "Citizen";
+      const key = apt.contactId || `name:${String(clientName).toLowerCase()}`;
+      if (!byKey.has(key)) {
+        byKey.set(key, {
+          key,
+          id: apt.contactId || null,
+          name: clientName,
+          activeCases: 0,
+          conversationId: apt.conversationId || null,
+          lastMessage: "Confirmed appointment",
+          photo: apt.contactPhoto || null,
+          email: apt.contactEmail || null,
+          phone: apt.contactPhone || null,
+          cases: [],
+        });
+      } else {
+        const current = byKey.get(key);
+        current.conversationId = current.conversationId || apt.conversationId || null;
+        current.lastMessage = current.lastMessage || "Confirmed appointment";
+        current.photo = current.photo || apt.contactPhoto || null;
+        current.email = current.email || apt.contactEmail || null;
+        current.phone = current.phone || apt.contactPhone || null;
+      }
+    }
+
     return Array.from(byKey.values());
-  }, [cases, conversations]);
+  }, [appointments, cases, conversations]);
 
   const displayedClients = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -121,6 +155,18 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
   const openCaseDetails = async (caseId: string) => {
     const details = await getCaseDetails(caseId);
     setSelectedCaseDetails(details);
+  };
+
+  const openClientChat = async (client: any) => {
+    let conversationId = client.conversationId;
+    if (!conversationId && client.id) {
+      const result = await createConversation({ peerId: client.id, subject: `Conversation with ${client.name}` });
+      conversationId = result.conversation.id;
+    }
+    const params = new URLSearchParams();
+    if (conversationId) params.set("conversationId", conversationId);
+    if (client.id) params.set("peerId", client.id);
+    navigate(`/lawyer-dashboard/messages${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   return (
@@ -168,7 +214,7 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
                 <Button
                   size="sm"
                   className="gap-2 bg-[#1a2b4b] hover:bg-[#111c32]"
-                  onClick={() => navigate(client.conversationId ? `/messages?conversationId=${encodeURIComponent(client.conversationId)}` : "/messages")}
+                  onClick={() => openClientChat(client)}
                 >
                   <MessageSquare className="w-4 h-4" />
                   {t.openChat}
@@ -309,3 +355,4 @@ const LawyerClients = ({ lang = "en" }: LawyerClientsProps) => {
 };
 
 export default LawyerClients;
+

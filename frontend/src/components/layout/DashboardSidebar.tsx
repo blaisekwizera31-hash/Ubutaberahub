@@ -1,5 +1,5 @@
 import React from "react";
-import { Scale, Home, FileText, MessageSquare, Briefcase, Calendar, HelpCircle, Settings, LogOut, Languages } from "lucide-react";
+import { Scale, Home, FileText, MessageSquare, Briefcase, Calendar, Settings, LogOut, Languages } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -9,9 +9,9 @@ const translations = {
     dashboard: "Dashboard",
     myCases: "My Cases",
     aiAssistant: "AI Assistant",
+    messages: "Messages",
     findLawyers: "Find Lawyers",
     appointments: "Appointments",
-    legalResources: "Legal Resources",
     settings: "Settings",
     signOut: "Sign Out",
     switchLang: "Kinyarwanda"
@@ -20,9 +20,9 @@ const translations = {
     dashboard: "Inyandiko mbonera",
     myCases: "Imanza zanjye",
     aiAssistant: "Umufasha wa AI",
+    messages: "Ubutumwa",
     findLawyers: "Shaka abanyamategeko",
     appointments: "Gahunda",
-    legalResources: "Amategeko",
     settings: "Igenamiterere",
     signOut: "Sohoka",
     switchLang: "English"
@@ -31,9 +31,9 @@ const translations = {
     dashboard: "Tableau de bord",
     myCases: "Mes dossiers",
     aiAssistant: "Assistant IA",
+    messages: "Messages",
     findLawyers: "Trouver des avocats",
     appointments: "Rendez-vous",
-    legalResources: "Ressources juridiques",
     settings: "Parametres",
     signOut: "Se deconnecter",
     switchLang: "English"
@@ -53,11 +53,11 @@ export function DashboardSidebar({ activePage }: DashboardSidebarProps) {
 
   const navItems = [
     { icon: Home, label: t("dashboard"), href: "/dashboard" },
-    { icon: FileText, label: t("myCases"), href: "/my-cases" },
-    { icon: MessageSquare, label: t("aiAssistant"), href: "/ai-assistant" },
-    { icon: Briefcase, label: t("findLawyers"), href: "/find-lawyer" },
-    { icon: Calendar, label: t("appointments"), href: "/appointments" },
-    { icon: HelpCircle, label: t("legalResources"), href: "/legal-resources" },
+    { icon: FileText, label: t("myCases"), href: "/dashboard/my-cases" },
+    { icon: MessageSquare, label: t("aiAssistant"), href: "/dashboard/ai-assistant" },
+    { icon: MessageSquare, label: t("messages"), href: "/dashboard/messages" },
+    { icon: Briefcase, label: t("findLawyers"), href: "/dashboard/find-lawyer" },
+    { icon: Calendar, label: t("appointments"), href: "/dashboard/appointments" },
   ];
 
   const isActive = (href: string) => {
@@ -114,9 +114,9 @@ export function DashboardSidebar({ activePage }: DashboardSidebarProps) {
         </button>
 
         <Link
-          to="/settings"
+          to="/dashboard/settings"
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-            isActive("/settings")
+            isActive("/dashboard/settings")
               ? "bg-primary/10 text-primary"
               : "text-muted-foreground hover:bg-muted hover:text-foreground"
           }`}

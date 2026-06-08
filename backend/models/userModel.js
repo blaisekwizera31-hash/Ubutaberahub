@@ -16,7 +16,7 @@ const PUBLIC_COLS = "id, email, name, role, profile_photo, created_at, updated_a
 /** Columns exposed for lawyer directory listings */
 const LAWYER_COLS =
   "id, email, name, role, profile_photo, specialization, years_experience, " +
-  "law_firm, license_number, is_verified, verification_status, created_at";
+  "law_firm, license_number, is_available, available_time, hourly_rate, is_verified, verification_status, created_at";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -112,6 +112,10 @@ export async function updateProfile(id, updates) {
   if (updates.is_available !== undefined) {
     fields.push(`is_available = $${idx++}`);
     values.push(updates.is_available !== false);
+  }
+  if (updates.available_time !== undefined) {
+    fields.push(`available_time = $${idx++}`);
+    values.push(String(updates.available_time || "").trim().slice(0, 255));
   }
 
   if (fields.length === 0) return findById(id);

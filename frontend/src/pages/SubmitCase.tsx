@@ -218,7 +218,7 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
         documents: files,
       });
       toast({ title: "Case submitted", description: t.success });
-      navigate(`/messages?conversationId=${encodeURIComponent(result.conversation.id)}`);
+      navigate(`/dashboard/messages?conversationId=${encodeURIComponent(result.conversation.id)}`);
     } catch (error: any) {
       toast({
         title: "Failed to submit case",
@@ -448,3 +448,4 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
 };
 
 export default SubmitCase;
+

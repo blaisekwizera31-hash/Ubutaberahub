@@ -50,7 +50,7 @@ const CaseCard = ({ id, title, status, date, lawyer, nextHearing, onOpen }: Case
           variant="ghost"
           size="icon"
           className="opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => (onOpen ? onOpen(id) : navigate(`/my-cases?q=${encodeURIComponent(id)}`))}
+          onClick={() => (onOpen ? onOpen(id) : navigate(`/dashboard/my-cases?q=${encodeURIComponent(id)}`))}
         >
           <ArrowRight className="w-4 h-4" />
         </Button>

@@ -11,6 +11,7 @@ import {
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
+import { getMessageUsers } from "../controllers/userController.js";
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.post("/resend-verification", authLimiter, resendSignupVerification);
 
 // Protected routes
 router.get( "/session-user",    verifyToken, getSessionUser);
+router.get( "/message-users",   verifyToken, getMessageUsers);
 router.post("/sync-profile",     authLimiter, verifyToken, syncProfile);
 
 export default router;

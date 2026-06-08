@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Clock, AlertCircle, Eye, X } from "lucide-react";
+import { Search, Clock, AlertCircle, Eye, X, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
-import { getCaseDetails, getMyCases } from "@/services/backend";
+import { getCaseDetails, getMyCases, summarizeTextWithAI } from "@/services/backend";
 import { useLocation } from "react-router-dom";
 import { UserPhoto } from "@/components/ui/UserPhoto";
+import { useToast } from "@/hooks/use-toast";
 
 interface LawyerCasesProps {
   lang?: string;
@@ -21,6 +22,8 @@ const translations = {
     filed: "Filed",
     client: "Citizen",
     viewDetails: "View Details",
+    summarizeAi: "Summarize with AI",
+    aiSummaryTitle: "AI Case Summary",
     noCases: "No active participating cases found.",
   },
 };
@@ -28,12 +31,15 @@ const translations = {
 const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
   const t = translations.en;
   const location = useLocation();
+  const { toast } = useToast();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
 
   const [query, setQuery] = useState("");
   const [cases, setCases] = useState<any[]>([]);
   const [selectedDetails, setSelectedDetails] = useState<any>(null);
+  const [aiSummary, setAiSummary] = useState<{ title: string; content: string } | null>(null);
+  const [summarizingCaseId, setSummarizingCaseId] = useState<string | null>(null);
 
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("q") || "";
@@ -63,6 +69,32 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
   const openDetails = async (caseId: string) => {
     const details = await getCaseDetails(caseId);
     setSelectedDetails(details);
+  };
+
+  const summarizeCase = async (caseItem: any) => {
+    if (summarizingCaseId) return;
+    setSummarizingCaseId(caseItem.id);
+    try {
+      const filed = caseItem.date || (caseItem.filedAt ? new Date(caseItem.filedAt).toLocaleDateString() : "-");
+      const prompt =
+        "For a lawyer in Rwanda, summarize this case. Include key facts, urgency, missing information, recommended next steps, documents to request, and client follow-up points.\n\n" +
+        [
+          `Title: ${caseItem.title || "Untitled"}`,
+          `Number: ${caseItem.caseNumber || caseItem.id}`,
+          `Citizen: ${caseItem.citizen || caseItem.requestedBy || "Citizen"}`,
+          `Status: ${caseItem.status || "Pending"}`,
+          `Priority: ${caseItem.priority || "medium"}`,
+          `Type: ${caseItem.caseType || caseItem.type || "Case"}`,
+          `Filed: ${filed}`,
+          `Description: ${caseItem.description || "No description provided"}`,
+        ].join("\n");
+      const result = await summarizeTextWithAI(prompt, 1200);
+      setAiSummary({ title: caseItem.title || "Case Summary", content: result.summary });
+    } catch (error: any) {
+      toast({ title: "AI failed", description: error.message || "Could not summarize case", variant: "destructive" });
+    } finally {
+      setSummarizingCaseId(null);
+    }
   };
 
   return (
@@ -110,10 +142,16 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => openDetails(caseItem.id)}>
-                  <Eye className="h-4 w-4" />
-                  {t.viewDetails}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => openDetails(caseItem.id)}>
+                    <Eye className="h-4 w-4" />
+                    {t.viewDetails}
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => summarizeCase(caseItem)} disabled={summarizingCaseId === caseItem.id}>
+                    {summarizingCaseId === caseItem.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {t.summarizeAi}
+                  </Button>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -181,6 +219,22 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+        {aiSummary && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl">
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t.aiSummaryTitle}</p>
+                  <h2 className="text-xl font-semibold">{aiSummary.title}</h2>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setAiSummary(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="whitespace-pre-wrap text-sm text-foreground">{aiSummary.content}</p>
             </div>
           </div>
         )}

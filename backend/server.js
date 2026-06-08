@@ -1,6 +1,7 @@
 
 import "dotenv/config";
 import path from "node:path";
+import http from "node:http";
 import express from "express";
 
 // ── Middleware ────────────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ import aiRoutes           from "./routes/aiRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import appointmentRoutes  from "./routes/appointmentRoutes.js";
 import lawyerRoutes       from "./routes/lawyerRoutes.js";
+import userRoutes         from "./routes/userRoutes.js";
 import hearingRoutes      from "./routes/hearingRoutes.js";
 import analyticsRoutes    from "./routes/analyticsRoutes.js";
 import aiLogRoutes        from "./routes/aiLogRoutes.js";
@@ -26,10 +28,13 @@ import aiLogRoutes        from "./routes/aiLogRoutes.js";
 // ── Models (for health check) ─────────────────────────────────────────────────
 import { genAI }         from "./config/gemini.js";
 import pool            from "./config/db.js";
+import { setupRealtime } from "./utils/realtime.js";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const app  = express();
 const PORT = process.env.PORT || 8080;
+const server = http.createServer(app);
+setupRealtime(server);
 
 // ── Global middleware ─────────────────────────────────────────────────────────
 app.use(corsMiddleware);                // CORS — must be first
@@ -61,6 +66,7 @@ app.use("/api/cases",         caseRoutes);
 app.use("/api/conversations", messageRoutes);
 app.use("/api/appointments",  appointmentRoutes);
 app.use("/api/lawyers",       lawyerRoutes);
+app.use("/api/users",         userRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/hearings",      hearingRoutes);
 app.use("/api/analytics",     analyticsRoutes);
@@ -72,7 +78,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT,"0.0.0.0", async () => {
+server.listen(PORT,"0.0.0.0", async () => {
   console.log(`\n🚀  Backend running on http://localhost:${PORT}`);
   console.log(`🤖  Gemini:   ${genAI ? "✅ active" : "❌ disabled"}`);
 

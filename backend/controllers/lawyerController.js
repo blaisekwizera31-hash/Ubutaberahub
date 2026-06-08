@@ -24,6 +24,7 @@ export async function updateMyLawyerProfile(req, res) {
       years_experience: req.body.years_experience ?? req.body.yearsExperience,
       hourly_rate: req.body.hourly_rate ?? req.body.hourlyRate,
       is_available: req.body.is_available ?? req.body.isAvailable,
+      available_time: req.body.available_time ?? req.body.availableTime,
     };
 
     const user = await UserModel.updateProfile(req.user.id, updates);

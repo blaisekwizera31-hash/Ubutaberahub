@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardHeader } from "@/components/layout/DashboardHeader";
+import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { getCaseDetails, getMyCases } from "@/services/backend";
 import { UserPhoto } from "@/components/ui/UserPhoto";
 
 const MyCases = () => {
   const { language } = useLanguage();
   const location = useLocation();
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User", role: "citizen" };
   const t =
     language === "rw"
       ? {
@@ -23,6 +24,10 @@ const MyCases = () => {
           filed: "Byatanzwe",
           filedBy: "Byatanzwe na",
           lawyer: "Umunyamategeko",
+          assignedLawyer: "Umunyamategeko wahawe urubanza",
+          noLawyer: "Nta munyamategeko urahabwa urubanza",
+          phone: "Telefone",
+          email: "Imeyili",
           viewDetails: "Reba amakuru",
           empty: "Nta manza ufitemo uruhare ziraboneka.",
           newCase: "Urubanza rushya",
@@ -36,6 +41,10 @@ const MyCases = () => {
             filed: "Depose",
             filedBy: "Depose par",
             lawyer: "Avocat",
+            assignedLawyer: "Avocat assigne",
+            noLawyer: "Aucun avocat assigne",
+            phone: "Telephone",
+            email: "Email",
             viewDetails: "Voir details",
             empty: "Aucun dossier de participation trouve.",
             newCase: "Nouveau dossier",
@@ -48,6 +57,10 @@ const MyCases = () => {
             filed: "Filed",
             filedBy: "Filed by",
             lawyer: "Lawyer",
+            assignedLawyer: "Assigned Lawyer",
+            noLawyer: "No lawyer assigned yet",
+            phone: "Phone",
+            email: "Email",
             viewDetails: "View Details",
             empty: "No participating cases found yet.",
             newCase: "New Case",
@@ -100,11 +113,8 @@ const MyCases = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <DashboardSidebar activePage="my-cases" />
-      <main className="flex-1 overflow-auto">
-        <DashboardHeader searchPlaceholder={t.searchPlaceholder} />
-        <div className="p-6 space-y-6">
+    <DashboardLayout role="citizen" userName={user?.name || "User"} lang={language}>
+        <div className="space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -115,7 +125,7 @@ const MyCases = () => {
               <h1 className="text-2xl font-display font-semibold mb-1">{t.title}</h1>
               <p className="text-muted-foreground">{t.subtitle}</p>
             </div>
-            <Link to="/submit-case">
+            <Link to="/dashboard/submit-case">
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
                 {t.newCase}
@@ -147,7 +157,6 @@ const MyCases = () => {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-mono text-muted-foreground">{caseItem.caseNumber}</span>
                         <span className={`px-2 py-0.5 rounded-full text-xs text-white ${caseItem.statusColor}`}>{caseItem.status}</span>
                         <span className="px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground">{caseItem.type}</span>
                       </div>
@@ -187,7 +196,6 @@ const MyCases = () => {
               <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl">
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-mono text-muted-foreground">{selectedDetails.case.caseNumber}</p>
                     <h2 className="text-xl font-semibold">{selectedDetails.case.title}</h2>
                     <p className="text-sm text-muted-foreground">{selectedDetails.case.status} · {selectedDetails.case.caseType}</p>
                   </div>
@@ -199,13 +207,24 @@ const MyCases = () => {
                 <div className="grid gap-4 md:grid-cols-[220px_1fr]">
                   <div className="rounded-xl border border-border p-4">
                     <UserPhoto
-                      src={selectedDetails.citizen?.profile_photo}
-                      alt={selectedDetails.citizen?.name || "Citizen"}
+                      src={selectedDetails.lawyer?.profile_photo}
+                      alt={selectedDetails.lawyer?.name || "Lawyer"}
                       className="mb-3 h-20 w-20"
                     />
-                    <h3 className="font-semibold">{selectedDetails.citizen?.name || "Citizen"}</h3>
-                    <p className="text-sm text-muted-foreground">{selectedDetails.citizen?.email}</p>
-                    <p className="text-sm text-muted-foreground">{selectedDetails.citizen?.phone || "No phone"}</p>
+                    <p className="mb-2 text-sm font-semibold">{t.assignedLawyer}</p>
+                    {selectedDetails.lawyer ? (
+                      <>
+                        <h3 className="font-semibold">{selectedDetails.lawyer.name || "Lawyer"}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {t.email}: {selectedDetails.lawyer.email || "Not provided"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {t.phone}: {selectedDetails.lawyer.phone || "Not provided"}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t.noLawyer}</p>
+                    )}
                   </div>
                   <div className="space-y-4">
                     <div>
@@ -217,9 +236,15 @@ const MyCases = () => {
                       {selectedDetails.evidence?.length ? (
                         <div className="space-y-2">
                           {selectedDetails.evidence.map((doc: any) => (
-                            <a key={doc.id} href={doc.file_url} target="_blank" rel="noreferrer" className="block rounded-lg border border-border p-3 text-sm hover:bg-muted">
-                              {doc.file_name || "Document"}
-                            </a>
+                            doc.file_url ? (
+                              <a key={doc.id} href={doc.file_url} target="_blank" rel="noreferrer" className="block rounded-lg border border-border p-3 text-sm hover:bg-muted">
+                                {doc.file_name || "Document"}
+                              </a>
+                            ) : (
+                              <div key={doc.id} className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
+                                {doc.file_name || "Document"}
+                              </div>
+                            )
                           ))}
                         </div>
                       ) : (
@@ -232,9 +257,9 @@ const MyCases = () => {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 };
 
 export default MyCases;
+

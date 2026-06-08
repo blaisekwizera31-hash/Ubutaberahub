@@ -163,7 +163,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                 key={cat.name}
                 whileHover={{ scale: 1.05 }}
                 className="bg-card rounded-2xl border border-border p-4 text-center shadow-sm hover:shadow-md transition-all"
-                onClick={() => navigate(`/help-center?q=${encodeURIComponent(cat.name)}`)}
+                onClick={() => navigate(`/dashboard/help-center?q=${encodeURIComponent(cat.name)}`)}
               >
                 <span className="text-3xl mb-2 block">{cat.icon}</span>
                 <h3 className="font-medium text-sm">{cat.name}</h3>
@@ -186,7 +186,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                 <BookOpen className="w-5 h-5 text-primary" />
                 {t.popular}
               </h2>
-              <Button variant="ghost" size="sm" className="text-primary" onClick={() => navigate("/help-center")}>
+              <Button variant="ghost" size="sm" className="text-primary" onClick={() => navigate("/dashboard/help-center")}>
                 {t.viewAll}
               </Button>
             </div>
@@ -196,7 +196,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                 <button
                   key={index}
                   className="bg-card rounded-2xl border border-border p-5 hover:border-primary/50 transition-all cursor-pointer group text-left"
-                  onClick={() => navigate(`/help-center?q=${encodeURIComponent(guide.title)}`)}
+                  onClick={() => navigate(`/dashboard/help-center?q=${encodeURIComponent(guide.title)}`)}
                 >
                   <div className="flex justify-between items-start">
                     <span className="px-2 py-1 rounded-full text-[10px] uppercase font-semibold bg-primary/10 text-primary">
@@ -228,7 +228,7 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
                 <button
                   key={index}
                   className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-muted/50 transition-all text-sm flex items-center justify-between"
-                  onClick={() => navigate(`/help-center?q=${encodeURIComponent(faq)}`)}
+                  onClick={() => navigate(`/dashboard/help-center?q=${encodeURIComponent(faq)}`)}
                 >
                   {faq}
                   <ExternalLink className="w-3 h-3 text-muted-foreground" />
@@ -264,3 +264,4 @@ const LegalResources = ({ lang = "en" }: LegalResourcesProps) => {
 };
 
 export default LegalResources;
+

@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route } from "react-router-dom";
+import type React from "react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 
@@ -29,6 +30,22 @@ import MyCases from "./pages/MyCases";
 import Messages from "./pages/Messages";
 import AIAssistant from "./pages/AIAssistant";
 
+const PortalRedirect = ({ page = "" }: { page?: string }) => {
+  const stored = localStorage.getItem("loggedInUser");
+  const user = stored ? JSON.parse(stored) : null;
+  if (user?.role === "lawyer" && page === "/submit-case") return <Navigate to="/lawyer-dashboard" replace />;
+  const base = user?.role === "lawyer" ? "/lawyer-dashboard" : "/dashboard";
+  return <Navigate to={`${base}${page}`} replace />;
+};
+
+const CitizenLawyerPortalRedirect = ({ page, children }: { page: string; children: React.ReactNode }) => {
+  const stored = localStorage.getItem("loggedInUser");
+  const user = stored ? JSON.parse(stored) : null;
+  if (user?.role === "lawyer") return <Navigate to={`/lawyer-dashboard${page}`} replace />;
+  if (user?.role === "citizen") return <Navigate to={`/dashboard${page}`} replace />;
+  return <>{children}</>;
+};
+
 const AppContent = () => {
   const { language, setLanguage } = useLanguage();
 
@@ -49,19 +66,49 @@ const AppContent = () => {
                 <CitizenDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/my-cases" element={
+            <Route path="/dashboard/my-cases" element={
               <ProtectedRoute allowedRoles={['citizen']}>
                 <MyCases />
               </ProtectedRoute>
             } />
-            <Route path="/submit-case" element={
+            <Route path="/dashboard/submit-case" element={
               <ProtectedRoute allowedRoles={['citizen']}>
                 <SubmitCase lang={language} />
               </ProtectedRoute>
             } />
-            <Route path="/ai-assistant" element={
-              <ProtectedRoute>
+            <Route path="/dashboard/ai-assistant" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
                 <AIAssistant />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/find-lawyer" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <FindLawyer lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/appointments" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <Appointments lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/messages" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <Messages lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/settings" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/legal-resources" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <LegalResources lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/help-center" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <HelpCenter />
               </ProtectedRoute>
             } />
             
@@ -71,14 +118,39 @@ const AppContent = () => {
                 <LawyerDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/lawyer-cases" element={
+            <Route path="/lawyer-dashboard/my-cases" element={
               <ProtectedRoute allowedRoles={['lawyer']}>
                 <LawyerCases lang={language} />
               </ProtectedRoute>
             } />
-            <Route path="/lawyer-clients" element={
+            <Route path="/lawyer-dashboard/ai-assistant" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <AIAssistant />
+              </ProtectedRoute>
+            } />
+            <Route path="/lawyer-dashboard/clients" element={
               <ProtectedRoute allowedRoles={['lawyer']}>
                 <LawyerClients lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/lawyer-dashboard/appointments" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <Appointments lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/lawyer-dashboard/messages" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <Messages lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/lawyer-dashboard/settings" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/lawyer-dashboard/help-center" element={
+              <ProtectedRoute allowedRoles={['lawyer']}>
+                <HelpCenter />
               </ProtectedRoute>
             } />
             
@@ -114,17 +186,23 @@ const AppContent = () => {
             {/* Shared Protected Routes - All logged-in users */}
             <Route path="/messages" element={
               <ProtectedRoute>
-                <Messages lang={language} />
+                <CitizenLawyerPortalRedirect page="/messages">
+                  <Messages lang={language} />
+                </CitizenLawyerPortalRedirect>
               </ProtectedRoute>
             } />
             <Route path="/appointments" element={
               <ProtectedRoute>
-                <Appointments lang={language} />
+                <CitizenLawyerPortalRedirect page="/appointments">
+                  <Appointments lang={language} />
+                </CitizenLawyerPortalRedirect>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
               <ProtectedRoute>
-                <Settings />
+                <CitizenLawyerPortalRedirect page="/settings">
+                  <Settings />
+                </CitizenLawyerPortalRedirect>
               </ProtectedRoute>
             } />
             
@@ -132,6 +210,11 @@ const AppContent = () => {
             <Route path="/legal-resources" element={<LegalResources lang={language} />} />
             <Route path="/find-lawyer" element={<FindLawyer lang={language} />} />
             <Route path="/help-center" element={<HelpCenter />} />
+            <Route path="/my-cases" element={<PortalRedirect page="/my-cases" />} />
+            <Route path="/submit-case" element={<PortalRedirect page="/submit-case" />} />
+            <Route path="/ai-assistant" element={<PortalRedirect page="/ai-assistant" />} />
+            <Route path="/lawyer-cases" element={<Navigate to="/lawyer-dashboard/my-cases" replace />} />
+            <Route path="/lawyer-clients" element={<Navigate to="/lawyer-dashboard/clients" replace />} />
             <Route path="*" element={<NotFound />} />
     
           </Routes>

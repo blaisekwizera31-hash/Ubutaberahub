@@ -27,6 +27,7 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
   const [unreadCount, setUnreadCount] = useState(0);
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
+  const portalBase = user?.role === "lawyer" ? "/lawyer-dashboard" : "/dashboard";
 
   useEffect(() => {
     let mounted = true;
@@ -57,12 +58,12 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
     const role = user?.role;
     const target =
       role === "lawyer"
-        ? "/lawyer-cases"
+        ? "/lawyer-dashboard/my-cases"
         : role === "judge"
           ? "/judge-cases"
           : role === "clerk"
             ? "/clerk-cases"
-            : "/my-cases";
+            : "/dashboard/my-cases";
     navigate(q ? `${target}?q=${encodeURIComponent(q)}` : target);
   };
 
@@ -85,14 +86,15 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
 
     const metadata = item?.metadata || {};
     if (metadata.conversationId) {
-      navigate(`/messages?conversationId=${encodeURIComponent(metadata.conversationId)}`);
+      navigate(`${portalBase}/messages?conversationId=${encodeURIComponent(metadata.conversationId)}`);
       return;
     }
     if (metadata.caseNumber || metadata.caseId) {
-      navigate(`/my-cases?q=${encodeURIComponent(metadata.caseNumber || metadata.caseId)}`);
+      const target = user?.role === "lawyer" ? "/lawyer-dashboard/my-cases" : "/dashboard/my-cases";
+      navigate(`${target}?q=${encodeURIComponent(metadata.caseNumber || metadata.caseId)}`);
       return;
     }
-    navigate("/messages");
+    navigate(`${portalBase}/messages`);
   };
 
   const handleMarkAllNotificationsRead = async () => {

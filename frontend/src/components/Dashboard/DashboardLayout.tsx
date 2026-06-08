@@ -86,10 +86,11 @@ const roleConfig = {
     color: "bg-primary", 
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/dashboard" },
-      { icon: FileText, label: t.cases, href: "/my-cases" },
-      { icon: Search, label: t.lawyers, href: "/find-lawyer" },
-      { icon: Calendar, label: t.appoint, href: "/appointments" },
-      { icon: Bot, label: t.ai, href: "/ai-assistant" },
+      { icon: FileText, label: t.cases, href: "/dashboard/my-cases" },
+      { icon: Bot, label: t.ai, href: "/dashboard/ai-assistant" },
+      { icon: Search, label: t.lawyers, href: "/dashboard/find-lawyer" },
+      { icon: Calendar, label: t.appoint, href: "/dashboard/appointments" },
+      { icon: MessageSquare, label: t.messages, href: "/dashboard/messages" },
     ],
   },
   client: { 
@@ -97,8 +98,8 @@ const roleConfig = {
     color: "bg-blue-600",
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/dashboard" },
-      { icon: FileText, label: t.cases, href: "/my-cases" },
-      { icon: MessageSquare, label: t.messages, href: "/messages" },
+      { icon: FileText, label: t.cases, href: "/dashboard/my-cases" },
+      { icon: MessageSquare, label: t.messages, href: "/dashboard/messages" },
     ],
   },
   lawyer: {
@@ -106,9 +107,11 @@ const roleConfig = {
     color: "bg-secondary", 
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/lawyer-dashboard" },
-      { icon: FileText, label: t.cases, href: "/lawyer-cases" },
-      { icon: Users, label: t.clients, href: "/lawyer-clients" },
-      { icon: Calendar, label: t.appoint, href: "/appointments" },
+      { icon: FileText, label: t.cases, href: "/lawyer-dashboard/my-cases" },
+      { icon: Bot, label: t.ai, href: "/lawyer-dashboard/ai-assistant" },
+      { icon: Users, label: t.clients, href: "/lawyer-dashboard/clients" },
+      { icon: Calendar, label: t.appoint, href: "/lawyer-dashboard/appointments" },
+      { icon: MessageSquare, label: t.messages, href: "/lawyer-dashboard/messages" },
     ],
   },
   judge: {
@@ -158,12 +161,15 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
     navigate("/auth");
   };
 
+  const portalBase = role === "lawyer" ? "/lawyer-dashboard" : role === "citizen" || role === "client" ? "/dashboard" : "";
+  const portalPath = (path: string) => `${portalBase}${path}`;
+
   const getSearchTarget = () => {
-    if (role === "citizen") return "/my-cases";
-    if (role === "lawyer") return "/lawyer-cases";
+    if (role === "citizen" || role === "client") return "/dashboard/my-cases";
+    if (role === "lawyer") return "/lawyer-dashboard/my-cases";
     if (role === "judge") return "/judge-cases";
     if (role === "clerk") return "/clerk-cases";
-    return "/my-cases";
+    return "/dashboard/my-cases";
   };
 
   const submitSearch = () => {
@@ -215,16 +221,16 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
 
     const metadata = item?.metadata || {};
     if (metadata.conversationId) {
-      navigate(`/messages?conversationId=${encodeURIComponent(metadata.conversationId)}`);
+      navigate(`${portalPath("/messages") || "/messages"}?conversationId=${encodeURIComponent(metadata.conversationId)}`);
       return;
     }
     if (metadata.caseNumber || metadata.caseId) {
       const q = metadata.caseNumber || metadata.caseId;
-      const target = role === "lawyer" ? "/lawyer-cases" : role === "judge" ? "/judge-cases" : role === "clerk" ? "/clerk-cases" : "/my-cases";
+      const target = role === "lawyer" ? "/lawyer-dashboard/my-cases" : role === "judge" ? "/judge-cases" : role === "clerk" ? "/clerk-cases" : "/dashboard/my-cases";
       navigate(`${target}?q=${encodeURIComponent(q)}`);
       return;
     }
-    navigate("/messages");
+    navigate(portalPath("/messages") || "/messages");
   };
 
   const handleMarkAllNotificationsRead = async () => {
@@ -285,9 +291,9 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
 
           <div className="p-4 border-t border-border space-y-1">
             <Link 
-              to="/settings" 
+              to={portalPath("/settings") || "/settings"} 
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive('/settings')
+                isActive(portalPath("/settings") || "/settings")
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
@@ -296,9 +302,9 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
               <span>{t.settings}</span>
             </Link>
             <Link 
-              to="/help-center" 
+              to={portalPath("/help-center") || "/help-center"} 
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive('/help-center')
+                isActive(portalPath("/help-center") || "/help-center")
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-muted'
               }`}
@@ -399,7 +405,7 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
                   Account Management
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer focus:bg-primary/10">
+                <DropdownMenuItem onClick={() => navigate(portalPath("/settings") || "/settings")} className="cursor-pointer focus:bg-primary/10">
                   <User className="mr-2 w-4 h-4 text-primary" /> {t.profile}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

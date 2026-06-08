@@ -95,7 +95,7 @@ export function FooterSection({ lang }: FooterSectionProps) {
               <li><a href="#features" className="hover:text-gray-700 transition-colors">{t.col1Links[0]}</a></li>
               <li><a href="#how-it-works" className="hover:text-gray-700 transition-colors">{t.col1Links[1]}</a></li>
               <li><a href="#features" className="hover:text-gray-700 transition-colors">{t.col1Links[2]}</a></li>
-              <li><Link to="/find-lawyer" className="hover:text-gray-700 transition-colors">{t.col1Links[3]}</Link></li>
+              <li><Link to="/dashboard/find-lawyer" className="hover:text-gray-700 transition-colors">{t.col1Links[3]}</Link></li>
             </ul>
           </div>
 
@@ -134,3 +134,4 @@ export function FooterSection({ lang }: FooterSectionProps) {
     </footer>
   );
 }
+

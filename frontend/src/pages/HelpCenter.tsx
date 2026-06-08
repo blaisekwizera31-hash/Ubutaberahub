@@ -258,7 +258,7 @@ const HelpCenter = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a href="/ai-assistant" className="bg-card rounded-xl border border-border p-4 hover:bg-muted/40 transition-colors">
+          <a href="/dashboard/ai-assistant" className="bg-card rounded-xl border border-border p-4 hover:bg-muted/40 transition-colors">
             <div className="flex items-center gap-2 font-medium">
               <MessageCircle className="w-4 h-4 text-primary" />
               {t.contacts.chat}
@@ -283,3 +283,4 @@ const HelpCenter = () => {
 };
 
 export default HelpCenter;
+

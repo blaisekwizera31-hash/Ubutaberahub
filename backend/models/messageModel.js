@@ -122,6 +122,14 @@ export async function findExistingConversation(userId, peerId, caseId = null) {
   return rows[0]?.conversation_id || null;
 }
 
+export async function listParticipantIds(conversationId) {
+  const { rows } = await pool.query(
+    'SELECT user_id FROM conversation_participants WHERE conversation_id = $1',
+    [conversationId]
+  );
+  return rows.map((row) => row.user_id);
+}
+
 /**
  * listConversationsForUser — Full conversation list for the sidebar.
  */
@@ -154,7 +162,7 @@ export async function listConversationsForUser(userId) {
   
   const { rows } = await pool.query(query, [userId]);
   
-  return rows.map(r => normalizeConversation(r, {
+  const normalized = rows.map(r => normalizeConversation(r, {
     contact:       r.contact_name || r.contact_email?.split("@")[0] || "Contact",
     contactId:     r.contact_id,
     contactPhoto:   r.contact_photo || null,
@@ -165,6 +173,36 @@ export async function listConversationsForUser(userId) {
     lastMessage:   r.last_message_body || "",
     lastMessageAt: r.last_message_at || r.updated_at || r.created_at
   }));
+
+  const grouped = new Map();
+  for (const conv of normalized) {
+    const key = conv.contactId || conv.id;
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, { ...conv, conversationIds: [conv.id] });
+      continue;
+    }
+
+    const currentTime = new Date(conv.lastMessageAt || conv.updatedAt || conv.createdAt).getTime();
+    const existingTime = new Date(existing.lastMessageAt || existing.updatedAt || existing.createdAt).getTime();
+    existing.conversationIds.push(conv.id);
+    existing.unread = Number(existing.unread || 0) + Number(conv.unread || 0);
+    if (currentTime > existingTime) {
+      grouped.set(key, {
+        ...existing,
+        id: conv.id,
+        subject: conv.subject,
+        caseId: conv.caseId,
+        lastMessage: conv.lastMessage,
+        lastMessageAt: conv.lastMessageAt,
+        updatedAt: conv.updatedAt,
+      });
+    }
+  }
+
+  return [...grouped.values()].sort(
+    (a, b) => new Date(b.lastMessageAt || b.updatedAt || b.createdAt).getTime() - new Date(a.lastMessageAt || a.updatedAt || a.createdAt).getTime(),
+  );
 }
 
 /**
@@ -187,6 +225,43 @@ export async function createConversation(convPayload, participants) {
  */
 export async function listMessages(conversationId, callerId, opts = {}) {
   const { limit = 100, offset = 0 } = opts;
+
+  const { rows: peerRows } = await pool.query(
+    'SELECT user_id FROM conversation_participants WHERE conversation_id = $1 AND user_id != $2 LIMIT 1',
+    [conversationId, callerId]
+  );
+  const peerId = peerRows[0]?.user_id || null;
+
+  if (peerId) {
+    const { rows: conversationRows } = await pool.query(
+      `
+        SELECT cp1.conversation_id
+        FROM conversation_participants cp1
+        JOIN conversation_participants cp2 ON cp1.conversation_id = cp2.conversation_id
+        WHERE cp1.user_id = $1 AND cp2.user_id = $2
+      `,
+      [callerId, peerId]
+    );
+    const conversationIds = conversationRows.map((row) => row.conversation_id);
+
+    if (conversationIds.length > 0) {
+      const mergedQuery = `
+        SELECT m.*, u.name as sender_name, u.email as sender_email
+        FROM messages m
+        LEFT JOIN users u ON u.id = m.sender_id
+        WHERE m.conversation_id = ANY($1::uuid[])
+        ORDER BY m.created_at ASC
+        LIMIT $2 OFFSET $3
+      `;
+      const { rows } = await pool.query(mergedQuery, [conversationIds, limit, offset]);
+      await Promise.all(conversationIds.map((id) => clearUnread(id, callerId)));
+
+      return rows.map((m) => normalizeMessage(m, {
+        senderName: m.sender_name || m.sender_email?.split("@")[0] || "User",
+        isOwn:      m.sender_id === callerId,
+      }));
+    }
+  }
 
   const query = `
     SELECT m.*, u.name as sender_name, u.email as sender_email

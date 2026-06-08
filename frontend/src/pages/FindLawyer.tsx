@@ -15,10 +15,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useEffect, useMemo, useState } from "react";
-import { createConversation, getLawyers } from "@/services/backend";
+import { bookAppointment, getLawyers } from "@/services/backend";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { UserPhoto } from "@/components/ui/UserPhoto";
+import { SPECIALIZATION_FILTERS } from "@/lib/legalSpecializations";
 
 // 1. Full Translation Object for 3 Languages
 const translations = {
@@ -44,7 +45,6 @@ const translations = {
     consultationSend: "Send Request",
     empty: "No registered lawyer accounts found yet.",
     status: { available: "Available", busy: "Busy" },
-    specs: ["All", "Family Law", "Criminal Law", "Property Law", "Corporate Law", "Immigration Law", "Human Rights"],
   },
   rw: {
     title: "Shaka Umunyamategeko",
@@ -63,7 +63,6 @@ const translations = {
     book: "Saba gahunda",
     empty: "Nta konti z'abanyamategeko zanditswe ziboneka ubu.",
     status: { available: "Arahari", busy: "Arabyize" },
-    specs: ["Byose", "Amategeko y'umuryango", "Amategeko mpanabyaha", "Amategeko y'ubutaka", "Amategeko y'ubucuruzi", "Amategeko y'abinjira n'abasohoka", "Uburenganzira bwa muntu"],
   },
   fr: {
     title: "Trouver un Avocat",
@@ -82,7 +81,6 @@ const translations = {
     book: "Prendre RDV",
     empty: "Aucun compte avocat enregistre n'est disponible pour l'instant.",
     status: { available: "Disponible", busy: "Occupé" },
-    specs: ["Tout", "Droit de la famille", "Droit pénal", "Droit de la propriété", "Droit des sociétés", "Droit de l'immigration", "Droits de l'homme"],
   }
 };
 
@@ -101,7 +99,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User" };
   const [apiLawyers, setApiLawyers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpec, setSelectedSpec] = useState(t.specs[0]);
+  const [selectedSpec, setSelectedSpec] = useState(SPECIALIZATION_FILTERS[0]);
   const [showFilters, setShowFilters] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sortMode, setSortMode] = useState<"recommended" | "rating" | "priceLow" | "priceHigh">("recommended");
@@ -123,14 +121,14 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   }, []);
 
   useEffect(() => {
-    setSelectedSpec(t.specs[0]);
-  }, [t.specs]);
+    setSelectedSpec(SPECIALIZATION_FILTERS[0]);
+  }, [lang]);
 
   const displayedLawyers = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     const filtered = apiLawyers.filter((lawyer) => {
       const specs = Array.isArray(lawyer.specialization) ? lawyer.specialization : [];
-      const matchesSpec = selectedSpec === t.specs[0] || specs.some((spec) => String(spec).toLowerCase() === selectedSpec.toLowerCase());
+      const matchesSpec = selectedSpec === SPECIALIZATION_FILTERS[0] || specs.some((spec) => String(spec).toLowerCase() === selectedSpec.toLowerCase());
       const haystack = `${lawyer.name || ""} ${lawyer.location || ""} ${specs.join(" ")}`.toLowerCase();
       const matchesSearch = !normalizedQuery || haystack.includes(normalizedQuery);
       const matchesAvailability = !availableOnly || lawyer.available;
@@ -147,20 +145,26 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
       return [...filtered].sort((a, b) => Number(b.hourlyRate || 0) - Number(a.hourlyRate || 0));
     }
     return filtered;
-  }, [apiLawyers, availableOnly, searchQuery, selectedSpec, sortMode, t.specs]);
+  }, [apiLawyers, availableOnly, searchQuery, selectedSpec, sortMode]);
 
   const sendConsultationRequest = async () => {
     if (!selectedLawyer || !consultation.name || !consultation.phone || !consultation.purpose) return;
     setIsBooking(true);
     try {
-      const message = `Consultation request\nName: ${consultation.name}\nPhone: ${consultation.phone}\nPurpose: ${consultation.purpose}`;
-      const result = await createConversation({
+      const startsAt = new Date();
+      startsAt.setDate(startsAt.getDate() + 1);
+      startsAt.setHours(9, 0, 0, 0);
+      const notes = `Consultation request\nName: ${consultation.name}\nPhone: ${consultation.phone}\nPurpose: ${consultation.purpose}`;
+      await bookAppointment({
         lawyerId: selectedLawyer.id,
-        subject: `Consultation request from ${consultation.name}`,
-        initialMessage: message,
+        appointmentType: "Consultation",
+        startsAt: startsAt.toISOString(),
+        durationMinutes: 30,
+        mode: "phone",
+        notes,
       });
-      toast({ title: "Request sent", description: selectedLawyer.name });
-      navigate(`/messages?conversationId=${encodeURIComponent(result.conversation.id)}`);
+      toast({ title: "Appointment requested", description: selectedLawyer.name });
+      navigate("/dashboard/appointments");
     } catch (error: any) {
       toast({ title: "Failed to send request", description: error.message || "Unknown error", variant: "destructive" });
     } finally {
@@ -201,7 +205,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
             animate={{ opacity: 1 }}
             className="flex flex-wrap gap-2"
           >
-            {t.specs.map((spec) => (
+            {SPECIALIZATION_FILTERS.map((spec) => (
               <Button
                 key={spec}
                 variant={selectedSpec === spec ? "default" : "outline"}
@@ -305,6 +309,11 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
                     <MapPin className="w-4 h-4" />
                     {lawyer.location}
                   </div>
+                  {lawyer.availableTime && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Available: {lawyer.availableTime}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -386,3 +395,4 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
 };
 
 export default FindLawyer;
+

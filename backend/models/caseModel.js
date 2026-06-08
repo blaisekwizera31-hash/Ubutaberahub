@@ -74,7 +74,7 @@ function normalize(row) {
  * findById — Fetch a full case row by UUID or case_number.
  */
 export async function findById(id) {
-  const { rows } = await pool.query('SELECT * FROM cases WHERE id = $1', [id]);
+  const { rows } = await pool.query('SELECT * FROM cases WHERE id::text = $1 OR case_number = $1', [id]);
   return normalize(rows[0]);
 }
 

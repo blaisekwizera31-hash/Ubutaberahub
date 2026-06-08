@@ -4,6 +4,7 @@
 
 import * as AppointmentModel from "../models/appointmentModel.js";
 import * as UserModel from "../models/userModel.js";
+import * as MessageModel from "../models/messageModel.js";
 import { notify } from "../utils/notify.js";
 
 const safeRole = (v) =>
@@ -20,16 +21,19 @@ async function enrichWithPeerProfile(appointments, userId) {
     : [];
   const byId = new Map(profiles.filter(Boolean).map((u) => [u.id, u]));
 
-  return appointments.map((row) => {
+  return Promise.all(appointments.map(async (row) => {
     const peerId = row.lawyerId === userId ? row.citizenId : row.lawyerId;
     const peer = byId.get(peerId);
+    const conversationId = peerId ? await MessageModel.findExistingConversation(userId, peerId) : null;
     return {
       ...row,
       lawyer: peer?.name || peer?.email?.split("@")[0] || row.lawyerName || "Contact",
       contact: peer?.name || peer?.email?.split("@")[0] || row.lawyerName || "Contact",
+      contactId: peerId || null,
       contactPhoto: peer?.profile_photo || peer?.profilePhoto || null,
+      conversationId,
     };
-  });
+  }));
 }
 
 /**
@@ -92,6 +96,7 @@ export async function bookAppointment(req, res) {
       caseId:          caseId,
       notes:            notes,
       lawyerName:      lawyer.name || lawyer.email?.split("@")[0] || "Lawyer",
+      lawyerAvailableTime: lawyer.available_time || "",
     });
 
     // Notify lawyer
@@ -128,8 +133,30 @@ export async function updateAppointmentStatus(req, res) {
 
     const isParticipant = appt.citizenId === userId || appt.lawyerId === userId;
     if (!isParticipant) return res.status(403).json({ error: "Forbidden" });
+    if (status === "confirmed" && appt.lawyerId !== userId) {
+      return res.status(403).json({ error: "Only the lawyer can accept this appointment" });
+    }
 
     const updated = await AppointmentModel.updateStatus(id, status);
+    let conversation = null;
+
+    if (status === "confirmed" && appt.citizenId && appt.lawyerId) {
+      const citizen = await UserModel.findById(appt.citizenId);
+      const lawyer = await UserModel.findById(appt.lawyerId);
+      const existingId = await MessageModel.findExistingConversation(appt.citizenId, appt.lawyerId);
+      conversation = existingId
+        ? await MessageModel.findConversationById(existingId)
+        : await MessageModel.createConversation(
+            {
+              subject: `Appointment with ${lawyer?.name || citizen?.name || "Client"}`,
+              createdBy: userId,
+            },
+            [
+              { userId: appt.citizenId, role: "citizen" },
+              { userId: appt.lawyerId, role: "lawyer" },
+            ],
+          );
+    }
 
     // Notify the other party
     const otherId = appt.citizenId === userId ? appt.lawyerId : appt.citizenId;
@@ -143,7 +170,7 @@ export async function updateAppointmentStatus(req, res) {
       });
     }
 
-    return res.json({ ok: true, appointment: updated });
+    return res.json({ ok: true, appointment: updated, conversation });
   } catch (err) {
     return res.status(500).json({ error: "Failed to update appointment", message: err.message });
   }

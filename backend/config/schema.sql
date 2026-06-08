@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     profile_photo TEXT,
     phone VARCHAR(50),
     is_available BOOLEAN DEFAULT TRUE,
+    available_time VARCHAR(255),
     hourly_rate INTEGER DEFAULT 50000,
     is_verified BOOLEAN DEFAULT FALSE,
     verification_token VARCHAR(10),

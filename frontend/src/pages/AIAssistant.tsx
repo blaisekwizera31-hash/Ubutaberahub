@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Send, Bot, User, Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardHeader } from "@/components/layout/DashboardHeader";
+import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { chatWithAI, ChatMessage } from "@/services/ai/gemini";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -43,6 +42,9 @@ const translations = {
 export default function AIAssistant() {
   const { language: lang, setLanguage: setLang } = useLanguage();
   const t = translations[lang];
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const user = loggedInUser ? JSON.parse(loggedInUser) : { name: "User", role: "citizen" };
+  const role = user?.role === "lawyer" ? "lawyer" : "citizen";
   
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: t.welcome }
@@ -104,12 +106,8 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <DashboardSidebar activePage="ai-assistant" />
-      <main className="flex-1 overflow-hidden flex flex-col">
-        <DashboardHeader searchPlaceholder="Search legal topics..." onSearch={(value) => setInput(value)} />
-        
-        <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
+    <DashboardLayout role={role} userName={user?.name || "User"} lang={lang}>
+        <div className="flex min-h-[calc(100vh-8rem)] flex-col max-w-5xl mx-auto w-full">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -248,7 +246,6 @@ export default function AIAssistant() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }
