@@ -1,7 +1,4 @@
-/**
- * config/gemini.js
- * Gemini AI client — single instance shared across the app
- */
+
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -24,7 +21,7 @@ const isValidKey = (key) =>
 if (!GEMINI_API_KEY) {
   console.error("[gemini] ❌  GEMINI_API_KEY is not set in .env");
 } else if (!isValidKey(GEMINI_API_KEY)) {
-  console.error("[gemini] ❌  GEMINI_API_KEY looks like a placeholder — replace it with a real key from https://aistudio.google.com/app/apikey");
+  console.error("[gemini] ❌  GEMINI_API_KEY looks like a placeholder]");
 }
 
 export const genAI =

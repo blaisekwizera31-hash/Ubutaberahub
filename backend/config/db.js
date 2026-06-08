@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const { Pool } = pg;
+const { Pool } = pg;    //pool of connections to avoid to make too many connections
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',

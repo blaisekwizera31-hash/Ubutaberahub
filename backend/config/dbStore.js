@@ -1,8 +1,4 @@
-/**
- * config/dbStore.js
- * Database query helpers using PostgreSQL pool.
- */
-
+//it contains all the actions to act on the database
 import pool from "./db.js";
 
 // ── Normalizers ───────────────────────────────────────────────────────────────
@@ -134,7 +130,7 @@ export async function fetchLawyersFromDb() {
     email:          u.email         || null,
     specialization: u.specialization || [],
     experience:     Number(u.years_experience ?? 0),
-    rating:         Number(u.rating ?? 0),
+    rating:         Number(u.rating ?? 0), // ?? means to use 0 when u.rating is not defined or is null
     reviews:        Number(u.reviews_count ?? 0),
     location:       u.law_firm || "Rwanda",
     hourlyRate:     Number(u.hourly_rate ?? 50000),
