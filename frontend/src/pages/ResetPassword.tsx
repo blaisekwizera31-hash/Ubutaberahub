@@ -20,19 +20,20 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   
   const token = searchParams.get('token');
+  const email = searchParams.get('email');
 
   useEffect(() => {
-    if (!token) {
-      setError('Invalid or missing reset token. Please request a new password reset.');
+    if (!email || !token) {
+      setError('Invalid or missing reset email/code. Please request a new password reset.');
     }
-  }, [token]);
+  }, [email, token]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!token) {
-      setError('Missing reset token.');
+    if (!email || !token) {
+      setError('Missing reset email or code.');
       return;
     }
 
@@ -52,7 +53,7 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const result = await callResetPasswordApi(token, newPassword);
+      const result = await callResetPasswordApi(email, token, newPassword);
 
       if (result.error) throw new Error(result.error);
 

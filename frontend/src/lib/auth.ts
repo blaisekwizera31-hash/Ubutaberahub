@@ -99,10 +99,10 @@ export async function requestPasswordReset(email: string) {
   }
 }
 
-// Reset password with token
-export async function resetPassword(token: string, password: string) {
+// Reset password with email and 6-digit code
+export async function resetPassword(email: string, token: string, password: string) {
   try {
-    const response = await api.post('/auth/reset-password', { token, password });
+    const response = await api.post('/auth/reset-password', { email, token, password });
     return { 
       error: null, 
       success: true, 
@@ -135,9 +135,7 @@ export async function resendSignupVerification(email: string) {
 
 // Verify code and reset password (frontend helper)
 export async function verifyCodeAndResetPassword(email: string, code: string, password: string) {
-  // Our backend resetPassword expects { token, password }
-  // In this new flow, the code IS the token.
-  return resetPassword(code, password);
+  return resetPassword(email, code, password);
 }
 
 // OAuth Sign in (Stub for now as we transitioned to custom backend)

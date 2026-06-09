@@ -1,6 +1,5 @@
 
 import "dotenv/config";
-import path from "node:path";
 import http from "node:http";
 import express from "express";
 
@@ -27,6 +26,7 @@ import aiLogRoutes        from "./routes/aiLogRoutes.js";
 
 // ── Models (for health check) ─────────────────────────────────────────────────
 import { genAI }         from "./config/gemini.js";
+import { isCloudinaryConfigured, pingCloudinary } from "./config/cloudinary.js";
 import pool            from "./config/db.js";
 import { setupRealtime } from "./utils/realtime.js";
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,20 +39,35 @@ setupRealtime(server);
 // ── Global middleware ─────────────────────────────────────────────────────────
 app.use(corsMiddleware);                // CORS — must be first
 app.use(express.json({ limit: "8mb" }));
-app.use("/uploads", express.static(path.resolve("uploads")));
 app.use(detectLang);                    // resolve req.lang / req.langMeta
 app.use(requestLogger);                 // log every request
 app.use(generalLimiter);                // 120 req/min global rate limit
 
 // ── Health check ──────────────────────────────────────────────────────────────
-app.get("/api/health", (req, res) =>
+app.get("/api/health", async (req, res) => {
+  let cloudinaryConnected = false;
+  let cloudinaryMessage = isCloudinaryConfigured() ? "configured" : "missing credentials";
+
+  if (isCloudinaryConfigured()) {
+    try {
+      await pingCloudinary();
+      cloudinaryConnected = true;
+      cloudinaryMessage = "connected";
+    } catch (err) {
+      cloudinaryMessage = err.message;
+    }
+  }
+
   res.json({
-    status:            "ok",
-    geminiAvailable:   !!genAI, //to check if something exist
-    dbConnected:       true, // We assume true if the pool didn't exit the process
-    timestamp:         new Date().toISOString(),
-  })
-);
+    status:              "ok",
+    geminiAvailable:     !!genAI, //to check if something exist
+    cloudinaryConfigured: isCloudinaryConfigured(),
+    cloudinaryConnected,
+    cloudinaryMessage,
+    dbConnected:         true, // We assume true if the pool didn't exit the process
+    timestamp:           new Date().toISOString(),
+  });
+});
 
 app.get(["/verify-email", "/reset-password"], (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
@@ -81,6 +96,13 @@ app.use(errorHandler);
 server.listen(PORT,"0.0.0.0", async () => {
   console.log(`\n🚀  Backend running on http://localhost:${PORT}`);
   console.log(`🤖  Gemini:   ${genAI ? "✅ active" : "❌ disabled"}`);
+
+  try {
+    await pingCloudinary();
+    console.log("Cloudinary: connected");
+  } catch (err) {
+    console.error("Cloudinary: connection check failed", err.message);
+  }
 
   // Test DB connection
   try {

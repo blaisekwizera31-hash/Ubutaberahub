@@ -3,6 +3,7 @@
  */
 
 import { fetchLawyersFromDb } from "../config/dbStore.js";
+import { uploadProfilePhoto } from "../config/cloudinary.js";
 import * as UserModel from "../models/userModel.js";
 
 export async function getLawyers(req, res) {
@@ -16,9 +17,11 @@ export async function updateMyLawyerProfile(req, res) {
       return res.status(403).json({ error: "Only lawyers can update lawyer profile settings" });
     }
 
+    const profilePhoto = await uploadProfilePhoto(req.body.profile_photo || req.body.profilePhoto);
+
     const updates = {
       phone: req.body.phone,
-      profile_photo: req.body.profile_photo || req.body.profilePhoto,
+      profile_photo: profilePhoto,
       law_firm: req.body.law_firm || req.body.lawFirm,
       specialization: req.body.specialization,
       years_experience: req.body.years_experience ?? req.body.yearsExperience,

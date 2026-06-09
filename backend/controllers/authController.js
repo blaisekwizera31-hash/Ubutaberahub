@@ -5,6 +5,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import { uploadProfilePhoto } from '../config/cloudinary.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/emailService.js';
 
 const safeRole = (v) =>
@@ -40,7 +41,7 @@ export async function signup(req, res) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const photo = profile_photo || profilePhoto;
+    const photo = await uploadProfilePhoto(profile_photo || profilePhoto);
     if (!photo) {
       return res.status(400).json({ error: 'Profile photo is required' });
     }
@@ -198,18 +199,22 @@ export async function resendSignupVerification(req, res) {
 
 export async function forgotPassword(req, res) {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
 
     const resetCode = generateCode();
     const expires = codeExpiry();
 
     const { rows } = await pool.query(
-      'UPDATE users SET reset_token = $1, reset_expires = $2 WHERE email = $3 RETURNING *',
+      'UPDATE users SET reset_token = $1, reset_expires = $2 WHERE LOWER(email) = LOWER($3) RETURNING *',
       [resetCode, expires, email]
     );
 
     if (rows.length > 0) {
-      await sendPasswordResetEmail(email, resetCode);
+      await sendPasswordResetEmail(rows[0].email, resetCode);
     }
 
     // Always return success to prevent email enumeration
@@ -221,18 +226,25 @@ export async function forgotPassword(req, res) {
 
 export async function resetPassword(req, res) {
   try {
-    const { token, password } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const token = String(req.body?.token || req.body?.code || "").trim();
+    const { password } = req.body;
 
-    if (!token || !password) {
-      return res.status(400).json({ error: 'Token and password are required' });
+    if (!email || !token || !password) {
+      return res.status(400).json({ error: 'Email, reset code, and password are required' });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const { rows } = await pool.query(
-      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_expires = NULL WHERE reset_token = $2 AND reset_expires > NOW() RETURNING *',
-      [hashedPassword, token]
+      `UPDATE users
+       SET password_hash = $1, reset_token = NULL, reset_expires = NULL
+       WHERE LOWER(email) = LOWER($2)
+         AND reset_token = $3
+         AND reset_expires > NOW()
+       RETURNING *`,
+      [hashedPassword, email, token]
     );
 
     if (rows.length === 0) {
@@ -259,7 +271,10 @@ export async function syncProfile(req, res) {
     const user = req.user;
     const role  = safeRole(req.body?.role || user.role);
     const name  = req.body?.name || user.name;
-    const profile_photo = req.body?.profile_photo || user.profile_photo;
+    const incomingPhoto = req.body?.profile_photo ?? req.body?.profilePhoto;
+    const profile_photo = incomingPhoto !== undefined
+      ? await uploadProfilePhoto(incomingPhoto)
+      : user.profile_photo;
     const phone = req.body?.phone ?? user.phone;
     const law_firm = req.body?.law_firm ?? req.body?.lawFirm ?? user.law_firm;
     const specialization = req.body?.specialization ?? user.specialization;

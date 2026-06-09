@@ -9,6 +9,7 @@ import {
 } from "../config/dbStore.js";
 import * as CaseModel from "../models/caseModel.js";
 import * as UserModel from "../models/userModel.js";
+import { uploadCaseEvidenceFile } from "../config/cloudinary.js";
 
 const safeRole     = (v) => ["citizen","lawyer","judge","clerk"].includes(v) ? v : "citizen";
 const safePriority = (v) => ["low","medium","high","urgent"].includes(v) ? v : "medium";
@@ -77,13 +78,13 @@ export async function submitCaseToLawyer(req, res) {
     });
 
     const uploadedFiles = Array.isArray(req.files) ? req.files : [];
-    const fileBaseUrl = `${req.protocol}://${req.get("host")}`;
     for (const file of uploadedFiles) {
+      const uploaded = await uploadCaseEvidenceFile(file);
       await CaseModel.addEvidence({
         caseId: newCase.id,
         uploadedBy: req.user.id,
         fileName: file.originalname,
-        fileUrl: `${fileBaseUrl}/uploads/case-evidence/${file.filename}`,
+        fileUrl: uploaded.url,
         fileType: file.mimetype,
         fileSizeBytes: file.size,
       });

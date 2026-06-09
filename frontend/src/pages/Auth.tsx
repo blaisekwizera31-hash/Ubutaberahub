@@ -197,7 +197,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
   const [loadingAction, setLoadingAction] = useState<null | 'signup' | 'login' | 'resend' | 'forgot' | 'reset'>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
-  const [resetStep, setResetStep] = useState<'email' | 'code' | 'password'>('email');
+  const [resetStep, setResetStep] = useState<'code' | 'password'>('code');
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -483,16 +483,24 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
   const handleForgotPassword = async () => {
     setErrors({});
+    const targetEmail = email.trim();
     
-    const emailValidation = validateEmail(resetEmail);
+    const emailValidation = validateEmail(targetEmail);
     if (!emailValidation.isValid) {
-      toast({ title: "Invalid email", description: emailValidation.error, variant: "destructive" });
+      toast({
+        title: "Enter your email first",
+        description: "Type the email address in the sign-in form, then click Forgot password.",
+        variant: "destructive",
+      });
       return;
     }
 
+    setResetEmail(targetEmail);
+    setVerificationCode('');
+    setNewPassword('');
     setIsLoading(true);
     setLoadingAction('forgot');
-    const { error } = await requestPasswordReset(resetEmail);
+    const { error } = await requestPasswordReset(targetEmail);
     setIsLoading(false);
     setLoadingAction(null);
 
@@ -503,9 +511,10 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
     toast({
       title: "Password reset code sent",
-      description: `Check your email (${resetEmail}) and enter the 6-digit code to continue.`,
+      description: `Check your email (${targetEmail}) and enter the 6-digit code to continue.`,
     });
     
+    setShowForgotPassword(true);
     setResetStep('code');
   };
 
@@ -542,7 +551,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     });
     
     setShowForgotPassword(false);
-    setResetStep('email');
+    setResetStep('code');
     setResetEmail('');
     setVerificationCode('');
     setNewPassword('');
@@ -553,7 +562,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
 
   const handleCloseForgotPassword = () => {
     setShowForgotPassword(false);
-    setResetStep('email');
+    setResetStep('code');
     setResetEmail('');
     setVerificationCode('');
     setNewPassword('');
@@ -866,10 +875,11 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                 {mode === "login" && (
                   <button
                     type="button"
-                    onClick={() => setShowForgotPassword(true)}
+                    onClick={handleForgotPassword}
+                    disabled={loadingAction === 'forgot'}
                     className="text-sm text-accent hover:underline"
                   >
-                    Forgot password?
+                    {loadingAction === 'forgot' ? "Sending..." : "Forgot password?"}
                   </button>
                 )}
               </div>
@@ -957,55 +967,11 @@ const Auth = ({ lang = "en" }: AuthProps) => {
         >
           <h2 className="text-2xl font-semibold mb-2">Reset Password</h2>
           
-          {/* Step 1: Enter Email */}
-          {resetStep === 'email' && (
-            <>
-              <p className="text-muted-foreground mb-6">
-                Enter your email address and we'll send you a 6-digit verification code.
-              </p>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="reset-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      className="pl-10"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={handleCloseForgotPassword}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="hero"
-                    className="flex-1"
-                    onClick={handleForgotPassword}
-                    disabled={isLoading}
-                  >
-                    {loadingAction === 'forgot' ? "..." : "Send Code"}
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Step 2: Enter Verification Code */}
+          {/* Step 1: Enter Verification Code */}
           {resetStep === 'code' && (
             <>
               <p className="text-muted-foreground mb-6">
-                Enter the 6-digit code sent to <strong>{resetEmail}</strong>
+                We have sent a 6-digit code to <strong>{resetEmail}</strong>
               </p>
 
               <div className="space-y-4">
@@ -1029,9 +995,9 @@ const Auth = ({ lang = "en" }: AuthProps) => {
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => setResetStep('email')}
+                    onClick={handleCloseForgotPassword}
                   >
-                    Back
+                    Cancel
                   </Button>
                   <Button
                     variant="hero"
@@ -1045,7 +1011,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
             </>
           )}
 
-          {/* Step 3: Enter New Password */}
+          {/* Step 2: Enter New Password */}
           {resetStep === 'password' && (
             <>
               <p className="text-muted-foreground mb-6">
