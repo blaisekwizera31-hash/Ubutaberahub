@@ -86,6 +86,15 @@ export async function bookAppointment(req, res) {
     const lawyer = await UserModel.findById(lawyerId);
     if (!lawyer) return res.status(400).json({ error: "Lawyer not found" });
 
+    const recentBooking = await AppointmentModel.findRecentActiveBooking(userId, lawyerId, 2);
+    if (recentBooking) {
+      return res.status(409).json({
+        error: "Already booked",
+        message: "You have already booked this lawyer in the last 2 days.",
+        appointment: recentBooking,
+      });
+    }
+
     const appointment = await AppointmentModel.create({
       citizenId:       userId,
       lawyerId:        lawyerId,

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { UserPhoto } from "@/components/ui/UserPhoto";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createConversation, getConversationMessages, getConversations, getMessageUsers, sendConversationMessage } from "@/services/backend";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,7 @@ const translations = {
     chooseUser: "Choose User",
     noUsers: "No users found.",
     loadingUsers: "Loading users...",
+    typing: "is typing...",
   },
 };
 
@@ -91,6 +92,9 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
   const [isStartingConversation, setIsStartingConversation] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState("");
+  const [typingByConversation, setTypingByConversation] = useState<Record<string, boolean>>({});
+  const socketRef = useRef<WebSocket | null>(null);
+  const typingTimeoutRef = useRef<number | null>(null);
 
   const appendMessage = useCallback((conversationId: string, message: any) => {
     setMessagesByConversation((prev) => {
@@ -179,10 +183,16 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
     const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5173/api";
     const wsBase = apiBase.replace(/^http/i, "ws").replace(/\/api\/?$/, "");
     const socket = new WebSocket(`${wsBase}/ws?token=${encodeURIComponent(token)}`);
+    socketRef.current = socket;
 
     socket.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
+        if (payload.type === "typing" && payload.conversationId) {
+          setTypingByConversation((prev) => ({ ...prev, [payload.conversationId]: payload.isTyping === true }));
+          return;
+        }
+
         if (payload.type !== "new_message" || !payload.conversationId || !payload.message) return;
         appendMessage(payload.conversationId, payload.message);
         setMessagesByConversation((prev) => ({
@@ -196,8 +206,31 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
       } catch {}
     };
 
-    return () => socket.close();
+    return () => {
+      socketRef.current = null;
+      socket.close();
+    };
   }, [appendMessage, refreshConversations]);
+
+  const sendTypingState = useCallback((isTyping: boolean) => {
+    if (!selectedConversationId || socketRef.current?.readyState !== WebSocket.OPEN) return;
+    socketRef.current.send(JSON.stringify({
+      type: "typing",
+      conversationId: selectedConversationId,
+      isTyping,
+    }));
+  }, [selectedConversationId]);
+
+  const handleMessageChange = (value: string) => {
+    setNewMessage(value);
+    if (!selectedConversationId) return;
+
+    sendTypingState(value.trim().length > 0);
+    if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = window.setTimeout(() => {
+      sendTypingState(false);
+    }, 1200);
+  };
 
   const displayedConversations = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -209,6 +242,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
   }, [conversations, searchQuery]);
 
   const activeMessages = selectedConversationId ? messagesByConversation[selectedConversationId] || [] : [];
+  const activePeerIsTyping = selectedConversationId ? typingByConversation[selectedConversationId] === true : false;
   const selectedConversation =
     conversations.find((conv) => conv.id === selectedConversationId) || displayedConversations[0] || null;
 
@@ -259,6 +293,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
         ),
       );
       setNewMessage("");
+      sendTypingState(false);
     } finally {
       setIsSending(false);
     }
@@ -368,6 +403,11 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
                   </div>
                 </div>
               ))}
+              {activePeerIsTyping && (
+                <div className="text-xs text-slate-500">
+                  {selectedConversation?.contact || "Contact"} {t.typing}
+                </div>
+              )}
             </div>
 
             <div className="p-4 border-t">
@@ -377,7 +417,7 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
                   className="min-h-[44px] max-h-32 resize-none"
                   rows={1}
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => handleMessageChange(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();

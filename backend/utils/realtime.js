@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { WebSocketServer } from "ws";
+import pool from "../config/db.js";
 
 const clientsByUser = new Map();
 
@@ -31,6 +32,31 @@ export function setupRealtime(server) {
       if (!clientsByUser.has(userId)) clientsByUser.set(userId, new Set());
       clientsByUser.get(userId).add(socket);
       sendJson(socket, { type: "connected" });
+
+      socket.on("message", async (raw) => {
+        try {
+          const payload = JSON.parse(raw.toString());
+          if (payload.type !== "typing" || !payload.conversationId) return;
+
+          const { rows } = await pool.query(
+            "SELECT user_id FROM conversation_participants WHERE conversation_id = $1",
+            [payload.conversationId],
+          );
+
+          const isParticipant = rows.some((row) => row.user_id === userId);
+          if (!isParticipant) return;
+
+          for (const row of rows) {
+            if (row.user_id === userId) continue;
+            sendRealtimeToUser(row.user_id, {
+              type: "typing",
+              conversationId: payload.conversationId,
+              userId,
+              isTyping: payload.isTyping === true,
+            });
+          }
+        } catch {}
+      });
 
       socket.on("close", () => {
         const sockets = clientsByUser.get(userId);

@@ -163,7 +163,7 @@ const CitizenDashboard = () => {
             { icon: Plus, label: t.actions.submit, style: "bg-primary text-primary-foreground hover:bg-primary/90", href: "/dashboard/submit-case" },
             { icon: MessageSquare, label: t.actions.ask, style: "bg-card border border-border text-foreground hover:bg-muted", href: "/dashboard/ai-assistant" },
             { icon: Briefcase, label: t.actions.find, style: "bg-card border border-border text-foreground hover:bg-muted", href: "/dashboard/find-lawyer" },
-            { icon: Calendar, label: t.actions.book, style: "bg-card border border-border text-foreground hover:bg-muted", href: "/dashboard/appointments" },
+            { icon: Calendar, label: t.actions.book, style: "bg-card border border-border text-foreground hover:bg-muted", href: "/dashboard/find-lawyers" },
           ].map((action) => (
             <Link
               key={action.label}

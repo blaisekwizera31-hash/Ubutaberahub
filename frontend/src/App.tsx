@@ -86,6 +86,11 @@ const AppContent = () => {
                 <FindLawyer lang={language} />
               </ProtectedRoute>
             } />
+            <Route path="/dashboard/find-lawyers" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <FindLawyer lang={language} />
+              </ProtectedRoute>
+            } />
             <Route path="/dashboard/appointments" element={
               <ProtectedRoute allowedRoles={['citizen']}>
                 <Appointments lang={language} />

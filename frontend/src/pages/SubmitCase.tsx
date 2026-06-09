@@ -33,7 +33,7 @@ const translations = {
     title: "Submit New Case",
     subtitle: "Provide details about your legal issue and assign it directly to a registered lawyer.",
     beforeSubmit: "Before you submit",
-    alertText: "Ensure all information is accurate. Your selected lawyer will immediately receive your case and first message.",
+    alertText: "Ensure all information is accurate. Your selected lawyer will immediately receive your case.",
     caseTitle: "Case Title *",
     caseTitlePlaceholder: "Brief title describing your legal issue",
     chooseLawyer: "Choose Lawyer *",
@@ -208,17 +208,16 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
     }
     setIsSubmitting(true);
     try {
-      const result = await submitCaseToLawyer({
+      await submitCaseToLawyer({
         title: formData.title,
         caseType: formData.caseType,
         priority: formData.priority,
         description: formData.description,
         lawyerId: formData.lawyerId,
-        initialMessage: formData.description,
         documents: files,
       });
       toast({ title: "Case submitted", description: t.success });
-      navigate(`/dashboard/messages?conversationId=${encodeURIComponent(result.conversation.id)}`);
+      navigate("/dashboard/my-cases");
     } catch (error: any) {
       toast({
         title: "Failed to submit case",

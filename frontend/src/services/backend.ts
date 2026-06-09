@@ -90,7 +90,7 @@ export async function submitCaseToLawyer(payload: {
   if (payload.initialMessage) formData.append("initialMessage", payload.initialMessage);
   payload.documents?.forEach((file) => formData.append("documents", file));
 
-  const response = await api.post<{ ok: boolean; case: any; conversation: any }>("/cases/submit-to-lawyer", formData, {
+  const response = await api.post<{ ok: boolean; case: any; lawyer?: any }>("/cases/submit-to-lawyer", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;

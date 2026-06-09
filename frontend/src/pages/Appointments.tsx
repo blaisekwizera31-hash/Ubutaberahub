@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Check, Clock, MessageSquare, Search } from "lucide-react";
+import { Calendar, Check, Clock, MessageSquare, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,9 +21,10 @@ const translations = {
     noAppointments: "No appointments yet.",
     availableTime: "Lawyer Available Time",
     accept: "Accept",
+    reject: "Reject",
     message: "Message",
     joinCall: "Join Call",
-    status: { confirmed: "Confirmed", pending: "Pending", completed: "Completed" },
+    status: { confirmed: "Confirmed", pending: "Pending", cancelled: "Rejected", completed: "Completed" },
   },
 };
 
@@ -70,7 +71,9 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
             ? t.status.confirmed
             : apt.status === "pending"
               ? t.status.pending
-              : t.status.completed,
+              : apt.status === "cancelled"
+                ? t.status.cancelled
+                : t.status.completed,
         caseId: apt.caseId || "",
         isVideo: !!apt.isVideo,
         contactPhoto: apt.contactPhoto || apt.profilePhoto || apt.profile_photo || null,
@@ -79,7 +82,7 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
         contactId: apt.contactId || null,
         conversationId: apt.conversationId || null,
       })),
-    [apiAppointments, t.status.completed, t.status.confirmed, t.status.pending],
+    [apiAppointments, t.status.cancelled, t.status.completed, t.status.confirmed, t.status.pending],
   );
 
   const filteredAppointments = useMemo(() => {
@@ -106,6 +109,21 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
       toast({ title: "Appointment accepted", description: "The citizen can now message you." });
     } catch (error: any) {
       toast({ title: "Could not accept appointment", description: error.message || "Unknown error", variant: "destructive" });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleReject = async (appointmentId: string) => {
+    setUpdatingId(appointmentId);
+    try {
+      await updateAppointmentStatus(appointmentId, "cancelled");
+      setApiAppointments((prev) =>
+        prev.map((apt) => (apt.id === appointmentId ? { ...apt, status: "cancelled" } : apt)),
+      );
+      toast({ title: "Appointment rejected", description: "The citizen has been notified." });
+    } catch (error: any) {
+      toast({ title: "Could not reject appointment", description: error.message || "Unknown error", variant: "destructive" });
     } finally {
       setUpdatingId(null);
     }
@@ -201,10 +219,16 @@ const Appointments = ({ lang = "en" }: AppointmentsProps) => {
                     </Button>
                     )}
                     {role === "lawyer" && apt.rawStatus === "pending" && (
-                      <Button size="sm" className="gap-2" onClick={() => handleAccept(apt.id)} disabled={updatingId === apt.id}>
-                        <Check className="h-4 w-4" />
-                        {updatingId === apt.id ? "..." : t.accept}
-                      </Button>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button size="sm" className="gap-2" onClick={() => handleAccept(apt.id)} disabled={updatingId === apt.id}>
+                          <Check className="h-4 w-4" />
+                          {updatingId === apt.id ? "..." : t.accept}
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-2" onClick={() => handleReject(apt.id)} disabled={updatingId === apt.id}>
+                          <X className="h-4 w-4" />
+                          {updatingId === apt.id ? "..." : t.reject}
+                        </Button>
+                      </div>
                     )}
                     {apt.rawStatus === "confirmed" && (
                       <Button size="sm" variant="outline" className="gap-2" onClick={() => openMessage(apt)}>

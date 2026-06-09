@@ -57,7 +57,7 @@ export async function submitCaseToLawyer(req, res) {
     if (citizenProfile.role !== "citizen")
       return res.status(403).json({ error: "Only citizens can submit cases" });
 
-    const { title, description, caseType, priority, lawyerId, initialMessage } = req.body;
+    const { title, description, caseType, priority, lawyerId } = req.body;
 
     const lawyerProfile = await UserModel.findById(lawyerId);
     if (!lawyerProfile || lawyerProfile.role !== "lawyer")
@@ -90,42 +90,17 @@ export async function submitCaseToLawyer(req, res) {
       });
     }
 
-    // Create conversation
-    const { rows: convRows } = await pool.query(
-      'INSERT INTO conversations (subject, case_id, created_by, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
-      [`Case ${newCase.caseNumber}: ${newCase.title}`, newCase.id, req.user.id]
-    );
-    const conv = convRows[0];
-
-    // Participants
-    await pool.query(
-      'INSERT INTO conversation_participants (conversation_id, user_id, role, unread_count) VALUES ($1, $2, $3, $4), ($1, $5, $6, $7)',
-      [conv.id, req.user.id, "citizen", 0, lawyerId, "lawyer", 1]
-    );
-
-    const msgBody = String(initialMessage || description).trim();
-    if (msgBody) {
-      await pool.query(
-        'INSERT INTO messages (conversation_id, sender_id, body, created_at) VALUES ($1, $2, $3, NOW())',
-        [conv.id, req.user.id, msgBody]
-      );
-    }
-
     await notify({
       userId:   lawyerId,
       type:     "new_case",
       title:    "New Case Assigned",
       body:     `${citizenProfile.name || "Citizen"} submitted "${newCase.title}"`,
-      metadata: { caseId: newCase.id, caseNumber: newCase.caseNumber, conversationId: conv.id, fromUserId: req.user.id },
+      metadata: { caseId: newCase.id, caseNumber: newCase.caseNumber, fromUserId: req.user.id },
     });
 
     return res.status(201).json({
       ok: true, case: newCase,
-      conversation: {
-        id:      conv.id,
-        subject: conv.subject,
-        lawyer:  { id: lawyerProfile.id, name: lawyerProfile.name || lawyerProfile.email?.split("@")[0] || "Lawyer" },
-      },
+      lawyer: { id: lawyerProfile.id, name: lawyerProfile.name || lawyerProfile.email?.split("@")[0] || "Lawyer" },
     });
   } catch (err) {
     return res.status(500).json({ error: "Failed to submit case", message: err.message });

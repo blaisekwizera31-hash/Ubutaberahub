@@ -157,6 +157,25 @@ export async function create(payload) {
 }
 
 /**
+ * findRecentActiveBooking - Checks if a citizen recently requested this lawyer.
+ */
+export async function findRecentActiveBooking(citizenId, lawyerId, withinDays = 2) {
+  const { rows } = await pool.query(
+    `SELECT *
+     FROM appointments
+     WHERE citizen_id = $1
+       AND lawyer_id = $2
+       AND status IN ('pending', 'confirmed')
+       AND created_at >= NOW() - ($3::int * INTERVAL '1 day')
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [citizenId, lawyerId, withinDays],
+  );
+
+  return normalize(rows[0]);
+}
+
+/**
  * updateStatus — Transition appointment to a new status.
  */
 export async function updateStatus(id, status) {

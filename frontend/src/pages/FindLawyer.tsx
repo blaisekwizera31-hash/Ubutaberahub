@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
 import { useEffect, useMemo, useState } from "react";
-import { bookAppointment, getLawyers } from "@/services/backend";
+import { bookAppointment, getLawyers, getMyAppointments } from "@/services/backend";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { UserPhoto } from "@/components/ui/UserPhoto";
@@ -106,6 +106,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
   const [selectedLawyer, setSelectedLawyer] = useState<any>(null);
   const [consultation, setConsultation] = useState({ name: user?.name || "", phone: user?.phone || "", purpose: "" });
   const [isBooking, setIsBooking] = useState(false);
+  const [myAppointments, setMyAppointments] = useState<any[]>([]);
 
   useEffect(() => {
     const q = new URLSearchParams(location.search).get("q") || "";
@@ -118,6 +119,10 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
         if (Array.isArray(data.lawyers)) setApiLawyers(data.lawyers);
       })
       .catch(() => {});
+
+    getMyAppointments()
+      .then((data) => setMyAppointments(Array.isArray(data.appointments) ? data.appointments : []))
+      .catch(() => setMyAppointments([]));
   }, []);
 
   useEffect(() => {
@@ -166,10 +171,36 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
       toast({ title: "Appointment requested", description: selectedLawyer.name });
       navigate("/dashboard/appointments");
     } catch (error: any) {
-      toast({ title: "Failed to send request", description: error.message || "Unknown error", variant: "destructive" });
+      toast({
+        title: error?.response?.status === 409 ? "Already booked" : "Failed to send request",
+        description: error?.response?.data?.message || error.message || "Unknown error",
+        variant: "destructive",
+      });
     } finally {
       setIsBooking(false);
     }
+  };
+
+  const hasRecentBooking = (lawyerId: string) => {
+    const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000;
+    return myAppointments.some((apt) => {
+      const createdAt = new Date(apt.bookedAt || apt.createdAt || apt.startsAt || 0).getTime();
+      return apt.lawyerId === lawyerId && ["pending", "confirmed"].includes(apt.status) && createdAt >= twoDaysAgo;
+    });
+  };
+
+  const openBooking = (lawyer: any) => {
+    if (hasRecentBooking(lawyer.id)) {
+      toast({
+        title: "Already booked",
+        description: "You have already booked this lawyer in the last 2 days.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedLawyer(lawyer);
+    setConsultation((prev) => ({ ...prev, name: user?.name || prev.name, phone: user?.phone || prev.phone }));
   };
 
   return (
@@ -338,10 +369,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
                   <Button
                     size="sm"
                     className="gap-1"
-                    onClick={() => {
-                      setSelectedLawyer(lawyer);
-                      setConsultation((prev) => ({ ...prev, name: user?.name || prev.name, phone: user?.phone || prev.phone }));
-                    }}
+                    onClick={() => openBooking(lawyer)}
                     disabled={!lawyer.available}
                   >
                     {t.book} <ChevronRight className="w-4 h-4" />
