@@ -7,7 +7,7 @@ export async function getMessageUsers(req, res) {
   try {
     const requestedRole = String(req.query.role || "all").toLowerCase();
     if (requestedRole !== "all" && !CONTACT_ROLES.has(requestedRole)) {
-      return res.status(400).json({ error: "role must be citizen or lawyer" });
+      return res.status(400).json({ error: "role must be citizen or attorney" });
     }
 
     if (requestedRole === "all") {
@@ -40,7 +40,7 @@ export async function getMessageUsers(req, res) {
         .filter((user) => user.id !== req.user.id)
         .map((user) => ({
           id: user.id,
-          name: user.name || user.email?.split("@")[0] || (requestedRole === "lawyer" ? "Lawyer" : "Citizen"),
+          name: user.name || user.email?.split("@")[0] || (requestedRole === "lawyer" ? "Attorney" : "Citizen"),
           email: user.email,
           role: requestedRole,
           profilePhoto: user.profile_photo || null,
@@ -53,3 +53,24 @@ export async function getMessageUsers(req, res) {
 }
 
 export const getMessageContacts = getMessageUsers;
+
+export async function searchCitizens(req, res) {
+  try {
+    if (req.user?.role !== "clerk") {
+      return res.status(403).json({ error: "Only court clerks can search citizens" });
+    }
+
+    const users = await UserModel.searchCitizens(req.query.q || "", { limit: 8 });
+    return res.json({
+      users: users.map((user) => ({
+        id: user.id,
+        name: user.name || user.email?.split("@")[0] || "Citizen",
+        email: user.email,
+        phone: user.phone || "",
+        profilePhoto: user.profile_photo || null,
+      })),
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to search citizens", message: err.message });
+  }
+}

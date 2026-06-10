@@ -19,7 +19,7 @@ const translations = {
     searchPlaceholder: "Search appointments...",
     appointmentsTitle: "Your Appointments",
     noAppointments: "No appointments yet.",
-    availableTime: "Lawyer Available Time",
+    availableTime: "Attorney Available Time",
     accept: "Accept",
     reject: "Reject",
     message: "Message",

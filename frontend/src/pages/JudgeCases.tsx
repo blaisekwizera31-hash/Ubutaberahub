@@ -52,7 +52,7 @@ const JudgeCases = ({ lang = "en" }: JudgeCasesProps) => {
       id: c.id,
       title: c.title || "Untitled case",
       type: c.type || "Case",
-      parties: `${c.citizen || c.requestedBy || "Citizen"} vs ${c.lawyer || "Lawyer"}`,
+      parties: `${c.citizen || c.requestedBy || "Citizen"} vs ${c.lawyer || "Attorney"}`,
       status: c.status || "Pending",
       priority: c.priority || "Normal",
       date: c.date || "",

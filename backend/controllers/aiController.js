@@ -15,7 +15,7 @@ export async function chat(req, res) {
 
     const text = await askGemini(
       `You are a legal assistant for Rwanda. Respond in ${mapLang(language)}.\n` +
-      `Provide general legal information only and recommend speaking to a licensed lawyer.\n` +
+      `Provide general legal information only and recommend speaking to a licensed attorney.\n` +
       `User question: ${last.content}`
     );
     return res.json({ response: text });

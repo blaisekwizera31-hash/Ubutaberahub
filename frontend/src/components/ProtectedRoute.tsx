@@ -79,6 +79,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
       lawyer: '/lawyer-dashboard',
       judge: '/judge-dashboard',
       clerk: '/clerk-dashboard',
+      court_admin: '/court-admin-dashboard',
     };
     return <Navigate to={dashboardRoutes[user.role] || '/dashboard'} replace />;
   }

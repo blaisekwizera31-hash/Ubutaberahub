@@ -14,7 +14,7 @@ export async function getLawyers(req, res) {
 export async function updateMyLawyerProfile(req, res) {
   try {
     if (req.user?.role !== "lawyer") {
-      return res.status(403).json({ error: "Only lawyers can update lawyer profile settings" });
+      return res.status(403).json({ error: "Only attorneys can update attorney profile settings" });
     }
 
     const profilePhoto = await uploadProfilePhoto(req.body.profile_photo || req.body.profilePhoto);
@@ -33,6 +33,6 @@ export async function updateMyLawyerProfile(req, res) {
     const user = await UserModel.updateProfile(req.user.id, updates);
     return res.json({ user });
   } catch (err) {
-    return res.status(500).json({ error: "Failed to update lawyer profile", message: err.message });
+    return res.status(500).json({ error: "Failed to update attorney profile", message: err.message });
   }
 }

@@ -20,7 +20,7 @@ const translations = {
       voice: { title: "Voice Input", desc: "Speak naturally in Kinyarwanda, English, or French to describe your questions." },
       multi: { title: "Multilingual Support", desc: "Full support for Kinyarwanda, English, and French across all features." },
       case: { title: "Case Management", desc: "Submit, track, and manage your legal cases with complete transparency." },
-      lawyer: { title: "Lawyer Directory", desc: "Find and connect with qualified lawyers based on expertise." },
+      lawyer: { title: "Attorney Directory", desc: "Find and connect with qualified attorneys based on expertise." },
       clock: { title: "Hearing Scheduling", desc: "Book consultations and receive hearing notifications automatically." },
       secure: { title: "Secure Communication", desc: "End-to-end encrypted messaging between all parties involved." },
       privacy: { title: "Privacy First", desc: "Your data is protected with enterprise-grade security and compliance." },

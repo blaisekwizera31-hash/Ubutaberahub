@@ -24,9 +24,9 @@ import { SPECIALIZATION_FILTERS } from "@/lib/legalSpecializations";
 // 1. Full Translation Object for 3 Languages
 const translations = {
   en: {
-    title: "Find a Lawyer",
+    title: "Find an Attorney",
     subtitle: "Browse verified legal professionals to assist with your case.",
-    searchPlaceholder: "Search lawyers by name, specialization...",
+    searchPlaceholder: "Search attorneys by name, specialization...",
     moreFilters: "More Filters",
     lessFilters: "Hide Filters",
     availabilityOnly: "Available Only",
@@ -43,7 +43,7 @@ const translations = {
     consultationPhone: "Phone Number",
     consultationPurpose: "Purpose",
     consultationSend: "Send Request",
-    empty: "No registered lawyer accounts found yet.",
+    empty: "No registered attorney accounts found yet.",
     status: { available: "Available", busy: "Busy" },
   },
   rw: {
@@ -193,7 +193,7 @@ const FindLawyer = ({ lang = "en" }: FindLawyerProps) => {
     if (hasRecentBooking(lawyer.id)) {
       toast({
         title: "Already booked",
-        description: "You have already booked this lawyer in the last 2 days.",
+        description: "You have already booked this attorney in the last 2 days.",
         variant: "destructive",
       });
       return;

@@ -8,7 +8,7 @@ import * as MessageModel from "../models/messageModel.js";
 import { notify } from "../utils/notify.js";
 
 const safeRole = (v) =>
-  ["citizen", "lawyer", "judge", "clerk"].includes(v) ? v : "citizen";
+  ["citizen", "lawyer", "judge", "clerk", "court_admin"].includes(v) ? v : "citizen";
 
 async function enrichWithPeerProfile(appointments, userId) {
   const peerIds = [...new Set([
@@ -82,15 +82,15 @@ export async function bookAppointment(req, res) {
     if (!lawyerId) return res.status(400).json({ error: "lawyerId is required" });
     if (!startsAt) return res.status(400).json({ error: "startsAt (ISO date string) is required" });
 
-    // Validate lawyer exists
+    // Validate attorney exists
     const lawyer = await UserModel.findById(lawyerId);
-    if (!lawyer) return res.status(400).json({ error: "Lawyer not found" });
+    if (!lawyer) return res.status(400).json({ error: "Attorney not found" });
 
     const recentBooking = await AppointmentModel.findRecentActiveBooking(userId, lawyerId, 2);
     if (recentBooking) {
       return res.status(409).json({
         error: "Already booked",
-        message: "You have already booked this lawyer in the last 2 days.",
+        message: "You have already booked this attorney in the last 2 days.",
         appointment: recentBooking,
       });
     }
@@ -104,11 +104,11 @@ export async function bookAppointment(req, res) {
       mode:             mode,
       caseId:          caseId,
       notes:            notes,
-      lawyerName:      lawyer.name || lawyer.email?.split("@")[0] || "Lawyer",
+      lawyerName:      lawyer.name || lawyer.email?.split("@")[0] || "Attorney",
       lawyerAvailableTime: lawyer.available_time || "",
     });
 
-    // Notify lawyer
+    // Notify attorney
     await notify({
       userId: lawyerId,
       type: "appointment_request",
@@ -143,7 +143,7 @@ export async function updateAppointmentStatus(req, res) {
     const isParticipant = appt.citizenId === userId || appt.lawyerId === userId;
     if (!isParticipant) return res.status(403).json({ error: "Forbidden" });
     if (status === "confirmed" && appt.lawyerId !== userId) {
-      return res.status(403).json({ error: "Only the lawyer can accept this appointment" });
+      return res.status(403).json({ error: "Only the attorney can accept this appointment" });
     }
 
     const updated = await AppointmentModel.updateStatus(id, status);

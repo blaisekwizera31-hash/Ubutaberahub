@@ -95,7 +95,7 @@ export async function createConversation(req, res) {
     if (existingId) {
       conv = await MessageModel.findConversationById(existingId);
     } else {
-      const convSubject = subject || `Conversation with ${peer.name || peer.email?.split("@")[0] || "Lawyer"}`;
+      const convSubject = subject || `Conversation with ${peer.name || peer.email?.split("@")[0] || "Attorney"}`;
       conv = await MessageModel.createConversation(
         { subject: convSubject, caseId: caseId || null, createdBy: userId },
         [

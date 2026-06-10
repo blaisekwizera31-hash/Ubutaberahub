@@ -15,7 +15,7 @@ const translations = {
     subtitle: "Ask questions in Kinyarwanda, English, or French",
     placeholder: "Type your legal question...",
     voiceLabel: "Voice input",
-    disclaimer: "AI provides guidance only, not legal advice. Consult a lawyer for specific cases.",
+    disclaimer: "AI provides guidance only, not legal advice. Consult an attorney for specific cases.",
     error: "Failed to get response. Please try again.",
     welcome: "Hello! I'm your AI legal assistant. I can help you understand your legal rights and options in Rwanda. How can I assist you today?",
   },

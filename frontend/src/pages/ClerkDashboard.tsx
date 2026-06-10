@@ -4,14 +4,14 @@ import { FileText, Clock, CheckCircle, MessageSquare, Search } from "lucide-reac
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/Dashboard/DashboardLayout";
-import { getConversations, getMyCases } from "@/services/backend";
+import { getAllClerkCases, getConversations } from "@/services/backend";
 
 const translations = {
   en: {
     greeting: "Welcome",
-    subtitle: "Review filings and manage clerk-assigned cases with live data.",
+    subtitle: "Review filings and manage all court cases with live data.",
     stats: {
-      total: "Assigned Cases",
+      total: "All Cases",
       pending: "Pending Review",
       ready: "Ready for Judge",
       messages: "Conversations",
@@ -19,7 +19,7 @@ const translations = {
     tableTitle: "Case Queue",
     search: "Search case queue...",
     submittedBy: "Submitted By",
-    noCases: "No clerk-assigned cases found.",
+    noCases: "No court cases found.",
   },
 };
 
@@ -37,7 +37,7 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
   const [conversations, setConversations] = useState<any[]>([]);
 
   useEffect(() => {
-    getMyCases()
+    getAllClerkCases()
       .then((data) => setCases(Array.isArray(data.cases) ? data.cases : []))
       .catch(() => setCases([]));
 
@@ -68,8 +68,8 @@ const ClerkDashboard = ({ lang = "en" }: ClerkDashboardProps) => {
       id: c.id,
       title: c.title,
       submittedBy: c.citizen || c.requestedBy || "Citizen",
-      type: c.type || "Case",
-      date: c.date || "",
+      type: c.caseType || c.type || "Case",
+      date: c.date || (c.filedAt ? new Date(c.filedAt).toISOString().slice(0, 10) : ""),
       status: c.status || "Pending",
     }));
     if (!q) return base;

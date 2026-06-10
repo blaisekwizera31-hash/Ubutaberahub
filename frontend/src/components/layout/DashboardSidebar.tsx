@@ -10,7 +10,7 @@ const translations = {
     myCases: "My Cases",
     aiAssistant: "AI Assistant",
     messages: "Messages",
-    findLawyers: "Find Lawyers",
+    findLawyers: "Find Attorneys",
     appointments: "Appointments",
     settings: "Settings",
     signOut: "Sign Out",

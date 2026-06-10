@@ -69,13 +69,13 @@ const translations = {
 const FAQS = [
   {
     id: "file-case",
-    q: "How do I submit a case to a lawyer?",
-    a: "Go to Find Lawyer, choose a registered lawyer, then open Submit Case. Fill title, type, priority, and description, then submit. Your case and first message are sent to that lawyer.",
+    q: "How do I submit a case to an attorney?",
+    a: "Go to Find Attorney, choose a registered attorney, then open Submit Case. Fill title, type, priority, and description, then submit. Your case is sent to that attorney.",
   },
   {
     id: "messages",
-    q: "How can I communicate with my lawyer?",
-    a: "Open Messages. You can chat directly with your assigned lawyer in the case conversation created after submission.",
+    q: "How can I communicate with my attorney?",
+    a: "Open Messages. You can chat directly with your assigned attorney after a conversation is started.",
   },
   {
     id: "my-cases",
@@ -84,8 +84,8 @@ const FAQS = [
   },
   {
     id: "lawyer-visibility",
-    q: "Why can't I find some lawyers?",
-    a: "Only registered and approved lawyers appear in the directory. If a lawyer profile is incomplete or unverified, it is hidden.",
+    q: "Why can't I find some attorneys?",
+    a: "Only registered and approved attorneys appear in the directory. If an attorney profile is incomplete or unverified, it is hidden.",
   },
   {
     id: "reset-password",
@@ -95,7 +95,7 @@ const FAQS = [
   {
     id: "appointments",
     q: "How do appointments work?",
-    a: "Appointments display real records from your account. You can book by selecting a registered lawyer and submitting a case.",
+    a: "Appointments display real records from your account. You can book by selecting a registered attorney.",
   },
 ];
 
@@ -175,8 +175,8 @@ const HelpCenter = () => {
   };
 
   const quickQuestions = [
-    "How do I submit a case to a lawyer?",
-    "How can I chat with my lawyer?",
+    "How do I submit a case to an attorney?",
+    "How can I chat with my attorney?",
     "Why is my case not visible in My Cases?",
   ];
 

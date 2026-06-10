@@ -38,7 +38,7 @@ const translations = {
       { title: "Marriage Laws", desc: "Overview of matrimonial laws and procedures in Rwanda.", type: "Article", time: "12" },
     ],
     faqs: [
-      "How do I get legal aid if I can't afford a lawyer?",
+      "How do I get legal aid if I can't afford an attorney?",
       "What are the steps to register a business in Rwanda?",
       "How long does a typical court case take?",
       "What documents do I need for child custody?",

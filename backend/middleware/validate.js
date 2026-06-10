@@ -84,7 +84,7 @@ export function validateCaseSubmission(req, res, next) {
   }
 
   if (!lawyerId || typeof lawyerId !== 'string') {
-    return res.status(400).json({ error: 'Validation failed', message: 'Lawyer ID is required' });
+    return res.status(400).json({ error: 'Validation failed', message: 'Attorney ID is required' });
   }
 
   // Sanitize

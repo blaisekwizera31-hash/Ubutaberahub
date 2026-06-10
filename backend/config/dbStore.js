@@ -36,7 +36,7 @@ function normalizeAppointmentRow(row) {
   const iso = row.starts_at ? new Date(row.starts_at) : new Date();
   return {
     id:       row.id,
-    lawyer:   row.metadata?.lawyer || "Lawyer",
+    lawyer:   row.metadata?.lawyer || "Attorney",
     type:     row.appointment_type || "Consultation",
     date:     iso.toISOString().slice(0, 10),
     time:     iso.toISOString().slice(11, 16),
@@ -139,7 +139,7 @@ export async function fetchLawyersFromDb() {
 
   return users.map((u) => ({
     id:             u.id,
-    name:           u.name || u.email?.split("@")[0] || "Lawyer",
+    name:           u.name || u.email?.split("@")[0] || "Attorney",
     email:          u.email         || null,
     phone:          u.phone         || null,
     avatarUrl:      u.profile_photo || null,

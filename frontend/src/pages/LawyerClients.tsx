@@ -16,7 +16,7 @@ interface LawyerClientsProps {
 const translations = {
   en: {
     title: "My Clients",
-    subtitle: "Clients who contacted you or selected you as their lawyer",
+    subtitle: "Clients who contacted you or selected you as their attorney",
     search: "Search clients...",
     activeCases: "Active Cases",
     noClients: "No client connections found yet.",

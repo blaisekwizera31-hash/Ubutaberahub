@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
 import CitizenDashboard from "./pages/CitizenDashboard";
+import CitizenUpdates from "./pages/CitizenUpdates";
 import LawyerDashboard from "./pages/LawyerDashboard";
 import LawyerCases from "./pages/LawyerCases";
 import LawyerClients from "./pages/LawyerClients";
@@ -19,6 +20,7 @@ import JudgeCases from "./pages/JudgeCases";
 import CourtClerkDashboard from "./pages/ClerkDashboard";
 import ClerkCases from "./pages/ClerkCases";
 import ClerkRegistry from "./pages/ClerkRegistry";
+import CourtAdminDashboard from "./pages/CourtAdminDashboard";
 import NotFound from "./pages/NotFound";
 import FindLawyer from "./pages/FindLawyer";
 import SubmitCase from "./pages/SubmitCase";
@@ -43,6 +45,8 @@ const CitizenLawyerPortalRedirect = ({ page, children }: { page: string; childre
   const user = stored ? JSON.parse(stored) : null;
   if (user?.role === "lawyer") return <Navigate to={`/lawyer-dashboard${page}`} replace />;
   if (user?.role === "citizen") return <Navigate to={`/dashboard${page}`} replace />;
+  if (user?.role === "clerk") return <Navigate to={`/clerk-dashboard${page}`} replace />;
+  if (user?.role === "court_admin") return <Navigate to={`/court-admin-dashboard${page}`} replace />;
   return <>{children}</>;
 };
 
@@ -99,6 +103,11 @@ const AppContent = () => {
             <Route path="/dashboard/messages" element={
               <ProtectedRoute allowedRoles={['citizen']}>
                 <Messages lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/updates" element={
+              <ProtectedRoute allowedRoles={['citizen']}>
+                <CitizenUpdates />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/settings" element={
@@ -165,7 +174,7 @@ const AppContent = () => {
                 <JudgeDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/judge-cases" element={
+            <Route path="/judge-dashboard/my-cases" element={
               <ProtectedRoute allowedRoles={['judge']}>
                 <JudgeCases lang={language} />
               </ProtectedRoute>
@@ -177,14 +186,32 @@ const AppContent = () => {
                 <CourtClerkDashboard lang={language} />
               </ProtectedRoute>
             } />
-            <Route path="/clerk-cases" element={
+            <Route path="/clerk-dashboard/all-cases" element={
               <ProtectedRoute allowedRoles={['clerk']}>
                 <ClerkCases lang={language} />
               </ProtectedRoute>
             } />
-            <Route path="/clerk-registry" element={
+            <Route path="/clerk-dashboard/my-cases" element={<Navigate to="/clerk-dashboard/all-cases" replace />} />
+            <Route path="/clerk-dashboard/registry" element={
               <ProtectedRoute allowedRoles={['clerk']}>
                 <ClerkRegistry lang={language} />
+              </ProtectedRoute>
+            } />
+            <Route path="/clerk-dashboard/messages" element={
+              <ProtectedRoute allowedRoles={['clerk']}>
+                <Messages lang={language} />
+              </ProtectedRoute>
+            } />
+
+            {/* Court Administration Routes - Protected */}
+            <Route path="/court-admin-dashboard" element={
+              <ProtectedRoute allowedRoles={['court_admin']}>
+                <CourtAdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/court-admin-dashboard/messages" element={
+              <ProtectedRoute allowedRoles={['court_admin']}>
+                <Messages lang={language} />
               </ProtectedRoute>
             } />
             
@@ -220,6 +247,14 @@ const AppContent = () => {
             <Route path="/ai-assistant" element={<PortalRedirect page="/ai-assistant" />} />
             <Route path="/lawyer-cases" element={<Navigate to="/lawyer-dashboard/my-cases" replace />} />
             <Route path="/lawyer-clients" element={<Navigate to="/lawyer-dashboard/clients" replace />} />
+            <Route path="/judge-cases" element={<Navigate to="/judge-dashboard/my-cases" replace />} />
+            <Route path="/clerk-cases" element={<Navigate to="/clerk-dashboard/all-cases" replace />} />
+            <Route path="/clerk-registry" element={<Navigate to="/clerk-dashboard/registry" replace />} />
+            <Route path="/clerkdashboard" element={<Navigate to="/clerk-dashboard" replace />} />
+            <Route path="/clerkdashboard/all-cases" element={<Navigate to="/clerk-dashboard/all-cases" replace />} />
+            <Route path="/clerkdashboard/registry" element={<Navigate to="/clerk-dashboard/registry" replace />} />
+            <Route path="/clerkdashboard/messages" element={<Navigate to="/clerk-dashboard/messages" replace />} />
+            <Route path="/court-admin" element={<Navigate to="/court-admin-dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
     
           </Routes>

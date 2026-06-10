@@ -15,6 +15,7 @@ import {
   getConversations,
   getMyCases,
   summarizeTextWithAI,
+  updateCaseStatus,
   updateMyLawyerProfile,
 } from "@/services/backend";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +33,7 @@ const translations = {
     filed: "Filed",
     viewMessages: "Open Messages",
     approve: "Approve Case",
+    reject: "Reject Case",
     details: "View Details",
     saveProfile: "Save Profile",
     available: "Available for new clients",
@@ -99,7 +101,7 @@ const LawyerDashboard = () => {
       const current = localStorage.getItem("loggedInUser");
       const stored = current ? JSON.parse(current) : {};
       localStorage.setItem("loggedInUser", JSON.stringify({ ...stored, ...updated, profilePhoto: updated.profile_photo }));
-      toast({ title: "Profile updated", description: "Your lawyer availability is now visible to citizens." });
+      toast({ title: "Profile updated", description: "Your attorney availability is now visible to citizens." });
     } catch (error: any) {
       toast({ title: "Failed to update profile", description: error.message || "Unknown error", variant: "destructive" });
     } finally {
@@ -126,13 +128,23 @@ const LawyerDashboard = () => {
     }
   };
 
+  const handleReject = async (caseId: string) => {
+    try {
+      const result = await updateCaseStatus(caseId, "Rejected");
+      setCases((prev) => prev.map((item) => (item.id === caseId ? { ...item, status: result.case.status } : item)));
+      toast({ title: "Case rejected", description: "The citizen has been notified." });
+    } catch (error: any) {
+      toast({ title: "Could not reject case", description: error.message || "Unknown error", variant: "destructive" });
+    }
+  };
+
   const summarizeCase = async (caseItem: any) => {
     if (summarizingCaseId) return;
     setSummarizingCaseId(caseItem.id);
     try {
       const filed = caseItem.date || (caseItem.filedAt ? new Date(caseItem.filedAt).toLocaleDateString() : "-");
       const prompt =
-        "For a lawyer in Rwanda, summarize this case. Include key facts, urgency, missing information, recommended next steps, documents to request, and client follow-up points.\n\n" +
+        "For an attorney in Rwanda, summarize this case. Include key facts, urgency, missing information, recommended next steps, documents to request, and client follow-up points.\n\n" +
         [
           `Title: ${caseItem.title || "Untitled"}`,
           `Number: ${caseItem.caseNumber || caseItem.id}`,
@@ -183,10 +195,16 @@ const LawyerDashboard = () => {
         </div>
         <div className="flex items-center gap-2">
           {String(caseItem.status || "").toLowerCase() === "pending" && (
-            <Button size="sm" onClick={() => handleApprove(caseItem.id)}>
-              <BadgeCheck className="mr-1 h-4 w-4" />
-              {t.approve}
-            </Button>
+            <>
+              <Button size="sm" onClick={() => handleApprove(caseItem.id)}>
+                <BadgeCheck className="mr-1 h-4 w-4" />
+                {t.approve}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleReject(caseItem.id)}>
+                <X className="mr-1 h-4 w-4" />
+                {t.reject}
+              </Button>
+            </>
           )}
           <Button variant="outline" size="sm" onClick={() => openDetails(caseItem.id)}>
             {t.details}
@@ -228,9 +246,9 @@ const LawyerDashboard = () => {
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <UserPhoto src={user?.profilePhoto || user?.profile_photo} alt={user?.name || "Lawyer"} className="h-12 w-12" />
+              <UserPhoto src={user?.profilePhoto || user?.profile_photo} alt={user?.name || "Attorney"} className="h-12 w-12" />
               <div>
-                <h2 className="text-lg font-semibold">Lawyer Profile</h2>
+                <h2 className="text-lg font-semibold">Attorney Profile</h2>
                 <p className="text-sm text-muted-foreground">Keep this complete so citizens can choose you.</p>
               </div>
             </div>

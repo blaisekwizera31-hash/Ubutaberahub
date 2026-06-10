@@ -27,7 +27,12 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
   const [unreadCount, setUnreadCount] = useState(0);
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
-  const portalBase = user?.role === "lawyer" ? "/lawyer-dashboard" : "/dashboard";
+  const portalBase =
+    user?.role === "lawyer" ? "/lawyer-dashboard" :
+    user?.role === "judge" ? "/judge-dashboard" :
+    user?.role === "clerk" ? "/clerk-dashboard" :
+    user?.role === "court_admin" ? "/court-admin-dashboard" :
+    "/dashboard";
 
   useEffect(() => {
     let mounted = true;
@@ -60,9 +65,11 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
       role === "lawyer"
         ? "/lawyer-dashboard/my-cases"
         : role === "judge"
-          ? "/judge-cases"
+          ? "/judge-dashboard/my-cases"
           : role === "clerk"
-            ? "/clerk-cases"
+          ? "/clerk-dashboard/all-cases"
+          : role === "court_admin"
+          ? "/court-admin-dashboard"
             : "/dashboard/my-cases";
     navigate(q ? `${target}?q=${encodeURIComponent(q)}` : target);
   };
@@ -90,7 +97,12 @@ export function DashboardHeader({ searchPlaceholder = "Search...", showSearch = 
       return;
     }
     if (metadata.caseNumber || metadata.caseId) {
-      const target = user?.role === "lawyer" ? "/lawyer-dashboard/my-cases" : "/dashboard/my-cases";
+      const target =
+        user?.role === "lawyer" ? "/lawyer-dashboard/my-cases" :
+        user?.role === "judge" ? "/judge-dashboard/my-cases" :
+        user?.role === "clerk" ? "/clerk-dashboard/all-cases" :
+        user?.role === "court_admin" ? "/court-admin-dashboard" :
+        "/dashboard/my-cases";
       navigate(`${target}?q=${encodeURIComponent(metadata.caseNumber || metadata.caseId)}`);
       return;
     }

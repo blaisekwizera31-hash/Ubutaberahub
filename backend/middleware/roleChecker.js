@@ -18,6 +18,7 @@ export const ROLES = Object.freeze({
   LAWYER:  'lawyer',
   CLERK:   'clerk',
   JUDGE:   'judge',
+  COURT_ADMIN: 'court_admin',
 });
 
 /**
@@ -67,5 +68,5 @@ export const citizenOnly = checkRole(ROLES.CITIZEN);
 export const lawyerOnly  = checkRole(ROLES.LAWYER);
 export const clerkOnly   = checkRole(ROLES.CLERK);
 export const judgeOnly   = checkRole(ROLES.JUDGE);
-export const courtStaff  = checkRole([ROLES.CLERK, ROLES.JUDGE]);
-export const legalPro    = checkRole([ROLES.LAWYER, ROLES.CLERK, ROLES.JUDGE]);
+export const courtStaff  = checkRole([ROLES.CLERK, ROLES.JUDGE, ROLES.COURT_ADMIN]);
+export const legalPro    = checkRole([ROLES.LAWYER, ROLES.CLERK, ROLES.JUDGE, ROLES.COURT_ADMIN]);

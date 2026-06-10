@@ -77,7 +77,7 @@ const LawyerCases = ({ lang = "en" }: LawyerCasesProps) => {
     try {
       const filed = caseItem.date || (caseItem.filedAt ? new Date(caseItem.filedAt).toLocaleDateString() : "-");
       const prompt =
-        "For a lawyer in Rwanda, summarize this case. Include key facts, urgency, missing information, recommended next steps, documents to request, and client follow-up points.\n\n" +
+        "For an attorney in Rwanda, summarize this case. Include key facts, urgency, missing information, recommended next steps, documents to request, and client follow-up points.\n\n" +
         [
           `Title: ${caseItem.title || "Untitled"}`,
           `Number: ${caseItem.caseNumber || caseItem.id}`,

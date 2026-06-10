@@ -31,13 +31,13 @@ import { UserPhoto } from "@/components/ui/UserPhoto";
 const translations = {
   en: {
     title: "Submit New Case",
-    subtitle: "Provide details about your legal issue and assign it directly to a registered lawyer.",
+    subtitle: "Provide details about your legal issue and assign it directly to a registered attorney.",
     beforeSubmit: "Before you submit",
-    alertText: "Ensure all information is accurate. Your selected lawyer will immediately receive your case.",
+    alertText: "Ensure all information is accurate. Your selected attorney will immediately receive your case.",
     caseTitle: "Case Title *",
     caseTitlePlaceholder: "Brief title describing your legal issue",
-    chooseLawyer: "Choose Lawyer *",
-    chooseLawyerPlaceholder: "Select a registered lawyer",
+    chooseLawyer: "Choose Attorney *",
+    chooseLawyerPlaceholder: "Select a registered attorney",
     caseType: "Case Type *",
     selectType: "Select case type",
     priority: "Priority Level *",
@@ -51,7 +51,7 @@ const translations = {
     cancel: "Cancel",
     submit: "Submit Case",
     success: "Case submitted successfully!",
-    noLawyers: "No registered lawyers are available yet.",
+    noLawyers: "No registered attorneys are available yet.",
     priorities: [
       { value: "low", label: "Low", desc: "Non-urgent matter" },
       { value: "medium", label: "Medium", desc: "Standard timeline" },
@@ -193,7 +193,7 @@ const SubmitCase = ({ lang = "en" }: SubmitCaseProps) => {
     e.preventDefault();
     const missing = [];
     if (!formData.title.trim()) missing.push("case title");
-    if (!formData.lawyerId) missing.push("lawyer");
+    if (!formData.lawyerId) missing.push("attorney");
     if (!formData.caseType) missing.push("case type");
     if (!formData.priority) missing.push("priority");
     if (!formData.description.trim()) missing.push("description");

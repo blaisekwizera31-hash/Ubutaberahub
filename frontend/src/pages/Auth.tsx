@@ -69,14 +69,15 @@ const translations = {
     continueMicrosoft: "Continue with Microsoft",
     continueApple: "Continue with Apple",
     roles: {
-      citizen: { label: "Citizen", desc: "Submit cases, find lawyers" },
-      lawyer: { label: "Lawyer", desc: "Manage clients & cases" },
+      citizen: { label: "Citizen", desc: "Submit cases, find attorneys" },
+      lawyer: { label: "Attorney", desc: "Manage clients & cases" },
       clerk: { label: "Court Clerk", desc: "Process court documents" },
+      court_admin: { label: "Court Administration", desc: "Assign cases to judges" },
       judge: { label: "Judge", desc: "Review & decide cases" },
     },
     fields: {
       citizenId: "Citizen ID Number",
-      license: "Lawyer License Number",
+      license: "Attorney License Number",
       specialization: "Specialization",
       lawFirm: "Law Firm",
       empId: "Employee ID",
@@ -114,6 +115,7 @@ const translations = {
       citizen: { label: "Umuturage", desc: "Ohereza ibibazo, shaka abanyamategeko" },
       lawyer: { label: "Umunyamategeko", desc: "Cunga abakiriya n'amadosiye" },
       clerk: { label: "Umwanditsi w'urukiko", desc: "Tunganya inyandiko z'urukiko" },
+      court_admin: { label: "Ubuyobozi bw'urukiko", desc: "Gutanga imanza ku bacamanza" },
       judge: { label: "Umucamanza", desc: "Suzuma imanza ufate n'imyanzuro" },
     },
     fields: {
@@ -156,6 +158,7 @@ const translations = {
       citizen: { label: "Citoyen", desc: "Soumettre des cas, trouver des avocats" },
       lawyer: { label: "Avocat", desc: "Gérer les clients et les dossiers" },
       clerk: { label: "Greffier", desc: "Traiter les documents judiciaires" },
+      court_admin: { label: "Administration judiciaire", desc: "Attribuer les dossiers aux juges" },
       judge: { label: "Juge", desc: "Réviser et trancher les affaires" },
     },
     fields: {
@@ -273,6 +276,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     { id: "citizen", ...t.roles.citizen },
     { id: "lawyer", ...t.roles.lawyer },
     { id: "clerk", ...t.roles.clerk },
+    { id: "court_admin", ...t.roles.court_admin },
     { id: "judge", ...t.roles.judge },
   ];
 
@@ -281,6 +285,7 @@ const Auth = ({ lang = "en" }: AuthProps) => {
     lawyer: "/lawyer-dashboard",
     judge: "/judge-dashboard",
     clerk: "/clerk-dashboard",
+    court_admin: "/court-admin-dashboard",
   };
 
   const handleSignup = async () => {

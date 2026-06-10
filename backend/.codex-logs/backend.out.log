@@ -1,0 +1,14 @@
+
+C:\Users\blais\Documents\PROJECTSS\react\Ubutaberahub\backend>os.setenv('POSH_SESSION_ID', '250359c1-8051-4ae7-a360-5eec23e2775b');load(io.open('C:\\Users\\blais\\AppData\\Local\\Packages\\ohmyposh.cli_96v55e8n804z4\\LocalCache\\Local\\oh-my-posh\\init.2661789557581060197.lua', "r"):read("*a"))() 
+
+> ubutaberahub-backend@1.0.0 start
+> node server.js
+
+
+🚀  Backend running on http://localhost:5173
+🤖  Gemini:   ❌ disabled
+Cloudinary: connected
+✅  PostgreSQL: connected successfully
+🐘  PostgreSQL: connected and health check passed
+✅  PostgreSQL: connected successfully
+[90m2026-06-10T14:32:57.557Z[0m [32mGET   [0m /                                        [32m200[0m [90m42ms  127.0.0.1[0m

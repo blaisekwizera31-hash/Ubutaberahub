@@ -19,8 +19,8 @@ const translations = {
     description: "Tailored dashboards and tools for citizens, legal professionals, and administrators.",
     getStarted: "Get Started",
     roles: [
-      { id: "citizen", title: "Citizens", desc: "Submit legal issues, explore laws, find lawyers, and track your case progress.", features: ["Submit legal questions", "Find qualified lawyers", "Track case status", "Access legal resources"] },
-      { id: "lawyer", title: "Lawyers", desc: "Manage consultations, upload evidence, and receive AI-generated case summaries.", features: ["Manage client cases", "AI case summaries", "Document management", "Consultation scheduling"] },
+      { id: "citizen", title: "Citizens", desc: "Submit legal issues, explore laws, find attorneys, and track your case progress.", features: ["Submit legal questions", "Find qualified attorneys", "Track case status", "Access legal resources"] },
+      { id: "lawyer", title: "Attorneys", desc: "Manage consultations, upload evidence, and receive AI-generated case summaries.", features: ["Manage client cases", "AI case summaries", "Document management", "Consultation scheduling"] },
       { id: "clerk", title: "Court Clerks", desc: "Verify cases, schedule hearings, and manage court documentation efficiently.", features: ["Case verification", "Hearing scheduling", "Document processing", "Status updates"] },
       { id: "judge", title: "Judges", desc: "Review cases with AI assistance, access summaries, and manage proceedings.", features: ["Case review tools", "AI-powered insights", "Legal precedents", "Decision support"] },
       { id: "admin", title: "Administrators", desc: "Monitor system analytics, manage users, and oversee platform operations.", features: ["Analytics dashboard", "User management", "System monitoring", "Audit trails"] },

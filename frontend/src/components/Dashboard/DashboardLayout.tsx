@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   Home, FileText, MessageSquare, Users, Settings, 
   Search, Menu, X, LogOut, User, Briefcase, Gavel, Bell,
-  Bot, Calendar, HelpCircle, Globe
+  Bot, Calendar, HelpCircle, Globe, CalendarClock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import { UserPhoto } from "@/components/ui/UserPhoto";
 
 // REMOVED: import Logo from "@/assets/logo.png"; 
 
-type Role = "citizen" | "lawyer" | "judge" | "clerk" | "client";
+type Role = "citizen" | "lawyer" | "judge" | "clerk" | "court_admin" | "client";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -33,8 +33,9 @@ const sidebarTranslations: Record<string, any> = {
   en: {
     dashboard: "Dashboard",
     cases: "My Cases",
+    allCases: "All Cases",
     ai: "AI Assistant",
-    lawyers: "Find Lawyers",
+    lawyers: "Find Attorneys",
     appoint: "Appointments",
     settings: "Settings",
     signOut: "Sign Out",
@@ -42,13 +43,16 @@ const sidebarTranslations: Record<string, any> = {
     search: "Search cases...",
     profile: "Profile",
     messages: "Messages",
+    updates: "Updates",
     clients: "Clients",
     registry: "Registry",
-    roleNames: { judge: "Judge", clerk: "Clerk", lawyer: "Lawyer", citizen: "Citizen", client: "Client" }
+    administration: "Administration",
+    roleNames: { judge: "Judge", clerk: "Clerk", court_admin: "Court Admin", lawyer: "Attorney", citizen: "Citizen", client: "Client" }
   },
   rw: {
     dashboard: "Ikarita mpuruza",
     cases: "Imanza zanjye",
+    allCases: "Imanza zose",
     ai: "Ubufasha bwa AI",
     lawyers: "Shaka abanyamategeko",
     appoint: "Gahunda",
@@ -58,13 +62,16 @@ const sidebarTranslations: Record<string, any> = {
     search: "Shakisha...",
     profile: "Umwirondoro",
     messages: "Ubutumwa",
+    updates: "Amakuru mashya",
     clients: "Abakiriya",
     registry: "Ubwanditsi",
-    roleNames: { judge: "Umucamanza", clerk: "Umwanditsi", lawyer: "Umunyamategeko", citizen: "Umwenyegihugu", client: "Umukiriya" }
+    administration: "Ubuyobozi",
+    roleNames: { judge: "Umucamanza", clerk: "Umwanditsi", court_admin: "Ubuyobozi", lawyer: "Umunyamategeko", citizen: "Umwenyegihugu", client: "Umukiriya" }
   },
   fr: {
     dashboard: "Tableau de bord",
     cases: "Mes dossiers",
+    allCases: "Tous les dossiers",
     ai: "Assistant IA",
     lawyers: "Trouver un avocat",
     appoint: "Rendez-vous",
@@ -74,9 +81,11 @@ const sidebarTranslations: Record<string, any> = {
     search: "Rechercher...",
     profile: "Profil",
     messages: "Messages",
+    updates: "Mises a jour",
     clients: "Clients",
     registry: "Greffe",
-    roleNames: { judge: "Juge", clerk: "Greffier", lawyer: "Avocat", citizen: "Citoyen", client: "Client" }
+    administration: "Administration",
+    roleNames: { judge: "Juge", clerk: "Greffier", court_admin: "Administration", lawyer: "Avocat", citizen: "Citoyen", client: "Client" }
   }
 };
 
@@ -90,6 +99,7 @@ const roleConfig = {
       { icon: Bot, label: t.ai, href: "/dashboard/ai-assistant" },
       { icon: Search, label: t.lawyers, href: "/dashboard/find-lawyer" },
       { icon: Calendar, label: t.appoint, href: "/dashboard/appointments" },
+      { icon: CalendarClock, label: t.updates, href: "/dashboard/updates" },
       { icon: MessageSquare, label: t.messages, href: "/dashboard/messages" },
     ],
   },
@@ -99,6 +109,7 @@ const roleConfig = {
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/dashboard" },
       { icon: FileText, label: t.cases, href: "/dashboard/my-cases" },
+      { icon: CalendarClock, label: t.updates, href: "/dashboard/updates" },
       { icon: MessageSquare, label: t.messages, href: "/dashboard/messages" },
     ],
   },
@@ -119,7 +130,7 @@ const roleConfig = {
     color: "bg-blue-900",
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/judge-dashboard" },
-      { icon: FileText, label: t.cases, href: "/judge-cases" },
+      { icon: FileText, label: t.cases, href: "/judge-dashboard/my-cases" },
       { icon: Calendar, label: t.appoint, href: "/appointments" },
     ],
   },
@@ -128,9 +139,19 @@ const roleConfig = {
     color: "bg-primary",
     navItems: (t: any) => [
       { icon: Home, label: t.dashboard, href: "/clerk-dashboard" },
-      { icon: FileText, label: t.cases, href: "/clerk-cases" },
+      { icon: FileText, label: t.allCases, href: "/clerk-dashboard/all-cases" },
       { icon: Calendar, label: t.appoint, href: "/appointments" },
-      { icon: Users, label: t.registry, href: "/clerk-registry" },
+      { icon: MessageSquare, label: t.messages, href: "/clerk-dashboard/messages" },
+      { icon: Users, label: t.registry, href: "/clerk-dashboard/registry" },
+    ],
+  },
+  court_admin: {
+    icon: Scale,
+    color: "bg-blue-900",
+    navItems: (t: any) => [
+      { icon: Home, label: t.dashboard, href: "/court-admin-dashboard" },
+      { icon: Scale, label: t.administration, href: "/court-admin-dashboard" },
+      { icon: MessageSquare, label: t.messages, href: "/court-admin-dashboard/messages" },
     ],
   },
 };
@@ -161,14 +182,21 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
     navigate("/auth");
   };
 
-  const portalBase = role === "lawyer" ? "/lawyer-dashboard" : role === "citizen" || role === "client" ? "/dashboard" : "";
+  const portalBase =
+    role === "lawyer" ? "/lawyer-dashboard" :
+    role === "judge" ? "/judge-dashboard" :
+    role === "clerk" ? "/clerk-dashboard" :
+    role === "court_admin" ? "/court-admin-dashboard" :
+    role === "citizen" || role === "client" ? "/dashboard" :
+    "";
   const portalPath = (path: string) => `${portalBase}${path}`;
 
   const getSearchTarget = () => {
     if (role === "citizen" || role === "client") return "/dashboard/my-cases";
     if (role === "lawyer") return "/lawyer-dashboard/my-cases";
-    if (role === "judge") return "/judge-cases";
-    if (role === "clerk") return "/clerk-cases";
+    if (role === "judge") return "/judge-dashboard/my-cases";
+    if (role === "clerk") return "/clerk-dashboard/all-cases";
+    if (role === "court_admin") return "/court-admin-dashboard";
     return "/dashboard/my-cases";
   };
 
@@ -226,7 +254,13 @@ const DashboardLayout = ({ children, role, userName }: DashboardLayoutProps) => 
     }
     if (metadata.caseNumber || metadata.caseId) {
       const q = metadata.caseNumber || metadata.caseId;
-      const target = role === "lawyer" ? "/lawyer-dashboard/my-cases" : role === "judge" ? "/judge-cases" : role === "clerk" ? "/clerk-cases" : "/dashboard/my-cases";
+      const target =
+        role === "lawyer" ? "/lawyer-dashboard/my-cases" :
+        role === "judge" ? "/judge-dashboard/my-cases" :
+        role === "clerk" ? "/clerk-dashboard/all-cases" :
+        role === "court_admin" ? "/court-admin-dashboard" :
+        String(item?.type || "").startsWith("court_") ? "/dashboard/updates" :
+        "/dashboard/my-cases";
       navigate(`${target}?q=${encodeURIComponent(q)}`);
       return;
     }

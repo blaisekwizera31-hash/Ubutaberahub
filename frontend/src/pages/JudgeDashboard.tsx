@@ -46,7 +46,7 @@ const JudgeDashboard = () => {
       status: c.status || "Pending",
       title: c.title || "Untitled case",
       type: c.type || "Case",
-      parties: `${c.citizen || c.requestedBy || "Citizen"} vs ${c.lawyer || "Lawyer"}`,
+      parties: `${c.citizen || c.requestedBy || "Citizen"} vs ${c.lawyer || "Attorney"}`,
     }));
 
     const q = query.trim().toLowerCase();
@@ -100,7 +100,7 @@ const JudgeDashboard = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold tracking-tight">Cases Requiring Your Review</h2>
-            <Button variant="ghost" size="sm" className="text-primary" onClick={() => navigate("/judge-cases")}>
+            <Button variant="ghost" size="sm" className="text-primary" onClick={() => navigate("/judge-dashboard/my-cases")}>
               View All Cases
             </Button>
           </div>
@@ -126,10 +126,10 @@ const JudgeDashboard = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate("/judge-cases")}>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate("/judge-dashboard/my-cases")}>
                   <Eye className="w-4 h-4" /> Review
                 </Button>
-                <Button size="sm" className="gap-1.5" onClick={() => navigate("/judge-cases")}>
+                <Button size="sm" className="gap-1.5" onClick={() => navigate("/judge-dashboard/my-cases")}>
                   <Gavel className="w-4 h-4" /> Issue Ruling
                 </Button>
               </div>

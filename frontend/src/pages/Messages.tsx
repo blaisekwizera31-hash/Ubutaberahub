@@ -17,7 +17,7 @@ interface MessagesProps {
 const translations = {
   en: {
     title: "Messages",
-    subtitle: "Communicate directly with your assigned lawyer or citizen",
+    subtitle: "Communicate directly with your assigned attorney or citizen",
     search: "Search messages...",
     typeMessage: "Type a message...",
     send: "Send",
@@ -77,8 +77,13 @@ const Messages = ({ lang = "en" }: MessagesProps) => {
   const { toast } = useToast();
   const loggedInUser = localStorage.getItem("loggedInUser");
   const user = loggedInUser ? JSON.parse(loggedInUser) : null;
-  const currentRole = user?.role === "lawyer" ? "lawyer" : "citizen";
-  const portalBase = currentRole === "lawyer" ? "/lawyer-dashboard" : "/dashboard";
+  const currentRole = ["lawyer", "judge", "clerk", "court_admin", "citizen"].includes(user?.role) ? user.role : "citizen";
+  const portalBase =
+    currentRole === "lawyer" ? "/lawyer-dashboard" :
+    currentRole === "judge" ? "/judge-dashboard" :
+    currentRole === "clerk" ? "/clerk-dashboard" :
+    currentRole === "court_admin" ? "/court-admin-dashboard" :
+    "/dashboard";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [newMessage, setNewMessage] = useState("");

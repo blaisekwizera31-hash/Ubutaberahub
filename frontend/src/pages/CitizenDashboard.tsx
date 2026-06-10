@@ -16,7 +16,7 @@ const translations = {
     actions: {
       submit: "Submit New Case",
       ask: "Ask AI Assistant",
-      find: "Find a Lawyer",
+      find: "Find an Attorney",
       book: "Book Consultation",
     },
     recentCases: {
@@ -25,8 +25,8 @@ const translations = {
       viewDetails: "View Details",
       pending: "Pending",
       empty: "No recent cases found yet.",
-      assignedLawyer: "Assigned Lawyer",
-      noLawyer: "No lawyer assigned yet",
+      assignedLawyer: "Assigned Attorney",
+      noLawyer: "No attorney assigned yet",
       phone: "Phone",
       email: "Email",
     },
@@ -250,13 +250,13 @@ const CitizenDashboard = () => {
                 <div className="rounded-xl border border-border p-4">
                   <UserPhoto
                     src={selectedDetails.lawyer?.profile_photo}
-                    alt={selectedDetails.lawyer?.name || "Lawyer"}
+                    alt={selectedDetails.lawyer?.name || "Attorney"}
                     className="mb-3 h-20 w-20"
                   />
                   <p className="mb-2 text-sm font-semibold">{t.recentCases.assignedLawyer}</p>
                   {selectedDetails.lawyer ? (
                     <>
-                      <h3 className="font-semibold">{selectedDetails.lawyer.name || "Lawyer"}</h3>
+                      <h3 className="font-semibold">{selectedDetails.lawyer.name || "Attorney"}</h3>
                       <p className="text-sm text-muted-foreground">
                         {t.recentCases.email}: {selectedDetails.lawyer.email || "Not provided"}
                       </p>

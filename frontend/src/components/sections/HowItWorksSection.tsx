@@ -9,7 +9,7 @@ const translations = {
     steps: [
       {
         title: "Create Account",
-        desc: "Sign up and select your role - citizen, lawyer, clerk, judge, or admin.",
+        desc: "Sign up and select your role - citizen, attorney, clerk, judge, or admin.",
       },
       {
         title: "Submit Your Case",

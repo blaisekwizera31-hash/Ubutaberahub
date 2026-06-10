@@ -12,7 +12,7 @@ const sampleConversation = [
   },
   {
     role: "assistant",
-    content: "In Rwanda, if you are arrested, you have several fundamental rights protected by the Constitution:\n\n1. **Right to be informed** - You must be told the reasons for your arrest immediately.\n\n2. **Right to remain silent** - You cannot be forced to make statements that may be used against you.\n\n3. **Right to legal counsel** - You can request a lawyer, and if you cannot afford one, the state may provide one.\n\n4. **Right to humane treatment** - You must be treated with dignity and cannot be subjected to torture.\n\nWould you like more details about any of these rights?",
+    content: "In Rwanda, if you are arrested, you have several fundamental rights protected by the Constitution:\n\n1. **Right to be informed** - You must be told the reasons for your arrest immediately.\n\n2. **Right to remain silent** - You cannot be forced to make statements that may be used against you.\n\n3. **Right to legal counsel** - You can request an attorney, and if you cannot afford one, the state may provide one.\n\n4. **Right to humane treatment** - You must be treated with dignity and cannot be subjected to torture.\n\nWould you like more details about any of these rights?",
   },
 ];
 
@@ -22,7 +22,7 @@ const translations = {
     subtitle: "Ask questions in Kinyarwanda, English, or French",
     placeholder: "Type your legal question...",
     voiceLabel: "Voice input",
-    disclaimer: "AI provides guidance only, not legal advice. Consult a lawyer for specific cases.",
+    disclaimer: "AI provides guidance only, not legal advice. Consult an attorney for specific cases.",
   },
   rw: {
     title: "Umufasha w'Amategeko wa AI",

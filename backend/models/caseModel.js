@@ -9,7 +9,7 @@ import pool from "../config/db.js";
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 export const CASE_STATUSES = Object.freeze([
-  "Pending", "Accepted", "In Progress", "Under Review",
+  "Pending", "Awaiting Assignment", "Accepted", "In Progress", "Under Review",
   "Awaiting Ruling", "Closed", "Resolved", "Rejected",
 ]);
 
@@ -124,15 +124,61 @@ export async function listForUser(userId, opts = {}) {
 }
 
 /**
+ * listAll - Returns all filed cases for court registry/clerk views.
+ */
+export async function listAll(opts = {}) {
+  const { limit = 200, offset = 0, status } = opts;
+
+  let query = `
+    SELECT
+      cases.*,
+      citizen.name as citizen_name,
+      citizen.email as citizen_email,
+      citizen.phone as citizen_phone,
+      citizen.profile_photo as citizen_photo,
+      lawyer.name as lawyer_name,
+      lawyer.email as lawyer_email,
+      lawyer.phone as lawyer_phone,
+      lawyer.profile_photo as lawyer_photo,
+      COALESCE(evidence_counts.evidence_count, 0)::int as evidence_count
+    FROM cases
+    LEFT JOIN users citizen ON citizen.id = cases.citizen_id
+    LEFT JOIN users lawyer ON lawyer.id = cases.assigned_lawyer_id
+    LEFT JOIN (
+      SELECT case_id, COUNT(*) as evidence_count
+      FROM case_evidence
+      GROUP BY case_id
+    ) evidence_counts ON evidence_counts.case_id = cases.id
+  `;
+  const values = ["true"];
+  let idx = 2;
+  query += ` WHERE cases.metadata->>'registered_by_clerk' = $1`;
+
+  if (status && CASE_STATUSES.includes(status)) {
+    query += ` AND cases.status = $${idx++}`;
+    values.push(status);
+  }
+
+  query += ` ORDER BY cases.filed_at DESC LIMIT $${idx++} OFFSET $${idx++}`;
+  values.push(limit, offset);
+
+  const { rows } = await pool.query(query, values);
+  return rows.map((row) => normalize({
+    ...row,
+    metadata: { ...(row.metadata || {}), evidence_count: row.evidence_count || 0 },
+  }));
+}
+
+/**
  * create — Insert a new case row.
  */
 export async function create(payload) {
   const row = {
-    case_number:        generateCaseNumber(),
+    case_number:        String(payload.caseNumber || "").trim() || generateCaseNumber(),
     title:              String(payload.title).trim(),
     description:        String(payload.description || "").trim(),
     case_type:          payload.caseType   || "Other",
-    status:             "Pending",
+    status:             safeStatus(payload.status || "Pending"),
     priority:           safePriority(payload.priority),
     citizen_id:         payload.citizenId  || null,
     assigned_lawyer_id: payload.lawyerId   || null,
@@ -160,6 +206,73 @@ export async function create(payload) {
   return normalize(rows[0]);
 }
 
+export async function updateRegistryCase(id, updates) {
+  const existing = await findById(id);
+  if (!existing) return null;
+
+  const metadata = { ...(existing.metadata || {}), ...(updates.metadata || {}) };
+  const fields = [];
+  const values = [];
+  let idx = 1;
+
+  if (updates.title !== undefined) {
+    fields.push(`title = $${idx++}`);
+    values.push(String(updates.title).trim());
+  }
+  if (updates.description !== undefined) {
+    fields.push(`description = $${idx++}`);
+    values.push(String(updates.description || "").trim());
+  }
+  if (updates.caseType !== undefined) {
+    fields.push(`case_type = $${idx++}`);
+    values.push(String(updates.caseType || "Other").trim());
+  }
+  if (updates.priority !== undefined) {
+    fields.push(`priority = $${idx++}`);
+    values.push(safePriority(updates.priority));
+  }
+  if (updates.status !== undefined) {
+    fields.push(`status = $${idx++}`);
+    values.push(safeStatus(updates.status));
+  }
+  if (updates.citizenId !== undefined) {
+    fields.push(`citizen_id = $${idx++}`);
+    values.push(updates.citizenId || null);
+  }
+
+  fields.push(`metadata = $${idx++}`);
+  values.push(metadata);
+  fields.push(`updated_at = NOW()`);
+  values.push(id);
+
+  const query = `UPDATE cases SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`;
+  const { rows } = await pool.query(query, values);
+  return normalize(rows[0]);
+}
+
+export async function listCourtUpdatesForCitizen(citizenId) {
+  const { rows } = await pool.query(
+    `SELECT
+      cases.*,
+      COALESCE(evidence_counts.evidence_count, 0)::int as evidence_count
+     FROM cases
+     LEFT JOIN (
+       SELECT case_id, COUNT(*) as evidence_count
+       FROM case_evidence
+       GROUP BY case_id
+     ) evidence_counts ON evidence_counts.case_id = cases.id
+     WHERE cases.citizen_id = $1
+       AND cases.metadata->>'registered_by_clerk' = 'true'
+     ORDER BY cases.updated_at DESC, cases.filed_at DESC
+     LIMIT 100`,
+    [citizenId],
+  );
+  return rows.map((row) => normalize({
+    ...row,
+    metadata: { ...(row.metadata || {}), evidence_count: row.evidence_count || 0 },
+  }));
+}
+
 /**
  * updateStatus — Change a case's status.
  */
@@ -179,8 +292,80 @@ export async function updateStatus(id, status) {
  */
 export async function assignJudge(caseId, judgeId) {
   const { rows } = await pool.query(
-    'UPDATE cases SET assigned_judge_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-    [judgeId, caseId]
+    `UPDATE cases
+     SET assigned_judge_id = $1,
+         status = 'Under Review',
+         metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb,
+         updated_at = NOW()
+     WHERE id = $3
+     RETURNING *`,
+    [judgeId, JSON.stringify({ assigned_at: new Date().toISOString() }), caseId]
+  );
+  return normalize(rows[0]);
+}
+
+export async function listAssignmentQueue() {
+  const { rows } = await pool.query(
+    `SELECT
+      cases.*,
+      citizen.name as citizen_name,
+      citizen.email as citizen_email,
+      citizen.phone as citizen_phone,
+      COALESCE(evidence_counts.evidence_count, 0)::int as evidence_count
+     FROM cases
+     LEFT JOIN users citizen ON citizen.id = cases.citizen_id
+     LEFT JOIN (
+       SELECT case_id, COUNT(*) as evidence_count
+       FROM case_evidence
+       GROUP BY case_id
+     ) evidence_counts ON evidence_counts.case_id = cases.id
+     WHERE cases.metadata->>'registered_by_clerk' = 'true'
+       AND cases.assigned_judge_id IS NULL
+     ORDER BY cases.filed_at ASC
+     LIMIT 200`
+  );
+  return rows.map((row) => normalize({
+    ...row,
+    metadata: { ...(row.metadata || {}), evidence_count: row.evidence_count || 0 },
+  }));
+}
+
+export async function listJudgeWorkloads() {
+  const { rows } = await pool.query(
+    `SELECT
+      users.id,
+      users.name,
+      users.email,
+      users.specialization,
+      users.years_experience,
+      users.profile_photo,
+      COUNT(cases.id)::int as assigned_count,
+      COUNT(cases.id) FILTER (WHERE cases.status NOT IN ('Closed', 'Resolved', 'Rejected'))::int as active_count
+     FROM users
+     LEFT JOIN cases ON cases.assigned_judge_id = users.id
+     WHERE users.role = 'judge'
+     GROUP BY users.id
+     ORDER BY active_count ASC, users.name ASC`
+  );
+  return rows;
+}
+
+export async function assignToJudge({ caseId, judgeId, assignedBy, suggestedHearingAt, notes }) {
+  const metadata = {
+    assigned_at: new Date().toISOString(),
+    assigned_by: assignedBy || null,
+    suggested_hearing_at: suggestedHearingAt || null,
+    assignment_notes: notes || "",
+  };
+  const { rows } = await pool.query(
+    `UPDATE cases
+     SET assigned_judge_id = $1,
+         status = 'Under Review',
+         metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb,
+         updated_at = NOW()
+     WHERE id = $3
+     RETURNING *`,
+    [judgeId, JSON.stringify(metadata), caseId]
   );
   return normalize(rows[0]);
 }
@@ -218,6 +403,27 @@ export async function listEvidence(caseId) {
   const { rows } = await pool.query(
     'SELECT * FROM case_evidence WHERE case_id = $1 ORDER BY uploaded_at DESC',
     [caseId]
+  );
+  return rows;
+}
+
+export async function listAllEvidence() {
+  const { rows } = await pool.query(
+    `SELECT
+      evidence.*,
+      cases.case_number,
+      cases.title as case_title,
+      cases.case_type,
+      cases.status as case_status,
+      cases.priority as case_priority,
+      cases.filed_at,
+      uploader.name as uploaded_by_name
+    FROM case_evidence evidence
+    JOIN cases ON cases.id = evidence.case_id
+    LEFT JOIN users uploader ON uploader.id = evidence.uploaded_by
+    WHERE cases.metadata->>'registered_by_clerk' = 'true'
+    ORDER BY evidence.uploaded_at DESC
+    LIMIT 300`
   );
   return rows;
 }

@@ -9,7 +9,7 @@ import { uploadProfilePhoto } from '../config/cloudinary.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/emailService.js';
 
 const safeRole = (v) =>
-  ["citizen", "lawyer", "judge", "clerk"].includes(v) ? v : "citizen";
+  ["citizen", "lawyer", "judge", "clerk", "court_admin"].includes(v) ? v : "citizen";
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'your-secret-key', {

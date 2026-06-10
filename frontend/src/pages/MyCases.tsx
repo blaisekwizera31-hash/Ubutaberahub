@@ -56,9 +56,9 @@ const MyCases = () => {
             searchPlaceholder: "Search cases...",
             filed: "Filed",
             filedBy: "Filed by",
-            lawyer: "Lawyer",
-            assignedLawyer: "Assigned Lawyer",
-            noLawyer: "No lawyer assigned yet",
+            lawyer: "Attorney",
+            assignedLawyer: "Assigned Attorney",
+            noLawyer: "No attorney assigned yet",
             phone: "Phone",
             email: "Email",
             viewDetails: "View Details",
@@ -208,13 +208,13 @@ const MyCases = () => {
                   <div className="rounded-xl border border-border p-4">
                     <UserPhoto
                       src={selectedDetails.lawyer?.profile_photo}
-                      alt={selectedDetails.lawyer?.name || "Lawyer"}
+                      alt={selectedDetails.lawyer?.name || "Attorney"}
                       className="mb-3 h-20 w-20"
                     />
                     <p className="mb-2 text-sm font-semibold">{t.assignedLawyer}</p>
                     {selectedDetails.lawyer ? (
                       <>
-                        <h3 className="font-semibold">{selectedDetails.lawyer.name || "Lawyer"}</h3>
+                        <h3 className="font-semibold">{selectedDetails.lawyer.name || "Attorney"}</h3>
                         <p className="text-sm text-muted-foreground">
                           {t.email}: {selectedDetails.lawyer.email || "Not provided"}
                         </p>

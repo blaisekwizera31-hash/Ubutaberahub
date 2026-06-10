@@ -34,7 +34,7 @@ const LEGAL_RESPONSES = {
 
 2. **Right to remain silent** - You cannot be forced to make statements that may be used against you.
 
-3. **Right to legal counsel** - You can request a lawyer. If you cannot afford one, the state may provide legal aid.
+3. **Right to legal counsel** - You can request an attorney. If you cannot afford one, the state may provide legal aid.
 
 4. **Right to humane treatment** - You must be treated with dignity and cannot be subjected to torture or cruel treatment.
 
@@ -42,7 +42,7 @@ const LEGAL_RESPONSES = {
 
 6. **Right to inform family** - You have the right to inform your family or someone of your choice about your arrest.
 
-Remember: These are general rights. For specific legal advice about your situation, consult a licensed lawyer.`,
+Remember: These are general rights. For specific legal advice about your situation, consult a licensed attorney.`,
     rw: `Niba ufatwa mu Rwanda, ufite uburenganzira bwinshi burindwa n'Itegeko Nshinga:
 
 1. **Uburenganzira bwo kumenyeshwa** - Ugomba kubwirwa impamvu yo gufatwa ako kanya mu rurimi usobanukiramo.
@@ -269,7 +269,7 @@ Seek legal counsel for family law matters as they can be complex.`,
 - Contract disputes
 - Business law questions
 
-Please note: I provide general legal information, not specific legal advice. For your particular situation, please consult with a licensed lawyer.
+Please note: I provide general legal information, not specific legal advice. For your particular situation, please consult with a licensed attorney.
 
 What legal question can I help you with today?`,
     rw: `Ndi hano kugirango nkufashe gusobanukirwa uburenganzira bwawe n'amahitamo mu Rwanda. Nshobora gutanga ubuyobozi rusange kuri:

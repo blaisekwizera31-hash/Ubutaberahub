@@ -8,10 +8,10 @@ import pool from "../config/db.js";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-export const ROLES = Object.freeze(["citizen", "lawyer", "clerk", "judge"]);
+export const ROLES = Object.freeze(["citizen", "lawyer", "clerk", "judge", "court_admin"]);
 
 /** Columns exposed publicly (no sensitive internals) */
-const PUBLIC_COLS = "id, email, name, role, profile_photo, created_at, updated_at";
+const PUBLIC_COLS = "id, email, name, role, profile_photo, specialization, years_experience, created_at, updated_at";
 
 /** Columns exposed for lawyer directory listings */
 const LAWYER_COLS =
@@ -149,6 +149,56 @@ export async function listByRole(role, opts = {}) {
 
   const { rows } = await pool.query(query, values);
   return rows;
+}
+
+export async function searchCitizens(query, opts = {}) {
+  const q = String(query || "").trim();
+  if (q.length < 2) return [];
+
+  const { limit = 8 } = opts;
+  const { rows } = await pool.query(
+    `SELECT id, email, name, role, profile_photo, phone
+     FROM users
+     WHERE role = 'citizen'
+       AND (name ILIKE $1 OR email ILIKE $1 OR phone ILIKE $1)
+     ORDER BY
+       CASE WHEN lower(name) = lower($2) THEN 0 ELSE 1 END,
+       name ASC,
+       email ASC
+     LIMIT $3`,
+    [`%${q}%`, q, limit],
+  );
+  return rows;
+}
+
+export async function findBestCitizenMatch({ name, email, phone }) {
+  const values = [];
+  const clauses = [];
+  let idx = 1;
+
+  if (email) {
+    clauses.push(`lower(email) = lower($${idx++})`);
+    values.push(String(email).trim());
+  }
+  if (phone) {
+    clauses.push(`phone = $${idx++}`);
+    values.push(String(phone).trim());
+  }
+  if (name) {
+    clauses.push(`lower(name) = lower($${idx++})`);
+    values.push(String(name).trim());
+  }
+
+  if (!clauses.length) return null;
+
+  const { rows } = await pool.query(
+    `SELECT id, email, name, role, profile_photo, phone
+     FROM users
+     WHERE role = 'citizen' AND (${clauses.join(" OR ")})
+     LIMIT 1`,
+    values,
+  );
+  return rows[0] || null;
 }
 
 /**

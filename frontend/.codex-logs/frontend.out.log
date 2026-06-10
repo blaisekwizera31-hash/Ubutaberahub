@@ -1,0 +1,46 @@
+
+C:\Users\blais\Documents\PROJECTSS\react\Ubutaberahub\frontend>os.setenv('POSH_SESSION_ID', '250359c1-8051-4ae7-a360-5eec23e2775b');load(io.open('C:\\Users\\blais\\AppData\\Local\\Packages\\ohmyposh.cli_96v55e8n804z4\\LocalCache\\Local\\oh-my-posh\\init.2661789557581060197.lua', "r"):read("*a"))() 
+
+> ubutaberahub-frontend@0.0.0 dev
+> vite --host 0.0.0.0
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m1168[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m8080[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://10.12.73.226:[1m8080[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.25.240.1:[1m8080[22m/[39m
+[2m3:04:13 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/JudgeDashboard.tsx, /src/pages/CitizenDashboard.tsx, /src/pages/LawyerDashboard.tsx, /src/pages/JudgeCases.tsx, /src/pages/LawyerCases.tsx, /src/pages/LawyerClients.tsx, /src/pages/ClerkRegistry.tsx, /src/pages/ClerkDashboard.tsx, /src/pages/ClerkCases.tsx, /src/pages/Appointments.tsx, /src/pages/SubmitCase.tsx, /src/pages/FindLawyer.tsx, /src/pages/MyCases.tsx, /src/pages/Messages.tsx, /src/components/Dashboard/DashboardLayout.tsx[22m
+[2m3:04:29 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m3:04:45 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Dashboard/DashboardLayout.tsx, /src/index.css[22m
+[2m3:05:20 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/components/layout/DashboardHeader.tsx[22m
+[2m3:05:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkDashboard.tsx, /src/index.css[22m
+[2m3:05:56 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkCases.tsx, /src/index.css[22m
+[2m3:07:34 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkRegistry.tsx, /src/index.css[22m
+[2m3:07:53 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkCases.tsx, /src/index.css[22m
+[2m3:08:03 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkDashboard.tsx, /src/index.css[22m
+[2m3:10:37 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkRegistry.tsx, /src/index.css[22m
+[2m3:23:07 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/JudgeDashboard.tsx, /src/pages/CitizenDashboard.tsx, /src/pages/LawyerDashboard.tsx, /src/pages/JudgeCases.tsx, /src/pages/LawyerCases.tsx, /src/pages/LawyerClients.tsx, /src/pages/ClerkRegistry.tsx, /src/pages/ClerkDashboard.tsx, /src/pages/ClerkCases.tsx, /src/pages/Appointments.tsx, /src/pages/SubmitCase.tsx, /src/pages/FindLawyer.tsx, /src/pages/MyCases.tsx, /src/pages/Messages.tsx, /src/components/Dashboard/DashboardLayout.tsx[22m
+[2m3:23:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkRegistry.tsx, /src/index.css[22m
+[2m3:23:32 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Dashboard/DashboardLayout.tsx, /src/index.css[22m
+[2m3:23:46 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m3:23:57 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Messages.tsx, /src/index.css[22m
+[2m3:24:21 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m3:38:49 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/JudgeDashboard.tsx, /src/pages/CitizenDashboard.tsx, /src/pages/LawyerDashboard.tsx, /src/pages/JudgeCases.tsx, /src/pages/LawyerCases.tsx, /src/pages/LawyerClients.tsx, /src/pages/ClerkRegistry.tsx, /src/pages/ClerkDashboard.tsx, /src/pages/ClerkCases.tsx, /src/pages/Appointments.tsx, /src/pages/SubmitCase.tsx, /src/pages/FindLawyer.tsx, /src/pages/MyCases.tsx, /src/pages/Messages.tsx, /src/components/Dashboard/DashboardLayout.tsx[22m
+[2m3:39:16 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkRegistry.tsx, /src/index.css[22m
+[2m3:40:31 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkCases.tsx, /src/index.css[22m
+[2m3:41:21 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m3:41:37 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Dashboard/DashboardLayout.tsx, /src/index.css[22m
+[2m3:41:55 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Dashboard/DashboardLayout.tsx, /src/index.css[22m
+[2m3:42:12 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Dashboard/DashboardLayout.tsx, /src/index.css[22m
+[2m3:42:31 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m4:27:06 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/JudgeDashboard.tsx, /src/pages/CitizenDashboard.tsx, /src/pages/LawyerDashboard.tsx, /src/pages/JudgeCases.tsx, /src/pages/LawyerCases.tsx, /src/pages/LawyerClients.tsx, /src/pages/ClerkRegistry.tsx, /src/pages/ClerkDashboard.tsx, /src/pages/ClerkCases.tsx, /src/pages/Appointments.tsx, /src/pages/SubmitCase.tsx, /src/pages/FindLawyer.tsx, /src/pages/MyCases.tsx, /src/pages/Messages.tsx, /src/components/Dashboard/DashboardLayout.tsx, /src/pages/CitizenUpdates.tsx[22m
+[2m4:27:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClerkRegistry.tsx, /src/index.css[22m
+[2m4:28:39 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Dashboard/DashboardLayout.tsx, /src/index.css[22m
+[2m4:28:53 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m4:29:03 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Messages.tsx, /src/index.css[22m
+[2m4:29:11 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/ProtectedRoute.tsx, /src/index.css[22m
+[2m4:30:15 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Auth.tsx, /src/index.css[22m
+[2m4:30:24 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Auth.tsx, /src/index.css[22m
+[2m4:31:12 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/components/layout/DashboardHeader.tsx[22m
+[2m4:31:47 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CourtAdminDashboard.tsx, /src/index.css[22m

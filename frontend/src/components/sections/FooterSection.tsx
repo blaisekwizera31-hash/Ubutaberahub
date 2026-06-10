@@ -5,9 +5,9 @@ const translations = {
   en: {
     tagline: "Improving access to justice in Rwanda through AI-powered legal assistance.",
     col1Title: "Platform",
-    col1Links: ["Features", "How It Works", "AI Assistant", "Find a Lawyer"],
+    col1Links: ["Features", "How It Works", "AI Assistant", "Find an Attorney"],
     col2Title: "For Users",
-    col2Links: ["Citizens Portal", "Lawyers Portal", "Court Officials", "Admin Dashboard"],
+    col2Links: ["Citizens Portal", "Attorneys Portal", "Court Officials", "Admin Dashboard"],
     col3Title: "Legal",
     col3Links: ["Privacy Policy", "Terms of Service", "Data Protection", "Accessibility"],
     copyright: "© 2026 UBUTABERA",
